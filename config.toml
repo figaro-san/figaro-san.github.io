@@ -1,0 +1,38 @@
+theme = "zola-theme-terminimal"
+title = "Figaro's Blog"
+
+# The URL the site will be built for
+base_url = "https://figaro-san.github.io"
+#base_url = "https://example.com"
+
+# Whether to automatically compile all Sass files in the sass directory
+compile_sass = true
+
+# Whether to build a search index to be used later on by a JavaScript library
+build_search_index = false
+
+taxonomies = [
+	{name = "tags"}
+]
+
+[markdown]
+# Whether to do syntax highlighting
+# Theme can be customised by setting the `highlight_theme` variable to a theme supported by Zola
+highlight_code = true
+highlight_theme = "boron"
+
+[extra]
+# Put all your custom variables here
+accent_color = "green"
+background_color = "dark"
+logo_text = "Figaro's Blog"
+enable_post_view_navigation = true
+favicon = "/butterfly.jpg"
+
+
+menu_items = [
+	{name = "blog", url = "$BASE_URL"},
+	{name = "tags", url = "$BASE_URL/tags"},
+	{name = "whoami", url = "$BASE_URL/whoami"},
+	{name = "about", url = "$BASE_URL/about"}
+]

@@ -34,5 +34,6 @@ menu_items = [
 	{name = "blog", url = "$BASE_URL"},
 	{name = "tags", url = "$BASE_URL/tags"},
 	{name = "whoami", url = "$BASE_URL/whoami"},
-	{name = "about", url = "$BASE_URL/about"}
+	{name = "about", url = "$BASE_URL/about"},
+	{name = "links", url = "$BASE_URL/links"},
 ]

@@ -8,7 +8,9 @@ tags = ["Tech", "CTF", "OSINT"]
 # この記事について
 この記事は2024/6/8 12:00 から 2024/6/9 12:00までに行われたDIVER OSINT CTFにおいて、私が正解した問題などのWriteupになります。
 
-チームのWriteupもありますが、個人用にも残しておこうと思いQiitaに上げました。
+チームのWriteupもありますが、個人用にも残しておこうと思い上げました。
+
+<!-- more -->
 
 # Welcome / Welcome
 >DIVER OSINT CTFへようこそ！

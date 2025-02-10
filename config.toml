@@ -29,7 +29,6 @@ logo_text = "Figaro's Blog"
 enable_post_view_navigation = true
 favicon = "/butterfly.jpg"
 
-
 menu_items = [
 	{name = "blog", url = "$BASE_URL"},
 	{name = "tags", url = "$BASE_URL/tags"},

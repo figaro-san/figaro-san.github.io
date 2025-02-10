@@ -28,9 +28,39 @@ tags = ["Other"]
 
 ---
 
-# Breakcoreについて
-私が最も好きなジャンル。特に高いBPMのアーメンブレイクと呼ばれるドラムを基調とした音楽。
-全体的に退廃的でグロテスク、電子的でもあり、日本のアニメやゲームなどのサブカルチャーをサンプリングして取り入れていることもある。動画のサムネイルもアニメ調かつ物悲しい印象の物が多い。
-Breakcoreの歴史は浅く、日本では認知が進んでいないジャンルでもある。
-とてもDoomerが好きそうなジャンルであることは想像に固くない。(私は自身をDoomerと定義してはいない)
-私が好きなのはTOKYOPILLの「Ethereal」、hkmoriの「anybody can find love」、「psychosis normality, delirium reality」など。
+# Breakcore?について
+私はBreakcoreの歴史について詳しくないが、私が好きなBreakcoreは所謂「新しいBreakcore」あるいは「Breakcoreだと誤認されているもの」であると思う。私は、一般的に言われるVenetian Snaresが確立した正当な「Breakcore」ではなく、2020年代に登場した、退廃的でグロテスク、エモーショナルな「Breakcoreのような何か」を好んで聞いている。例えばusedcvnt、Sewerslvt、TOKYOPILL、hkmoriなどのアーティストが生み出したBreakcoreのことであり、その特徴は
+- アニメやゲーム、インターネットミームなどのサンプリング
+- 退廃的でグロテスク、非現実的でDoomer的
+- 高速なBPM (160-250程度)、ノイズやグリッチ、ディストーションの多用と、静寂から爆音へと急激に転換する世界観
+- 画面いっぱいのグリッチ・ノイズ・ティアリング・Linux的コマンド文字列が施された2次元美少女
+
+などが挙げられる。一度聞いてみると理解できるが、こうした「憂鬱さ」はVenetial Snaresなどには無いものであり、それゆえ多くのBreakcoreファンは現代的なBreakcoreを全く違うジャンルだと見なしている。
+
+この記事を書くにあたって、少しBreakcoreについて調べてみた。
+以下は[これ](https://www.reddit.com/r/breakcore/comments/192gx43/read_this_if_you_are_confused_about_breakcore/?rdt=46477)の要約になっている。
+
+1. **ブレイクビート音楽の誕生（1980〜90年代）**
+    - アシッドハウス、ニューウェーブ、ヒップホップ、レゲエの影響を受けた音楽が進化し、**ハードコア（オールドスクール・レイブ）**が生まれる。
+    - これが**Jungle（ジャングル）** へと発展し、ラガジャングル、テックステップ、アトモスフェリック・ジャングルなどのサブジャンルが生まれる。
+
+2. **JungleとDrum and Bassの分岐（1990年代〜）**
+    - Jungleの一部のプロデューサーが「Drum and Bass」という新たな名称を使い始め、DNBが確立。
+    - これには**LTJ Bukem（アトモスフェリックDNB）、Goldie（ダークDNB）、Pendulum（ロック要素）** など多様なスタイルが含まれる。
+    - 現代ではDNBは2ステップのリズム、Jungleはブレイクビーツ重視という違いがある。
+
+3. **Breakcoreの誕生（1990年代〜）**
+    - JungleやDNB、Gabber（ハードコアテクノ）をさらに過激にしたものが**Breakcore**。
+    - ノイズや極端なブレイクのチョップを特徴とし、Venetian Snares、FFFなどが代表的アーティスト。
+    - **Drill and Bass**（Aphex Twin、Squarepusher）も似ているが、よりテクニカルでジャズやIDM寄り。
+
+4. **「新しいBreakcore（Glitchbreak）」の登場（2010年代〜）**
+    - **Sewerslvt** などのアーティストが生み出したメランコリックでエモーショナルなサウンドが「Breakcore」と呼ばれているが、従来のBreakcoreとは異なる。
+    - この音楽はクラブ向けではなく、TikTokやYouTubeで広まり、ジャンル名として「Glitchbreak」や「Depressive Drum and Bass」が提案されている。
+
+5. **結論**
+    - Jungle、DNB、Breakcoreは相互に影響を受けているが、それぞれ異なるルーツと進化を遂げている。
+    - 現代の「Breakcore」とされる音楽は、実際には新しいジャンルであり、過去のBreakcoreとは異なる側面を持つ。
+    - 「正しいジャンル定義」にこだわるか、新しい音楽の進化を受け入れるかはリスナー次第。
+
+厳密な区分けなどどうでも良いが、私は「Breakcore好き」と名乗らないほうが良さそうだ。

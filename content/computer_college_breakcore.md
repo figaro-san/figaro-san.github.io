@@ -29,13 +29,15 @@ tags = ["Other"]
 ---
 
 # Breakcore?について
-私はBreakcoreの歴史について詳しくないが、私が好きなBreakcoreは所謂「新しいBreakcore」あるいは「Breakcoreだと誤認されているもの」であると思う。私は、一般的に言われるVenetian Snaresが確立した正当な「Breakcore」ではなく、2020年代に登場した、退廃的でグロテスク、エモーショナルな「Breakcoreのような何か」を好んで聞いている。例えばusedcvnt、Sewerslvt、TOKYOPILL、hkmoriなどのアーティストが生み出したBreakcoreのことであり、その特徴は
+私はBreakcoreの歴史について詳しくないが、私が好きなBreakcoreは所謂「新しいBreakcore」あるいは「Breakcoreだと誤認されているもの」であると思う。私は、一般的に言われるVenetian Snaresが確立した正当な「Breakcore」ではなく、2010年代以降から登場した、退廃的でグロテスク、エモーショナルな「Breakcoreのような何か」を好んで聞いている。例えばusedcvnt、Sewerslvt、TOKYOPILL、hkmoriなどのアーティストが生み出したBreakcoreのことであり、その特徴は
 - アニメやゲーム、インターネットミームなどのサンプリング
 - 退廃的でグロテスク、非現実的でDoomer的
 - 高速なBPM (160-250程度)、ノイズやグリッチ、ディストーションの多用と、静寂から爆音へと急激に転換する世界観
 - 画面いっぱいのグリッチ・ノイズ・ティアリング・Linux的コマンド文字列が施された2次元美少女
 
 などが挙げられる。一度聞いてみると理解できるが、こうした「憂鬱さ」はVenetial Snaresなどには無いものであり、それゆえ多くのBreakcoreファンは現代的なBreakcoreを全く違うジャンルだと見なしている。
+
+おそらく「新しいBreakcore」を代表するような作品は、例えばhkmoriの「anybody can find live (except you.)」や、TOKYOPILLの「Ethereal」などだと思われる。
 
 この記事を書くにあたって、少しBreakcoreについて調べてみた。
 以下は[これ](https://www.reddit.com/r/breakcore/comments/192gx43/read_this_if_you_are_confused_about_breakcore/?rdt=46477)の要約になっている。
@@ -63,4 +65,4 @@ tags = ["Other"]
     - 現代の「Breakcore」とされる音楽は、実際には新しいジャンルであり、過去のBreakcoreとは異なる側面を持つ。
     - 「正しいジャンル定義」にこだわるか、新しい音楽の進化を受け入れるかはリスナー次第。
 
-厳密な区分けなどどうでも良いが、私は「Breakcore好き」と名乗らないほうが良さそうだ。
+厳密な区分けなどどうでも良いが、私は「Breakcore好き」と名乗らないほうが良さそうだ。あと、私は「新しいBreakcore」の中でもピアノのメロディが混ざっている楽曲を好んでいるのだが、これに名前はついているのだろうか。

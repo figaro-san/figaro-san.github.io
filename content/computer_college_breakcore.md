@@ -35,7 +35,7 @@ tags = ["Other"]
 - 高速なBPM (160-250程度)、ノイズやグリッチ、ディストーションの多用と、静寂から爆音へと急激に転換する世界観
 - 画面いっぱいのグリッチ・ノイズ・ティアリング・Linux的コマンド文字列が施された2次元美少女
 
-などが挙げられる。一度聞いてみると理解できるが、こうした「憂鬱さ」はVenetial Snaresなどには無いものであり、それゆえ多くのBreakcoreファンは現代的なBreakcoreを全く違うジャンルだと見なしている。
+などが挙げられる。一度聞いてみると理解できるが、こうした「憂鬱さ」はVenetian Snaresなどには無いものであり、それゆえ多くのBreakcoreファンは現代的なBreakcoreを全く違うジャンルだと見なしている。
 
 おそらく「新しいBreakcore」を代表するような作品は、例えばhkmoriの「anybody can find live (except you.)」や、TOKYOPILLの「Ethereal」などだと思われる。
 

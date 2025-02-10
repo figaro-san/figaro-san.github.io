@@ -1,6 +1,6 @@
 +++
-title = "楽しいこと"
-date = 2025-02-02
+title = "計算機、大学、Breakcore"
+date = 2025-02-10
 [taxonomies]
 tags = ["Other"]
 +++

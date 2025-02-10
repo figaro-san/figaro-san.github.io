@@ -2,7 +2,7 @@
 date = 2024-06-17
 title = "SECCON Beginners CTF 敗戦記"
 [taxonomies]
-tags = ["Tech", "Pwn", "Asm", "C", "CTF"]
+tags = ["CTF"]
 +++
 # この記事について
 この記事はWriteupというより敗戦記です。

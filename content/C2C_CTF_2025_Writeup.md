@@ -2,7 +2,7 @@
 title = "C2C CTF Writeup"
 date = 2025-02-10
 [taxonomies]
-tags = ["CTF", "Pwn", "Tech"]
+tags = ["CTF"]
 +++
 
 # この記事について

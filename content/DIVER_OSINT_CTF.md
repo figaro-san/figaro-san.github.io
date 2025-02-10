@@ -2,7 +2,7 @@
 date = 2024-06-13
 title = "DIVER OSINT CTF writeup"
 [taxonomies]
-tags = ["Tech", "CTF", "OSINT"]
+tags = ["CTF"]
 +++
 
 # この記事について

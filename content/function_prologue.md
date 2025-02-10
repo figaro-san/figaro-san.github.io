@@ -2,7 +2,7 @@
 date = 2023-07-09
 title = "関数のプロローグについて"
 [taxonomies]
-tags = ["Tech", "Pwn", "Asm", "C"]
+tags = ["Pwn", "Asm", "C"]
 +++
 
 

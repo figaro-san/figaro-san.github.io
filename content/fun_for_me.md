@@ -2,7 +2,7 @@
 title = "楽しいこと"
 date = 2025-02-02
 [taxonomies]
-tags = ["Others"]
+tags = ["Other"]
 +++
 
 僕の楽しみについて

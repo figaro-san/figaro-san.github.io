@@ -29,7 +29,7 @@ tags = ["Other"]
 ---
 
 # Breakcore?について
-私はBreakcoreの歴史について詳しくないが、私が好きなBreakcoreは所謂「新しいBreakcore」あるいは「Breakcoreだと誤認されているもの」であると思う。私は、一般的に言われるVenetian Snaresが確立した正当な「Breakcore」ではなく、2010年代以降から登場した、退廃的でグロテスク、エモーショナルな「Breakcoreのような何か」を好んで聞いている。例えばusedcvnt、Sewerslvt、TOKYOPILL、hkmoriなどのアーティストが生み出したBreakcoreのことであり、その特徴は
+私はBreakcoreの歴史について詳しくないが、私が好きなBreakcoreは所謂「新しいBreakcore」あるいは「Breakcoreだと誤認されているもの」であると思う。私は、一般的に言われるVenetian Snaresが確立した正統な「Breakcore」ではなく、2010年代以降から登場した、退廃的でグロテスク、エモーショナルな「Breakcoreのような何か」を好んで聞いている。例えばusedcvnt、Sewerslvt、TOKYOPILL、hkmoriなどのアーティストが生み出したBreakcoreのことであり、その特徴は
 - アニメやゲーム、インターネットミームなどのサンプリング
 - 退廃的でグロテスク、非現実的でDoomer的
 - 高速なBPM (160-250程度)、ノイズやグリッチ、ディストーションの多用と、静寂から爆音へと急激に転換する世界観

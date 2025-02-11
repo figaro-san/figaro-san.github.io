@@ -9,3 +9,4 @@ path = "links"
 
 # 知り合いのオタクへのリンク
 - [Azuma-ya's Portfolio](https://azuma-ya.life/)
+- [山田ハヤオ](https://hayao0819.com/)

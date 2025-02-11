@@ -1,5 +1,5 @@
 +++
-title = "C2C CTF Writeup"
+title = "C2C CTF 2025 Writeup"
 date = 2025-02-10
 [taxonomies]
 tags = ["CTF"]

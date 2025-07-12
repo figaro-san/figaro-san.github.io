@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Figaro&#x27;s Blog</title>
+    
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+    <meta name="robots" content="noodp"/>
+    <meta name="google-site-verification" content="g4e1f-rfOGwL8eft4txNmLdl2trU4nFIKvIdVoXx6V8" />
+
+    <link rel="stylesheet" href="https://figaro-san.github.io/style.css">
+    <link rel="stylesheet" href="https://figaro-san.github.io/color/green.css">
+
+        <link rel="stylesheet" href="https://figaro-san.github.io/color/background_dark.css">
+    
+    <link rel="stylesheet" href="https://figaro-san.github.io/font-hack-subset.css">
+
+    <meta name="description" content="">
+
+    <meta property="og:description" content="">
+    <meta property="og:title" content="Figaro's Blog">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://figaro-san.github.io/diver-osint-ctf/">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:description" content="">
+    <meta name="twitter:title" content="Figaro's Blog">
+    <meta property="twitter:domain" content="figaro-san.github.io">
+    <meta property="twitter:url" content="https://figaro-san.github.io/diver-osint-ctf/">
+
+        <link rel="shortcut icon" type="image&#x2F;x-icon" href="/butterfly.jpg">
+    
+    </head>
+
+<body class="">
+<div class="container">
+    
+    <header class="header">
+        <div class="header__inner">
+            <div class="header__logo">
+                    
+                <a href="https://figaro-san.github.io" style="text-decoration: none;">
+                    <div class="logo">
+                      
+                            Figaro&#x27;s Blog
+                        
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        
+        
+                <nav class="menu">
+            <ul class="menu__inner">
+                <li class="active"><a href="https://figaro-san.github.io">blog</a></li>
+            
+                <li><a href="https://figaro-san.github.io/tags">tags</a></li>
+            
+                <li><a href="https://figaro-san.github.io/whoami">whoami</a></li>
+            
+                <li><a href="https://figaro-san.github.io/about">about</a></li>
+            
+                <li><a href="https://figaro-san.github.io/links">links</a></li>
+            </ul>
+        </nav>
+    
+    
+        
+    </header>
+    
+
+    <div class="content">
+        
+    <div class="post">
+        
+    <h1 class="post-title"><a href="https://figaro-san.github.io/diver-osint-ctf/">DIVER OSINT CTF writeup</a></h1>
+    <div class="post-meta-inline">
+        
+    <span class="post-date">
+            2024-06-13
+        </span>
+
+    </div>
+
+    
+        <span class="post-tags-inline">
+                :: tags:&nbsp;
+                <a class="post-tag" href="https://figaro-san.github.io/tags/ctf/">#CTF</a></span>
+    
+
+        <div class="post-content">
+            <h1 id="konoji-shi-nituite">この記事について</h1>
+<p>この記事は2024/6/8 12:00 から 2024/6/9 12:00までに行われたDIVER OSINT CTFにおいて、私が正解した問題などのWriteupになります。チームのWriteupもありますが、個人用にも残しておこうと思い上げました。</p>
+<h1 id="welcome-welcome">Welcome / Welcome</h1>
+<blockquote>
+<p>DIVER OSINT CTFへようこそ！
+ルールのページからFlagを見つけて入力してください。
+正解すると、ほかの問題がアンロックされます！</p>
+</blockquote>
+<p>ルールに書いてあるフラグを入力して終了。</p>
+<pre style="background-color:#151515;color:#e8e8d3;"><code><span>Diver24{ganbarou!}
+</span></code></pre>
+<h1 id="introducion-dream">introducion / Dream</h1>
+<blockquote>
+<p>画像に写っているパイプオルガンがある施設の郵便番号を答えなさい。</p>
+</blockquote>
+<p>あまりにも特徴的なパイプオルガンと「夢」という文字だったので、画像検索。
+すると大阪府大東市赤井1丁目4番1号にあるポップタウン住道 オペラパークという施設が引っかかるので、ここの郵便番号をフラグとして入力すれば正解しました。</p>
+<h1 id="introduction-serial">introduction / serial</h1>
+<blockquote>
+<p>これらの動画の背景に映っている航空機のシリアル番号は何か？</p>
+</blockquote>
+<p>動画より、機体にはANAとJA222Aという文字が見えます。
+なのでそのまま調べると、シリアル番号が分かります。</p>
+<h1 id="introduction-246">introduction / 246</h1>
+<blockquote>
+<p>画像が撮影された場所から最も近い交差点名を答えよ。</p>
+</blockquote>
+<p>画像には特徴的な橋が写っており、画像検索から関門橋らしいことが分かります。あとは橋との位置関係が写真と同じような場所をGoogle mapで調べ回ると、「長州藩下関前田台場跡」近くがそれっぽいので、そこから一番近い「前田」が正解の交差点名でした。</p>
+<h1 id="military-osprey1">military / osprey1</h1>
+<blockquote>
+<p>2023年11月29日、アメリカ軍のオスプレイ（V-22）が日本の屋久島沖で墜落した。この機体の番号と、墜落時のコールサインは何か。</p>
+</blockquote>
+<p>適当に記事を検索してみると</p>
+<blockquote>
+<p>アメリカ空軍の第353特殊作戦航空団所属で横田基地配備のCV-22Bオスプレイ</p>
+</blockquote>
+<p>ということが分かります。
+あとは適当にCV-22Bとかオスプレイとかの単語でツイッターを漁ると<a href="https://x.com/oldconnie/status/1730235904592134469">ここ</a>に答えがありました。
+よって機体番号は12-0056、コールサイン「GUNDAM22」が答えです。</p>
+<h1 id="military-osprey2">military / osprey2</h1>
+<blockquote>
+<p>2024年2月15日、ある米軍基地でこの事故に関する追悼式典が実施された。16:46:37ごろ、その式典はどこで実施されていたか。
+OpenStreetMapのWay番号で答えよ。</p>
+</blockquote>
+<p>osprey memorial ceremonyとかで調べると<a href="https://www.stripes.com/branches/air_force/2024-02-15/osprey-crash-japan-yokota-service-13010379.html">こんなの</a>が出てきます。東京都西多摩にある横田基地で行われたようです。記事には</p>
+<blockquote>
+<p>A half-hour before sunset, approximately 600 people, mostly airmen in uniform, gathered for a brief retreat ceremony on the athletic field outside Yokota’s Samurai Fitness Center.</p>
+</blockquote>
+<p>とあるように、日没の30分前に式典が行われていたそうです。ちなみに2024/2/15の西多摩の日没は17:24であり、その30分前は16:46:37ごろにだいぶ近いので、おそらくここで間違いないと、この時点で思いました。</p>
+<p>さらに調べていくと、より詳細なページが<a href="https://www.yokota.af.mil/News/Latest-Announcements/Article/3672888/gundam-22-memorial-service/">見つかります</a></p>
+<blockquote>
+<p>RETREAT CEREMONY</p>
+<p>Date: Thursday, Feb. 15</p>
+<p>Time: 5 p.m. to 5:10 p.m. (All formation participants to form up by 4:45 p.m.)</p>
+<p>Location: Track and Field area, across from the Samurai Fitness Center (Bldg. 689)</p>
+</blockquote>
+<p>これは先程の情報とも矛盾がないため、OSMでこのSamurai Fitness Center上の陸上競技場を調べ、Way番号を得れば正解です。</p>
+<p>ちなみに、この時私はOSMに始めて触れたためWayが全然分からず、しまいには陸上競技場の外周のWayを回答にひたすら送っていたりしました。(答えは地物から遊園地というものを選択して、そのWayを見る必要があった)</p>
+<h1 id="military-osprey3">military / osprey3</h1>
+<blockquote>
+<p>墜落した機体は2018年11月15日の夜、ある空港に駐機していたらしい。その地点の標高（フィート）を整数で答えよ。なお、各種データソースの時刻にズレはないと仮定してよい。また、空港に関する情報は最新のものを参照してよい（2018年時点のデータを用いる必要はない）。</p>
+</blockquote>
+<p>osprey1で得た機体番号を検索にかけていくと、<a href="https://www.jetphotos.com/photo/9144357">この画像</a>に出会います。まさしく2018/11/15の深夜に見えますね。
+ページによると、この機体は「ヨハネパウロ2世・クラクフ・バリツェ国際空港」にいたそうです。Wikiなどで見ると、標高は791ftとなっていますが、これは空港の建物の高さを含んでいるため、答えではありません。</p>
+<p>画像とGoogle mapを照らし合わせると、「Polska Agencja Żeglugi Powietrznej」が画像中央のオスプレイの真後ろにあり、左側は明るいため空港で、右は格納庫のように見えます。Google mapで見ると、大体「Polska Agencja Żeglugi Powietrznej」を南にした時、オスプレイが北の位置にいるので、「Polska Agencja Żeglugi Powietrznej」から見て北側の滑走路にオスプレイがいたと推測できます。</p>
+<p>krakow elevation とかで調べるとこの<a href="https://www.ais.pansa.pl/aip/pliki/EP_AD_2_EPKK_en.pdf">資料</a>が出てきました。あとはそれっぽい単語を調べると774ftと出てくるのでこれが答えです。</p>
+<p>なんですが、なんかまぐれ当たり感が拭えない。この資料本当に正しいのだろうか。
+他のwriteupを見るとこのような<a href="https://krakowairport.pl/storage/2021-01/ep-ad-2-epkk-1-1-1-en1-1611834393HArbS.pdf">資料</a>が出てきて、当該箇所はMILITARY APRON 3という場所で774ftだと分かるのですが、これが一番キレイな回答に思えます。</p>
+<p>ちなみに「Polska Agencja Żeglugi Powietrznej」って何...? 管制塔?</p>
+<h1 id="jie-ketenaikedo-investigetion-request-mapper">解けてないけど investigetion_request / mapper</h1>
+<blockquote>
+<p>あなた方は極めて高い調査スキルを持っていると聞いた。我々の身分は明かせなくて申し訳ないのだが、一つ調査依頼を受けてくれないだろうか。
+我々はある男を追っている。
+情報が見つからず困っていたのだが、彼が撮ってアップロードした写真を見つけた。現地時間でいつ撮影されたのか特定してほしい。</p>
+</blockquote>
+<p>当該画像の場所を見つけたり(岐阜駅前)、写真が取られた時期を頑張って推測したり、Facebookのメタデータが怪しくて一生ドハマりしていました。
+答えられなくて本当に悔しい。</p>
+<p>どうやらMapillaryに当該画像があり、2023/2/6に撮られたようです。<a href="https://www.mapillary.com/app/?lat=35.412007&amp;lng=136.756698&amp;z=18.507253381463244&amp;focus=photo&amp;pKey=438678415240541">画像</a>
+あとはsun-calcとかで時間出すんですかね...?</p>
+<h1 id="zui-hou-ni">最後に</h1>
+<p>OSINTは初体験でしたが、楽しかったのでまたやりたい。</p>
+
+        </div>
+
+        
+            <div class="pagination">
+                <div class="pagination__title">
+                    <span class="pagination__title-h">Thanks for reading! Read other posts?</span>
+                    <hr />
+                </div>
+                <div class="pagination__buttons">
+                        <span class="button previous">
+                            <a href="https://figaro-san.github.io/function-prologue/">
+                                <span class="button__icon">←</span>&nbsp;
+                                <span class="button__text">関数のプロローグについて</span>
+                            </a>
+                        </span>
+                    
+                    
+                        <span class="button next">
+                            <a href="https://figaro-san.github.io/seccon-beginners-ctf-2024/">
+                                <span class="button__text">SECCON Beginners CTF 敗戦記</span>&nbsp;
+                                <span class="button__icon">→</span>
+                            </a>
+                        </span>
+                    </div>
+            </div>
+        
+    </div>
+
+    </div>
+
+    
+    <footer class="footer">
+        <div class="footer__inner">
+                <div class="copyright">
+                        <span>© 
+    2025
+ Powered by <a href="https://www.getzola.org/">Zola</a></span>
+                    <span class="copyright-theme">
+                        <span class="copyright-theme-sep">:: </span>
+                        Theme: <a href="https://github.com/pawroman/zola-theme-terminimal/">Terminimal</a> by pawroman
+                    </span>
+                </div>
+            </div>
+    </footer>
+    
+
+</div>
+</body>
+
+</html>

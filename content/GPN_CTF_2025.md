@@ -8,6 +8,8 @@ tags = ["CTF"]
 ## すいません。眠いです。
 眠いので適当な文章を書いています。すいません推敲していません。  
 
+---
+
 ## NASA
 writeupを読んだ。  
 どうやらASanの所為で、`option`変数はshadow stackにあり、実際のスタックには無いため、このアドレスは参考にならないという話だった。  
@@ -19,7 +21,7 @@ docker cp aa9c9cc2a66e:/lib/x86_64-linux-gnu/libc.so.6 .
 ```
 
 これで手元にlibcが落ちてくるからpwntoolsに食わせる。  
-2の`read`で`elf.got['system']`を送信して`system`のアドレスをリーク。  
+2の`read`で`elf.got['system']`を送信して`system`のアドレスをリーク。(なぜか`puts`等ではうまくlibc baseが算出出来なかったがASanが悪さをしている?)  
 リークした`system`から、相対オフセットを引くことでlibcベースがリーク。  
 libcベースがリークしたことによって`environ`の位置がlibcベースから算出できる。  
 また、`environ`を2の`read`することで、今のスタックがどこに位置しているか判明する。 

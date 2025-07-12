@@ -8,5 +8,5 @@ path = "links"
 - Email: port_figaro@protonmail.com
 
 # 知り合いのオタクへのリンク
-- [Azuma-ya's Portfolio](https://azuma-ya.life/)
+- [Azuma-ya's Portfolio](https://azuma-ya.dev/)
 - [山田ハヤオ](https://hayao0819.com/)

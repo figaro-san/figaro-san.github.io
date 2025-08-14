@@ -4,7 +4,8 @@ path = "links"
 +++
 # 私が持つアカウントへのリンク
 - [Github](https://github.com/figaro-san)
-- [Qiita (今後使う予定は無い)](https://qiita.com/Figaro-san)
+- [Qiita](https://qiita.com/Figaro-san)
+- [Twitter(X)](https://x.com/figaro_san94355)
 - Email: port_figaro@protonmail.com
 
 # 知り合いのオタクへのリンク

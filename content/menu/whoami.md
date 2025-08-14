@@ -3,15 +3,22 @@ title = "whoami"
 path = "whoami"
 +++
 # 私について
-情報系大学生、低レイヤやCTF(特にPwn)あたりに興味がある。大学以前はCプログラミングに触れていた程度。大学2年あたりで「変」な読み物に啓蒙され、Linuxをいじり始めたり技術書を読み始めたり、CTFなどをやり始めた。最近は特にOSやテキストエディタの写経、Rust、Heapへの攻撃などに興味がある。コンピュータ以外にも音楽や物書き、SFなどにも興味がある。
+情報系大学生、低レイヤやCTF(特にPwn)あたりに興味がある。  
+最近になってTwitterをやり始めた。  
+
+最近は
+- Rust
+- Heap, Kernel Exploits
+- ELF Format
+- Intel SGX (TEE)
+
+などに興味が有る。
 
 ---
 
 # できること
-- プログラミング
+- プログラミング (開発力は無いが書けはする程度)
 	- x86-64 Assembly, C, Rust, Lisp, Python, Java, ShellScript 等
-	- Rustやこのブログサイトを作成する際に適当に学んだJSなどは勉強中
-	- というより自信を持って「書ける」と言える言語は無い。
 
 - Linuxの使用
 	- 現在はEndeavour OSを利用中
@@ -27,19 +34,9 @@ path = "whoami"
 ---
 
 # できるようになりたいこと
-- さらなるBinary Exploit
-	- ヒープ、より発展的なセキュリティ機構のバイパス、windows関連、arm関連、ELFフォーマット、Linux Kernelやglibcなどについては勉強中
-
-- より広範囲のHack
-	- Hardware Hacking (IoTなど)
-	- Boot2Root
-	- Social Engineering
-	- CTFで出題されるPwn(とWeb)以外の領域
-
-- より深い低レイヤへの理解
-	- OSを書いてみたり、nand2tetrisをしてみたり、CS:APPを読んでみたり、Linux Kernelを知ればより良いExploitが理解できるし書けるはず。
-
-できるようになりたいなら、やればいいじゃないかって? そりゃそうだよ。
+- Heap, Kernel Exploit
+- より発展的なセキュリティ機構のバイパス
+- 低レイヤへの理解 (OSを書く、nand2tetrisをする、CS:APPを読むなどをしたいと考えている)
 
 ---
 

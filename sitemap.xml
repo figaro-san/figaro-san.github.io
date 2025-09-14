@@ -55,6 +55,10 @@
         <lastmod>2025-03-19</lastmod>
     </url>
     <url>
+        <loc>https://figaro-san.github.io/seccamp2025-cdiworkshop/</loc>
+        <lastmod>2025-08-27</lastmod>
+    </url>
+    <url>
         <loc>https://figaro-san.github.io/seccon-beginners-ctf-2024/</loc>
         <lastmod>2024-06-17</lastmod>
     </url>
@@ -76,6 +80,9 @@
     </url>
     <url>
         <loc>https://figaro-san.github.io/tags/network/</loc>
+    </url>
+    <url>
+        <loc>https://figaro-san.github.io/tags/others/</loc>
     </url>
     <url>
         <loc>https://figaro-san.github.io/tags/pwn/</loc>

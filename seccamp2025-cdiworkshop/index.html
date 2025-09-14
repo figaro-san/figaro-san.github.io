@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Figaro&#x27;s Blog</title>
+    
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+    <meta name="robots" content="noodp"/>
+    <meta name="google-site-verification" content="g4e1f-rfOGwL8eft4txNmLdl2trU4nFIKvIdVoXx6V8" />
+
+    <link rel="stylesheet" href="https://figaro-san.github.io/style.css">
+    <link rel="stylesheet" href="https://figaro-san.github.io/color/green.css">
+
+        <link rel="stylesheet" href="https://figaro-san.github.io/color/background_dark.css">
+    
+    <link rel="stylesheet" href="https://figaro-san.github.io/font-hack-subset.css">
+
+    <meta name="description" content="">
+
+    <meta property="og:description" content="">
+    <meta property="og:title" content="Figaro's Blog">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://figaro-san.github.io/seccamp2025-cdiworkshop/">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:description" content="">
+    <meta name="twitter:title" content="Figaro's Blog">
+    <meta property="twitter:domain" content="figaro-san.github.io">
+    <meta property="twitter:url" content="https://figaro-san.github.io/seccamp2025-cdiworkshop/">
+
+        <link rel="shortcut icon" type="image&#x2F;x-icon" href="/butterfly.jpg">
+    
+    </head>
+
+<body class="">
+<div class="container">
+    
+    <header class="header">
+        <div class="header__inner">
+            <div class="header__logo">
+                    
+                <a href="https://figaro-san.github.io" style="text-decoration: none;">
+                    <div class="logo">
+                      
+                            Figaro&#x27;s Blog
+                        
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        
+        
+                <nav class="menu">
+            <ul class="menu__inner">
+                <li class="active"><a href="https://figaro-san.github.io">blog</a></li>
+            
+                <li><a href="https://figaro-san.github.io/tags">tags</a></li>
+            
+                <li><a href="https://figaro-san.github.io/whoami">whoami</a></li>
+            
+                <li><a href="https://figaro-san.github.io/about">about</a></li>
+            
+                <li><a href="https://figaro-san.github.io/links">links</a></li>
+            </ul>
+        </nav>
+    
+    
+        
+    </header>
+    
+
+    <div class="content">
+        
+    <div class="post">
+        
+    <h1 class="post-title"><a href="https://figaro-san.github.io/seccamp2025-cdiworkshop/">Seccamp 2025, CDI workshop</a></h1>
+    <div class="post-meta-inline">
+        
+    <span class="post-date">
+            2025-08-27
+        </span>
+
+    </div>
+
+    
+        <span class="post-tags-inline">
+                :: tags:&nbsp;
+                <a class="post-tag" href="https://figaro-san.github.io/tags/ctf/">#CTF</a>&nbsp;
+                <a class="post-tag" href="https://figaro-san.github.io/tags/others/">#Others</a>&nbsp;
+                <a class="post-tag" href="https://figaro-san.github.io/tags/trip/">#Trip</a></span>
+    
+
+        <div class="post-content">
+            <h2 id="korehahe">これは何</h2>
+<p>2025年8月11日から8月16日まで開催されたセキュリティ・キャンプ2025全国大会と、2025年8月21, 22日にCDIが主催したBinary Exploitation Workshop for Studentsに参加してきたので、その感想です。</p>
+<h2 id="sekiyuritei-kiyanpu2025-quan-guo-da-hui">セキュリティ・キャンプ2025 全国大会</h2>
+<p>私は開発のL3 TEEビルド&amp;スクラップゼミに参加してきました。</p>
+<h3 id="1ri-mu">1日目</h3>
+<p>学割を効かせて移動するはずが、それを忘れて足が出た状態で新幹線を利用(本来なら運営側が移動費を全額負担してくれる)<br />
+会場が近づくとそれっぽい人が増えはじめる。会場では最初に開講式に参加し、同じグループの席に座った人々や、その他受講生、チュータ等と親交を深めた。<br />
+pwn(binexp)の強い人その1と話がしてみたかったのでとりあえず話しかける。解題pwnableが良いとか、ヒープをgdbで追えとか、libcを追えとか、メタデータの上書きが大体みたいな話を聞いて終わる。他にもあと2人ほどいた。この日は適当な受講生同士の交流で1日が終わった。</p>
+<h3 id="2ri-mu">2日目</h3>
+<p>いよいよセキュキャンの開発&amp;攻撃本番 1日目。<br />
+最初はラジオ体操から始まった。なぜか2番も体操することになり困惑。<br />
+その後ゼミの部屋へ集合してゼミが開始されたが、講師である櫻井さんがなぜかホワイトボードにLVIとSGX Failのロゴを書き始める。とりあえずこの日はSGX-Vaultの簡単な実装を行ったが、これが大いに問題で私の開発力の低さが露呈していた。<br />
+午後ぐらいから様子がだんだんおかしくなり始めて私もZombieLoadや ÆPIC LAEKのロゴを書き始める。意味のわからないEnclaveのクラッシュやllmの吐いた謎のコードと格闘する。<br />
+最終的には、当日の8時間程度をぶっ続けで実装に費やし、かつ櫻井さんがうっかりUTCの設定を間違えたAzureのインスタンスでさらに5, 6時間程度の実装を行い、さらには同じL3ゼミの受講生に助けてもらいながらパスワードの保存だけ実装する。<br />
+これだけやっても、まだRAの処理の次に乗っけるというかhttpリクエスト等でSGX-Vaultの操作をしなければならないらしいが、どうなることか。<br />
+最低限の機能で許してくれないかな...<br />
+開発力の低さは反省するべきことだと思う。今まではexploitを書くためにしかプログラムを書いておらず、まともなソフトウェア開発の経験は0だった。それで良いと考えている時期があったが、今ではとてもバカバカしい考えだったと思う。</p>
+<h3 id="3ri-mu">3日目</h3>
+<p>昨日は大量の魔剤を摂取したため寝ていないが眠くない。<br />
+大体開発は終わっている(ことにしたし、櫻井さんに良いと言われた、許された)ので、攻撃をしてみる。<br />
+今回はSGX-Bleed、Controlled-Channel Attackを行う。<br />
+脆弱性のロゴを大量に書いたホワイトボードや、櫻井氏の「助けてぇ(裏声)」がちょっと有名になっていた。<br />
+この日の最後にはBoF(Birds of a Feather)というイベントが開催され、私はBinexpに関連する集まりへと向かった。<br />
+pwnの強い人その1のKernel Exploit demoを見て、また別の強い人その2とv8、Kernel、Heap Exploitやpwnに対するllmの使い方、SGXの話などをした。</p>
+<h3 id="4ri-mu">4日目</h3>
+<p>この日は5日目に発表するためと、セキュキャンを修了するための資料を作成して終わった。<br />
+また、デバッグ神社ならぬ絶望神社を建立した(モンスターの空き缶で作り上げた鳥居のこと)。助けて。<br />
+普通に櫻井さん床で寝てるし、「助けてぇ(裏声)」だし、Intelを罵倒し始めるし、最後には私達受講性も真似し始める。<br />
+一応この日の最後にはLT会があり、私も発表させて頂いた。CTFを利用して海外で遊ぶとかいうふざけた発表をさせて頂いたが貴重な体験になったと感じている。</p>
+<h3 id="5ri-mu">5日目</h3>
+<p>喫煙者を集めて6日目に喫煙所へ駆け込むことを画策する。喫煙者がいっぱいいて嬉しい。<br />
+適当に成果発表会で発表させて頂いたが、ロクなことをしていないので胸を張れない。精進します。<br />
+この後は成果発表と閉会式、写真撮影があったが、あまり覚えていない。<br />
+全体の写真撮影とは別に、講師の櫻井さんと、Lトラックのプロデューサの松岡さん、もう一人のL3受講生と写真を取る。</p>
+<p>この後で協賛企業の紹介イベントがあり、</p>
+<ul>
+<li>
+<p>リチェルカセキュリティ<br />
+ptrlibの開発者がいる
+技術力ではなくマインドを重視</p>
+</li>
+<li>
+<p>サイバーディフェンス研究所 (CDI)<br />
+攻撃用のツール(物理)を自作したりするラボがあるらしい<br />
+この後に書く、Binary Exploitation for Studentsのホストでお世話になった</p>
+</li>
+<li>
+<p>FFRI セキュリティ<br />
+あっ...</p>
+</li>
+<li>
+<p>GMO Flatt Security<br />
+よく分からん</p>
+</li>
+</ul>
+<p>を見た。</p>
+<p>途中、某社でkurenaifを見かける。kurenaifステッカーをもらった。応援しています。<br />
+低レイヤな箇所を扱っている会社が少なく、この話を某チルノアイコンクソオタク(L3受講生)にするとwebとかインフラをやれとか言ってくる。Binary Exploitとかニッチすぎるし尖ってる割に金にならないとか言われる。やっぱり私のこと下に見てますね？馬鹿にしやがって。<br />
+紹介イベント後は謎の立食パーティが始まる。そのうち疲れて座っているとpwnの強い人その1と再度会う。某CTFチームに入らないかと誘われる。pwnとかrevだけのチームがあったらカッコいいとか言い始めて最高だった。勿論入りたい(後日入らせて頂いた)。Kernelとか解説してくれるらしい。最後に2人で写真を取った。<br />
+この後でpwnの強い人その3と出会い、pivot4b++、ASLR、PIE、ELF等の話をした。知識のレベルが俺と似ており、話しやすかったことを覚えている。<br />
+最後に謎の謎解きゲームが始まるが面倒くさくて帰った。帰る途中でpwnの強い人その2とまたエンカし、面倒くさいから帰るという意見が一致した。魂の形が同じだ...<br />
+というかここには書ききれないが、ちょくちょくその2とエンカしては会話している気がする。<br />
+なんかpwnやってる奴は大体皆似ており、魂の形が私と同じであることを確認した。</p>
+<h3 id="6ri-mu">6日目</h3>
+<p>5日目に集めた人達と喫煙所に流れ込む。生きててよかった。<br />
+あとはチェックアウトするだけだが、ここでまたpwnの強い人その2と会って写真を撮った。<br />
+チェックアウト後、私は何をトチ狂ったか、大学の友人共と東京を散策。夜には秋葉原で購入したクソデカディスプレイを抱えて徘徊する。</p>
+<h3 id="7ri-mu">7日目?</h3>
+<p>何故かコミケに来てしまった。辛い。</p>
+<h3 id="sekiyukiyannogan-xiang">セキュキャンの感想</h3>
+<p>全体的に良い経験だった。正直L3ゼミというかSGXに関しては私の力不足でそこまでの学習が得られなかったが、pwnの強い人3名及びCTFチームへの招待、その他セキュリティ界隈の人間と知り合えたことが一番大きな収穫だと思っている。<br />
+引き続きかつ積極的にこうしたイベントには参加して知り合いを増やしていきたいと思う。コネって馬鹿にならないことを知れた。</p>
+<hr />
+<h2 id="binary-exploitation-workshop-for-students">Binary Exploitation Workshop for Students</h2>
+<p>2025年8月21日と22日に株式会社サイバーディフェンス研究所で行われたBinary Exploitation Workshop for Studentsに参加しました。</p>
+<h3 id="1ri-mu-1">1日目</h3>
+<p>1日目に受講した講義の概要は以下</p>
+<ul>
+<li>Stack-based Buffer Overflowとシェルコード実行</li>
+<li>NXビットとROP</li>
+<li>ROP応用（Stack Pivoting等）</li>
+<li>SSP/ASLR/PIEと情報リーク</li>
+<li>任意アドレスの読み書き</li>
+<li>RELROの回避</li>
+</ul>
+<p>朝10時から夜の5時程度まで多少の休憩を挟みながらCDIの講師の方の話を聞いていた。全体的に時間が足りずすべてのトピックを十全に説明しきれていないという印象を受けたが、提供された資料や講義の質というか情報の正確性が凄まじく高く、この資料を頂いただけでも参加する意味があったと感じている。<br />
+内容自体はある程度知っている話で、所々勉強になる情報を拾いながら1日目の講義が終了した。<br />
+この後1時間程度の懇親会のようなものがあり、CDIの人とデフコソがどうとかhow2heapがどうという趣旨の話をして終了した。</p>
+<h3 id="2ri-mu-1">2日目</h3>
+<p>2日目は1日目でやりきれなかった講義の続きを午前中に行い、午後は簡易的なCTFを行った。<br />
+講義の内容とCTFの難易度が隔絶としており、皆唖然としていたことを覚えている。<br />
+私自身CTFの問題は2問しか解けず、多く解けた人でも3問程度だった。<br />
+この後はCTFの成績に応じてCDIさんからプレゼントを頂いた。私は確かDEF CONのステッカーとCDIのロゴが入ったUSBメモリを頂いた。</p>
+<h3 id="binary-exploitation-workshop-for-studentsnogan-xiang">Binary Exploitation Workshop for Studentsの感想</h3>
+<p>ここでも多くのバイナリアンやその卵の方々とお話できたことは貴重な経験となった。セキュキャンでもそうだったが、バイナリをいじいじしている人間が少ないため、こうした機会にバイナリの話ができるのは本当に良い経験だった。<br />
+なお、CDIで開かれたCTFのwriteupは別でポストする...はず。</p>
+<h2 id="zhong-warini">終わりに</h2>
+<p>やっぱりセキュリティ系のイベントに参加するべきだと痛感した期間だった。今まではあまり興味がなかったのだが、何事も経験は重要であるらしい。<br />
+CODE BLUEの学生スタッフにも応募したのだが落ちてしまったので、新しいイベントを探したいところ。</p>
+
+        </div>
+
+        
+            <div class="pagination">
+                <div class="pagination__title">
+                    <span class="pagination__title-h">Thanks for reading! Read other posts?</span>
+                    <hr />
+                </div>
+                <div class="pagination__buttons">
+                        <span class="button previous">
+                            <a href="https://figaro-san.github.io/seccon-beginners-ctf-2025/">
+                                <span class="button__icon">←</span>&nbsp;
+                                <span class="button__text">SECCON Beginners CTF 2025 writeup</span>
+                            </a>
+                        </span>
+                    
+                    </div>
+            </div>
+        
+    </div>
+
+    </div>
+
+    
+    <footer class="footer">
+        <div class="footer__inner">
+                <div class="copyright">
+                        <span>© 
+    2025
+ Powered by <a href="https://www.getzola.org/">Zola</a></span>
+                    <span class="copyright-theme">
+                        <span class="copyright-theme-sep">:: </span>
+                        Theme: <a href="https://github.com/pawroman/zola-theme-terminimal/">Terminimal</a> by pawroman
+                    </span>
+                </div>
+            </div>
+    </footer>
+    
+
+</div>
+</body>
+
+</html>

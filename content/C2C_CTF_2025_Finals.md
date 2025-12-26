@@ -1,5 +1,5 @@
 +++
-date = 2025-06-30
+date = 2025-07-30
 title = "C2C CTF Finals 2025 in Boston"
 [taxonomies]
 tags = ["CTF", "Trip"]

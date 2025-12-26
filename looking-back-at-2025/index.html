@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Figaro&#x27;s Blog</title>
+    
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+    <meta name="robots" content="noodp"/>
+    <meta name="google-site-verification" content="g4e1f-rfOGwL8eft4txNmLdl2trU4nFIKvIdVoXx6V8" />
+
+    <link rel="stylesheet" href="https://figaro-san.github.io/style.css">
+    <link rel="stylesheet" href="https://figaro-san.github.io/color/green.css">
+
+        <link rel="stylesheet" href="https://figaro-san.github.io/color/background_dark.css">
+    
+    <link rel="stylesheet" href="https://figaro-san.github.io/font-hack-subset.css">
+
+    <meta name="description" content="">
+
+    <meta property="og:description" content="">
+    <meta property="og:title" content="Figaro's Blog">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://figaro-san.github.io/looking-back-at-2025/">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:description" content="">
+    <meta name="twitter:title" content="Figaro's Blog">
+    <meta property="twitter:domain" content="figaro-san.github.io">
+    <meta property="twitter:url" content="https://figaro-san.github.io/looking-back-at-2025/">
+
+        <link rel="shortcut icon" type="image&#x2F;x-icon" href="/butterfly.jpg">
+    
+    </head>
+
+<body class="">
+<div class="container">
+    
+    <header class="header">
+        <div class="header__inner">
+            <div class="header__logo">
+                    
+                <a href="https://figaro-san.github.io" style="text-decoration: none;">
+                    <div class="logo">
+                      
+                            Figaro&#x27;s Blog
+                        
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        
+        
+                <nav class="menu">
+            <ul class="menu__inner">
+                <li class="active"><a href="https://figaro-san.github.io">blog</a></li>
+            
+                <li><a href="https://figaro-san.github.io/tags">tags</a></li>
+            
+                <li><a href="https://figaro-san.github.io/whoami">whoami</a></li>
+            
+                <li><a href="https://figaro-san.github.io/about">about</a></li>
+            
+                <li><a href="https://figaro-san.github.io/links">links</a></li>
+            </ul>
+        </nav>
+    
+    
+        
+    </header>
+    
+
+    <div class="content">
+        
+    <div class="post">
+        
+    <h1 class="post-title"><a href="https://figaro-san.github.io/looking-back-at-2025/">Looking back at 2025</a></h1>
+    <div class="post-meta-inline">
+        
+    <span class="post-date">
+            2025-12-26
+        </span>
+
+    </div>
+
+    
+        <span class="post-tags-inline">
+                :: tags:&nbsp;
+                <a class="post-tag" href="https://figaro-san.github.io/tags/others/">#Others</a></span>
+    
+
+        <div class="post-content">
+            <h2 id="2025nian-nozhen-rifan-ri">2025年の振り返り</h2>
+<p>この記事は2025年を振り返った文章になります。このブログを読む人間が多いとは思いませんが、文章を書くことは何気に楽しいもので、ポートフォリオ兼つぶやきのようなものになります。この文章を書いている現在(2025/12/26)はこんなことをしている場合ではないのですが...</p>
+<h2 id="1-6yue">1-6月</h2>
+<p>正直このあたりは何をしていたか覚えておらず、特筆することもありません。CTFして大学と卒業研究をこなしていた気がします。卒業研究としてTEE (Intel SGX)に触れ始めた時期でもあり、Intel SGX Explainedや某氏のセキュリティキャンプ資料を読んでいた気がします。加えてSGX関連研究、特にSGXに対するmemory corruption関連を調べていました。もしSGX関連のmemory corruptionに興味があれば下記を読むと良いかもしれません。</p>
+<ul>
+<li>Dark-ROP</li>
+<li>The Guard's Dilemma</li>
+<li>SGX-Shield</li>
+<li>Practical Enclave Malware with Intel SGX (SGX-ROP)</li>
+<li>SmashEx</li>
+</ul>
+<p>特にSmashExはBoFやoff-by-one等のバグが無くともROPで攻撃できるという点でとても面白い論文でした。Dark-ROPもSGXに対するメモリ破壊系攻撃としては有名ですが、これはSGX-Shieldによって防がれます。これをバイパスするためにThe Guard's Dilemmaが提唱され、かつEnclaveのクラッシュやroot権限を必要としない点でDark-ROPより優れているという印象です。Practical Enclave MalwareはEnclaveイメージが攻撃者によって提供され、それを使ってしまうがためにEnclaveにマルウェアが住み着く -&gt; ROP開始という攻撃です。悪性のEnclaveモデルを使ってしまうという脅威モデルを提案していますが、SGXに対する攻撃は往々にしてトンデモ脅威モデルや正気を疑う攻撃手法が提案されるため、さもありなんと言った感じです。ですが悪性のEnclaveイメージを提供する時点でマルウェアで無くても良い気がしているのは私だけでしょうか。</p>
+<p>ともかく、今年の前半はほとんどSGX関連研究のサーベイが主でした。思い出もありません。</p>
+<h2 id="7yue">7月</h2>
+<p>この月はC2C CTFでアメリカ、ボストンに渡航しました。人生発の海外渡航、オンサイト決勝だったので良い経験でした。しかし私の英語力は高が知れており、この期間中はコミュニケーションの拙さからかなり参っていました。また、C2Cで用意されていたプログラムの中にはグループワークによる簡易的なコンペティションも企画されており、これもなかなかキツイものがありました。参加者達と話せないこともなかったのですが、リスニングが弱く、変な回答をしていたことから呆れられていたことでしょう。拙い英語力を誤魔化せるほどのPwn力が欲しいものです。英語を頑張るべきという意見もあります。まあ、今振り返れば良い経験でした。C2Cの詳細な話は別のページにあるのでよければご一読下さい。</p>
+<h2 id="8yue">8月</h2>
+<p>この月で書くことはセキュキャンへの参加かと思います。私はL3 TEE&amp;スクラップゼミに参加してきました。セキュキャンの中で特に印象に残っていることはL3ゼミの内容もそうなのですが、それ以上に同じくBinexpをする人間とのつながりが得られたことかと思います。Heapの気持ちが分からないという謎の会話デッキを持って話しかけに行ったり、Birds of a featherでBinexp関連の人間が集まった際にはv8 pwnや今追っている過去の脆弱性、pwnとllmの付き合い方、私の研究であるSGXの話等をしたことを覚えています。ゼミではSDKを利用した開発と攻撃を行いました。開発はおざなりで、攻撃はまあまあという感じの学生(私)に対しても指導して頂き、講師の櫻井氏には感謝の念に堪えません。ありがとうございました。</p>
+<p>また、セキュキャンの後にはCDIが学生向けに開催していた、Binary Exploitation Workshop For Studentsにも参加させて頂きました。内容自体はStack関連のExploitationを解説するもので、おおよその話は既知でした。しかし情報の質というか精度が素晴らしく、知らない箇所を拾いながら勉強させて頂きました。また、講師の方やCDIの方にも良くして頂き、様々なお話をさせていただいたことも印象に残っています。興奮して変な話をベラベラする失礼な学生(私)に対しても皆さんにはニコニコと対応して頂き、とても感謝の念に堪えません。ありがとうございました。</p>
+<p>某M氏へ: Heapへの入門、及びHouse of Einherjarを最近やりました。見ているかは分かりませんが...</p>
+<h2 id="9yue">9月</h2>
+<p>7、8月でおざなりだった卒業研究をぼちぼち再開していた頃です。再開と言っても適当に論文読んだりしていただけです。ほぼ何もしていません。</p>
+<h2 id="10yue">10月</h2>
+<p>9月のツケが回ってきてしまいました。指導教員に「お前卒業研究不味いよ？」という旨のお叱り(実際はもっとマイルド)を受けてしまい卒業研究を進めていました。基本的にはSmashExのPoCの適用と再現が主な作業です。そのため謎にIntel SGXに対するSmashExに詳しくなってしまい、AEXがどうとか、SGXの例外処理がどうとか、EEXITがencluにrax=0x4とか、State Save Areaがどうとか、MiscSelectが...みたいな話ばかり追いかけていました。結果としてRAやSGXにまつわるChain of Trust、AE(Architectural Enclave)などは未だに理解できていません。Intel SGXの性質上、むしろこちらを理解する方が本質な気もします。なお、SmashExの再現は同じくSGX周りを研究する友人の多大なる支援によって成功しました。ありがとうございます。</p>
+<p>また、10月の終わりにはCSS2025へ参加してきました。東京郊外と言われても信じるような面構えを誇る岡山駅周辺を徘徊し、TEE関連のセッションを聞き流し、セキュキャンから何気に関わりがある方とお会いしたりしていました。</p>
+<h2 id="11yue">11月</h2>
+<p>卒業研究が続きます。SmashExを弄りながら、SGX-DFと呼ばれる脆弱性についてもPoC再現を行っていたのですが、論文の執筆も始めろとのお叱りを頂きました。10月ぐらいにも似たようなお叱りを頂きましたね！これは完全に私の落ち度であり、よく危機感が無いと言われる理由でもあります。余談ですが、私の所属する研究室の先生(指導教員)は、アカハラなどという言葉が浸透して過敏なアンテナが張り巡らされた今日においても、ありえないほどの聖人であり人格者でもあります。私がお叱りを受ける理由は全て私の落ち度であり、お叱りを受けた際も遠回しにオブラートに包んで頂くという人格者ムーブを見せつけられました。また、7月に参加したC2C CTFにおいても渡航費を研究室から捻出して頂き、各イベントにおいても移動費や宿泊費を負担して頂いております。こう振り返ると、私は完全に研究室に寄生して遊んでいる虫と言えます。大学は偽ですが、研究室は本物でした。</p>
+<p>私の人生におけるハイライトという意味では、11月の目玉トピックはHeapに入門したことかと思います。なお、おおよそ理解しているというか、勉強したトピックはおおよそ以下です。</p>
+<ul>
+<li>UAF</li>
+<li>Tcache Poisoning</li>
+<li>Double Free</li>
+<li>Safe linking, Count check Bypass</li>
+<li>Unsorted bin Attack</li>
+<li>Large bin Attack</li>
+<li>House of Einherjar</li>
+<li>House of Orange</li>
+<li>House of Apple 2, 3</li>
+</ul>
+<p>House of 系は他にも大量にあるので時間がある時に勉強したい所です。今はHouse of Huskに興味があります。FSOPの際にはglibcのコードを読み解くのは大変に時間と体力を吸われますが、バカみたいなコード(マクロや後方互換性等)のおかげで攻撃手法が成り立っていることを考慮すると感謝するべきでしょうか。</p>
+<h2 id="12yue">12月</h2>
+<p>12月も論文の執筆を続けています。1月中が提出期限なのですが、ギリギリ終わりそうではあります。</p>
+<p>しかし、ここで問題が発生しました。左下の奥歯が痛みます。本当に不味いと感じて歯医者に駆け込んだのですが、「親知らずが地味に露出していて、菌が入り込んで感染している。親知らず抜かないと骨が溶け続けるよ。あと歯周病やばいから減煙してフロスもしてね(意訳)」と言われます。とりあえず抗生物質と鎮痛剤、口腔外科への紹介状を頂戴して帰宅したのですが、論文も書かねばなりません。巫山戯やがって。しかし自己責任でもあります。1月に論文を提出した後にも作業が残っているので2月に抜歯しようかとは思っているのですが、抜歯すれば2月中は完全にダウンすることでしょう。しかし新居の選定と荷運びがあるため、これが3月中に間に合うはずもありません。そのため1月に新居を契約して業者を予約しなければなりませんが、本当にこの日程で間に合うでしょうか。</p>
+<h2 id="2026nian-noyi-qi-ip-mi">2026年の意気込み</h2>
+<p>来年は下記をいい感じに頑張りたいと思います。</p>
+<ul>
+<li>継続してStack Exploitの強化</li>
+<li>Heap Exploitの研鑽</li>
+<li>Kernel Exploitへの入門</li>
+<li>親知らずの抜歯</li>
+<li>労働 (来年の4月以降は社会人なので...)</li>
+</ul>
+<h2 id="owarini">おわりに</h2>
+<p>どうしろってんだよ</p>
+
+        </div>
+
+        
+            <div class="pagination">
+                <div class="pagination__title">
+                    <span class="pagination__title-h">Thanks for reading! Read other posts?</span>
+                    <hr />
+                </div>
+                <div class="pagination__buttons">
+                        <span class="button previous">
+                            <a href="https://figaro-san.github.io/seccamp2025-cdiworkshop/">
+                                <span class="button__icon">←</span>&nbsp;
+                                <span class="button__text">Seccamp 2025, CDI workshop</span>
+                            </a>
+                        </span>
+                    
+                    </div>
+            </div>
+        
+    </div>
+
+    </div>
+
+    
+    <footer class="footer">
+        <div class="footer__inner">
+                <div class="copyright">
+                        <span>© 
+    2025
+ Powered by <a href="https://www.getzola.org/">Zola</a></span>
+                    <span class="copyright-theme">
+                        <span class="copyright-theme-sep">:: </span>
+                        Theme: <a href="https://github.com/pawroman/zola-theme-terminimal/">Terminimal</a> by pawroman
+                    </span>
+                </div>
+            </div>
+    </footer>
+    
+
+</div>
+</body>
+
+</html>

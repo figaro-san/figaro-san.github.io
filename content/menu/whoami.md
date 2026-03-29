@@ -1,49 +1,33 @@
 +++
-date = 2025-09-14
+date = 2026-03-29
 title = "whoami"
 path = "whoami"
 +++
 ## 私について
-情報系大学生、低レイヤやCTF(特にPwn)あたりに興味がある。  
-最近になってTwitterをやり始めた。  
+低レイヤやCTF(特にPwn)あたりに興味がある。予後が悪そう。最近は下記に興味が有る
 
-最近は
 - Rust
 - Heap, Kernel Exploits
-- ELF Format
 - Intel SGX (TEE)
-
-などに興味が有る。
+- 車 (珍走)
 
 ---
 
 ## できること
 - プログラミング (開発力は無いが書けはする程度)  
-x86-64 Assembly, C, Python  
+  - x86-64 Assembly (システムコール呼び出し、シェルコードなど)  
+  - C (基本的なプログラム作成及びKernel Exploit作成用途)
+  - Python (基本的にはpwntoolsによるStack/Heap Exploit作成用途)  
 
-- 簡易的なLinuxの使用  
-Endeavour OSを使用中  
-Debian, Sambaを利用した簡易的なストレージサーバの運用  
-
-- Stack-basedなExploitができる  
-ret2win, ret2libc, ret2dlresolve, ret2plt, GOT Overwrite, Format String Attack, ROP, SROP, Shllcode, Stack Pivoting, ...  
-
-- 脆弱性次第ではセキュリティ機構のバイパスが行える
-
-- 基本的なx86-64アセンブリの読み書きが行える  
-関数呼び出しやシステムコール、簡単なループや四則演算等をアセンブリで扱える
-
-- プロセスの構造をある程度理解できる  
-例えばスタックや.textセグメント等と、それらによって実行される流れがある程度理解できる  
-ELFフォーマットをある程度理解できる  
-
+- 基礎的なStack/Heap Exploitが理解・実行できる
+- Kernel Exploitにちょっと入門した
 ---
 
-## できるようになりたいこと
-- さらなるStack-basedなExploit (FSOPなど)
-- Heap, Kernel Exploit
-- Rust Programming
-- 低レイヤへの理解
+## 今後の目標
+- Binary Exploitの全体的な強化
+- Rustへの入門
+- さらなる低レイヤへの理解
+- 珍走用の車を購入する
 
 ---
 

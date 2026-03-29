@@ -4,6 +4,10 @@
         <loc>https://figaro-san.github.io/</loc>
     </url>
     <url>
+        <loc>https://figaro-san.github.io/2025nian-nozhen-rifan-ri/</loc>
+        <lastmod>2025-12-26</lastmod>
+    </url>
+    <url>
         <loc>https://figaro-san.github.io/about/</loc>
         <lastmod>2025-09-14</lastmod>
     </url>
@@ -38,10 +42,6 @@
     <url>
         <loc>https://figaro-san.github.io/links/</loc>
         <lastmod>2025-09-14</lastmod>
-    </url>
-    <url>
-        <loc>https://figaro-san.github.io/looking-back-at-2025/</loc>
-        <lastmod>2025-12-26</lastmod>
     </url>
     <url>
         <loc>https://figaro-san.github.io/page/1/</loc>
@@ -98,10 +98,14 @@
     </url>
     <url>
         <loc>https://figaro-san.github.io/whoami/</loc>
-        <lastmod>2025-09-14</lastmod>
+        <lastmod>2026-03-29</lastmod>
     </url>
     <url>
         <loc>https://figaro-san.github.io/why-dont-you-write-shellcode/</loc>
         <lastmod>2024-06-25</lastmod>
+    </url>
+    <url>
+        <loc>https://figaro-san.github.io/wu-shan-xi-ta2026nian-noshi-mari/</loc>
+        <lastmod>2026-03-29</lastmod>
     </url>
 </urlset>

